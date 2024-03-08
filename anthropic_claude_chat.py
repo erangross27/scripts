@@ -2,8 +2,8 @@ import os
 import sys
 import anthropic
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QTextEdit, QLabel, QStatusBar, QMessageBox
-from PyQt5.QtCore import QThread, pyqtSignal, Qt
-from PyQt5.QtGui import QKeyEvent, QFont
+from PyQt5.QtCore import QThread, pyqtSignal, Qt, QRegExp
+from PyQt5.QtGui import QKeyEvent, QFont, QSyntaxHighlighter, QTextCharFormat, QColor, QFontDatabase
 from PyQt5.QtWidgets import QFileDialog, QProgressDialog
 import time
 import logging
@@ -15,9 +15,26 @@ import win32com.client as win32
 import base64
 from io import BytesIO
 
-
-
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+class PythonHighlighter(QSyntaxHighlighter):
+    def __init__(self, document):
+        QSyntaxHighlighter.__init__(self, document)
+        self.rules = []
+        self.format = QTextCharFormat()
+        self.format.setForeground(QColor("black"))  # Set the color to black
+        self.format.setFont(QFont("Cabin", 14))  # Set the font family and size
+        pattern = r'\b[A-Za-z0-9_]+\b'
+        self.rules.append((pattern, self.format))
+
+    def highlightBlock(self, text):
+        for pattern, format in self.rules:
+            expression = QRegExp(pattern)
+            index = expression.indexIn(text)
+            while index >= 0:
+                length = expression.matchedLength()
+                self.setFormat(index, length, format)
+                index = expression.indexIn(text, index + length)
 
 class MultiLineInput(QTextEdit):
     returnPressed = pyqtSignal(str)
@@ -26,11 +43,11 @@ class MultiLineInput(QTextEdit):
         if event.key() == Qt.Key_Return and not (event.modifiers() & Qt.ShiftModifier):
             self.returnPressed.emit(self.toPlainText())
             self.clear()
-            
         else:
             super().keyPressEvent(event)
+
     def insertFromMimeData(self, source):
-        self.insertPlainText(source.text()) 
+        self.insertPlainText(source.text())
 
 class MessageProcessor(QThread):
     new_message = pyqtSignal(str)
@@ -55,17 +72,17 @@ class MessageProcessor(QThread):
                         temperature=0,
                         messages=self.conversation_history
                     )
-
+                    
                     # Extract the text from the message content
                     claude_response = message.content[0].text if message.content else None
-
+                    
                     # Emit the new message
                     if claude_response:
                         self.new_message.emit(claude_response)
-
+                        
                         # Append the assistant's response to the conversation history
                         self.conversation_history.append({"role": "assistant", "content": claude_response})
-
+                        
                         # Set the flag to indicate that the message has been sent
                         message_sent = True
                         break
@@ -82,11 +99,11 @@ class MessageProcessor(QThread):
                     logging.error("Bad request error occurred.", exc_info=True)
                     self.api_error.emit(str(e))
                     return
-
+            
             # Break the while loop if the message has been sent
             if message_sent:
                 break
-
+            
             # Wait for 60 seconds before trying to send the message again
             time.sleep(60)
 
@@ -97,7 +114,7 @@ class ClaudeChat(QWidget):
         self.api_key = os.getenv('ANTHROPIC_API_KEY')
         if not self.api_key:
             self.api_key = input("Enter your Anthropic API Key: ")
-
+        
         self.client = anthropic.Anthropic(api_key=self.api_key)
         self.conversation_history = []
         self.chat_history = []
@@ -105,45 +122,47 @@ class ClaudeChat(QWidget):
 
     def init_ui(self):
         self.setWindowTitle("Chat with Claude")
-
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
         self.resize(800, 400)
-
+        QFontDatabase.addApplicationFont("fonts/Cabin-Regular.ttf")
+        QFontDatabase.addApplicationFont("fonts/Cabin-Bold.ttf")
         font = QFont()
         font.setPointSize(14)  # Set the font size to 14 points
-
+        
         self.chat_label = QLabel("Chat History:")
         self.layout.addWidget(self.chat_label)
-
+        
         self.chat_history = QTextEdit()
         self.chat_history.setFont(font)  # Set the font for chat_history
         self.chat_history.setReadOnly(True)
         self.layout.addWidget(self.chat_history)
-
+        
         self.input_label = QLabel("Type your question here:")
         self.layout.addWidget(self.input_label)
-
+        
         self.user_input = MultiLineInput()
         self.user_input.setFont(font)  # Set the font for user_input
         self.user_input.returnPressed.connect(self.send_message)
         self.layout.addWidget(self.user_input)
-
+        
+        self.highlighter = PythonHighlighter(self.user_input.document())
+        
         self.send_button = QPushButton("Send")
         self.send_button.clicked.connect(self.send_message)
         self.layout.addWidget(self.send_button)
-
+        
         self.clear_button = QPushButton("Clear")
         self.clear_button.clicked.connect(self.clear_chat)
         self.layout.addWidget(self.clear_button)
-
+        
         self.status_bar = QStatusBar()
         self.layout.addWidget(self.status_bar)
-
+        
         self.upload_button = QPushButton("Upload")
         self.upload_button.clicked.connect(self.upload_file)
         self.layout.addWidget(self.upload_button)
-    
+        
     def encode_image(self,image_path):
         with open(image_path, "rb") as image_file:
             encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
@@ -151,16 +170,17 @@ class ClaudeChat(QWidget):
 
     def send_message(self):
         user_message = self.user_input.toPlainText().strip()
-        user_message = user_message.replace('\n', ' ')  # Replace newlines with spaces
         if user_message:
-            self.chat_history.append("User: " + user_message + "\n")
+            self.chat_history.setTextColor(QColor("black"))  # Set the color to black
+            self.chat_history.setFontFamily("Cabin")  # Set the font family
+            self.chat_history.append(f"User: {user_message}")
             self.user_input.clear()
-
+            
             self.conversation_history.append({"role": "user", "content": user_message})
-
+            
             self.user_input.setEnabled(False)  # Disable the input field
             self.send_button.setEnabled(False)  # Disable the send button
-
+            
             self.processor = MessageProcessor(self.client, self.conversation_history)
             self.processor.new_message.connect(self.update_chat)
             self.processor.api_busy.connect(self.api_busy)
@@ -169,17 +189,18 @@ class ClaudeChat(QWidget):
             self.processor.start()
 
     def update_chat(self, message):
-        self.chat_history.append("Claude: " + message + "\n\n\n")
+        self.chat_history.setTextColor(QColor("black"))  # Set the color to black
+        self.chat_history.setFontFamily("Cabin")  # Set the font family
+        self.chat_history.append(f"Claude: {message}")
 
     def update_chat_history(self, message):
         self.chat_history.append(message)
         self.progress_dialog.close()
-    
+        
     def enable_input(self):
         self.user_input.setEnabled(True)  # Enable the input field
         self.send_button.setEnabled(True)  # Enable the send button
-   
-        
+                
     def clear_chat(self):
         self.chat_history.clear()
         self.conversation_history = [
@@ -194,14 +215,13 @@ class ClaudeChat(QWidget):
 
     def show_api_error(self, error_message):
         QMessageBox.critical(self, "API Error", error_message)
-    
-    
+        
     def upload_file(self):
         file_name, _ = QFileDialog.getOpenFileName(self, 'Open File')
         if file_name:
             extension = os.path.splitext(file_name)[1].lower()
             file_content = None
-
+            
             if extension in ['.txt', '.py', '.js', '.html', '.css']:
                 with open(file_name, 'r') as file:
                     file_content = file.read()
@@ -251,19 +271,19 @@ class ClaudeChat(QWidget):
                 finally:
                     workbook.Close()
                     excel.Quit()
-
+            
             if file_content is not None:
                 if extension in ['.png', '.jpg', '.jpeg']:
                     self.conversation_history.append({"role": "user", "content": [file_content]})
                 else:
                     prompt = f"You uploaded a file with the following content:\n{file_content}"
                     self.conversation_history.append({"role": "user", "content": [{"type": "text", "text": prompt}]})
-
+                
                 self.message_processor = MessageProcessor(self.client, self.conversation_history)
                 self.message_processor.new_message.connect(self.update_chat_history)
                 self.message_processor.api_error.connect(self.handle_api_error)
                 self.message_processor.start()
-
+                
                 # Show a progress dialog
                 self.progress_dialog = QProgressDialog("Analyzing file...", "Cancel", 0, 0, self)
                 self.progress_dialog.setWindowModality(Qt.WindowModal)
@@ -276,9 +296,7 @@ class ClaudeChat(QWidget):
         msg.setInformativeText(str(error_message))
         msg.setWindowTitle("Error")
         msg.exec_()
-    
-    
-        
+                
 app = QApplication(sys.argv)
 chat = ClaudeChat()
 chat.show()
