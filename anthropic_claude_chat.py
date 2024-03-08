@@ -158,10 +158,14 @@ class ClaudeChat(QWidget):
 
             self.conversation_history.append({"role": "user", "content": user_message})
 
+            self.user_input.setEnabled(False)  # Disable the input field
+            self.send_button.setEnabled(False)  # Disable the send button
+
             self.processor = MessageProcessor(self.client, self.conversation_history)
             self.processor.new_message.connect(self.update_chat)
             self.processor.api_busy.connect(self.api_busy)
             self.processor.api_error.connect(self.show_api_error)
+            self.processor.finished.connect(self.enable_input)  # Enable input when the processor finishes
             self.processor.start()
 
     def update_chat(self, message):
@@ -170,6 +174,10 @@ class ClaudeChat(QWidget):
     def update_chat_history(self, message):
         self.chat_history.append(message)
         self.progress_dialog.close()
+    
+    def enable_input(self):
+        self.user_input.setEnabled(True)  # Enable the input field
+        self.send_button.setEnabled(True)  # Enable the send button
    
         
     def clear_chat(self):
