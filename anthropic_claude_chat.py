@@ -90,6 +90,7 @@ class MessageProcessor(QThread):
             # Wait for 60 seconds before trying to send the message again
             time.sleep(60)
 
+# Create a new class for the chat window
 class ClaudeChat(QWidget):
     def __init__(self):
         super().__init__()
