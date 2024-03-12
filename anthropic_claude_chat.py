@@ -3,7 +3,7 @@ import sys
 import anthropic
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QTextEdit, QLabel, QStatusBar, QMessageBox, QHBoxLayout
 from PyQt5.QtCore import QThread, pyqtSignal, Qt, QRegularExpression, QPoint
-from PyQt5.QtGui import QFont, QSyntaxHighlighter, QTextCharFormat, QColor, QFontDatabase, QTextCursor, QTextBlockFormat, QTextDocument
+from PyQt5.QtGui import QFont, QSyntaxHighlighter, QTextCharFormat, QColor, QFontDatabase, QTextCursor, QTextBlockFormat
 from PyQt5.QtWidgets import QFileDialog, QProgressDialog
 import time
 import logging
