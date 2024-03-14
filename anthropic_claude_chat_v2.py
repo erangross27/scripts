@@ -202,7 +202,7 @@ class MessageProcessor(QThread):
             for i in range(retries):
                 try:
                     message = self.client.messages.create(
-                        model="claude-3-haiku-20240307",
+                        model="claude-3-opus-20240229",
                         max_tokens=4096,
                         temperature=0,
                         messages=self.conversation_history
@@ -557,7 +557,7 @@ class ClaudeChat(QWidget):
 
         try:
             response = self.client.messages.create(
-                model="claude-3-haiku-20240307",
+                model="claude-3-opus-20240229",
                 max_tokens=10,  # Reduce the max_tokens to generate a shorter title
                 temperature=0,
                 system="You are a helpful assistant that generates concise and descriptive four words titles for conversations.",
