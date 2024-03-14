@@ -2,7 +2,6 @@ import os
 import sys
 import anthropic
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QTextEdit, QLabel, QStatusBar, QMessageBox, QHBoxLayout, QScrollArea,QFrame
-
 from PyQt5.QtCore import QThread, pyqtSignal, Qt, QRegularExpression,QSize
 from PyQt5.QtGui import QFont, QSyntaxHighlighter, QTextCharFormat, QColor, QFontDatabase
 from PyQt5.QtWidgets import QFileDialog, QProgressDialog, QListWidget, QListWidgetItem, QDialog
@@ -752,21 +751,75 @@ class ClaudeChat(QWidget):
         logging.error(f"API error: {error_message}")
         logging.info("API error message box shown")
 
-
-
     def upload_file(self):
         file_name, _ = QFileDialog.getOpenFileName(self, 'Open File')
         if file_name:
             logging.info(f"File selected: {file_name}")
             extension = os.path.splitext(file_name)[1].lower()
             file_content = None
-            # ... (file content extraction code remains the same)
+            if extension in ['.txt', '.py', '.js', '.html', '.css']:
+                with open(file_name, 'r') as file:
+                    file_content = file.read()
+                logging.info(f"File content read: {file_content}")
+            elif extension == '.pdf':
+                try:
+                    doc = fitz.open(file_name)
+                    file_content = "".join(page.get_text() for page in doc)
+                    logging.info(f"PDF file content extracted: {file_content}")
+                except fitz.FileDataError:
+                    file_content = "Error: The PDF file is invalid or corrupted."
+                    logging.error("PDF file is invalid or corrupted")
+                except fitz.PasswordError:
+                    file_content = "Error: The PDF file is password-protected."
+                    logging.error("PDF file is password-protected")
+                except Exception as e:
+                    file_content = f"Error: An unexpected error occurred while processing the PDF file: {str(e)}"
+                    logging.exception(f"Unexpected error while processing PDF file: {str(e)}")
+            elif extension in ['.png', '.jpg', '.jpeg']:
+                img = Image.open(file_name)
+                img = img.resize((800, 800))  # Reduce resolution to 800x800 pixels
+                img_bytes = BytesIO()
+                img.save(img_bytes, format='PNG')
+                encoded_image = base64.b64encode(img_bytes.getvalue()).decode('utf-8')
+                file_content = {
+                    "type": "image",
+                    "source": {
+                        "type": "base64",
+                        "media_type": "image/png",
+                        "data": encoded_image
+                    }
+                }
+                logging.info(f"Image file encoded: {file_content}")
+            elif extension in ['.doc', '.docx']:
+                pythoncom.CoInitialize()  # Required for Win32 COM
+                word = win32.gencache.EnsureDispatch('Word.Application')
+                doc = word.Documents.Open(file_name.replace('/', '\\'))
+                file_content = doc.Content.Text
+                doc.Close()
+                word.Quit()
+                logging.info(f"Word file content extracted: {file_content}")
+            elif extension in ['.xls', '.xlsx']:
+                pythoncom.CoInitialize()  # Required for Win32 COM
+                excel = win32.gencache.EnsureDispatch('Excel.Application')
+                try:
+                    workbook = excel.Workbooks.Open(file_name.replace('/', '\\'))
+                    sheet = workbook.Worksheets[1]
+                    file_content = ""
+                    for row in sheet.UsedRange.Rows:
+                        file_content += " ".join([str(cell.Value) if cell.Value is not None else '' for cell in row.Cells]) + "\n"
+                    logging.info(f"Excel file content extracted: {file_content}")
+                except Exception as e:
+                    file_content = f"Error opening file: {e}"
+                    logging.exception(f"Error opening Excel file: {str(e)}")
+                finally:
+                    workbook.Close()
+                    excel.Quit()
 
             if file_content is not None:
                 if extension in ['.png', '.jpg', '.jpeg']:
                     self.conversation_history.append({"role": "user", "content": [file_content]})
                 else:
-                    prompt = f"You uploaded a file with the following content:\n{file_content}"
+                    prompt = f"I uploaded a file with the following content:\n{file_content}"
                     self.conversation_history.append({"role": "user", "content": [{"type": "text", "text": prompt}]})
                 logging.info(f"Conversation history updated with file content: {self.conversation_history}")
 
