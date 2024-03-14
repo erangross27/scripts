@@ -1,10 +1,9 @@
 import os
 import sys
 import anthropic
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QTextEdit, QLabel, QStatusBar, QMessageBox, QHBoxLayout, QScrollArea
-
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QTextEdit, QLabel, QStatusBar, QMessageBox, QHBoxLayout, QScrollArea, QMenu, QInputDialog
 from PyQt5.QtCore import QThread, pyqtSignal, Qt, QRegularExpression,QSize
-from PyQt5.QtGui import QFont, QSyntaxHighlighter, QTextCharFormat, QColor, QFontDatabase, QTextCursor, QTextBlockFormat,QDesktopServices
+from PyQt5.QtGui import QFont, QSyntaxHighlighter, QTextCharFormat, QColor, QFontDatabase
 from PyQt5.QtWidgets import QFileDialog, QProgressDialog, QListWidget, QListWidgetItem, QDialog
 import time
 import logging
@@ -21,11 +20,10 @@ import sys
 import logging
 import sqlite3
 import json
-import sys
+import uuid
 
 if sys.stdout is not None:
     sys.stdout.reconfigure(encoding='utf-8')
-
 
 def setup_logging():
     if getattr(sys, 'frozen', False):
@@ -118,6 +116,34 @@ class ConversationHistory:
         logging.info(f"Loaded {len(conversations)} conversations from the database")
         return conversations
     
+    def update_conversation_history(self, conversation_id, history):
+        cursor = self.conn.cursor()
+        logging.info(f"Updating conversation history in the database for conversation ID: {conversation_id}")
+        cursor.execute('''
+            UPDATE conversations
+            SET history = ?
+            WHERE id = ?
+        ''', (history, conversation_id))
+        self.conn.commit()
+        logging.info("Conversation history updated in the database")
+
+    def rename_conversation(self, conversation_id, new_title):
+        cursor = self.conn.cursor()
+        cursor.execute('''
+            UPDATE conversations
+            SET title = ?
+            WHERE id = ?
+        ''', (new_title, conversation_id))
+        self.conn.commit()
+
+    def delete_conversation(self, conversation_id):
+        cursor = self.conn.cursor()
+        cursor.execute('''
+            DELETE FROM conversations
+            WHERE id = ?
+        ''', (conversation_id,))
+        self.conn.commit()
+    
 class PythonHighlighter(QSyntaxHighlighter):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -204,7 +230,7 @@ class MessageProcessor(QThread):
 
                     if claude_response:
                         self.new_message.emit(claude_response)
-                        self.conversation_history.append({"role": "assistant", "content": claude_response})
+                        self.conversation_history.append({"role": "assistant", "content": [{"type": "text", "text": claude_response}]})
                         message_sent = True
                         logging.info(f"New message received: {claude_response}")
                         break
@@ -216,11 +242,22 @@ class MessageProcessor(QThread):
                         time.sleep(60)
                     else:
                         logging.error("Max retries reached. Aborting.")
+                        self.api_error.emit("Failed to get a response from Claude after multiple retries.")
                         return
                 except anthropic.BadRequestError as e:
                     logging.error("Bad request error occurred.", exc_info=True)
-                    self.api_error.emit(str(e))
-                    return
+                    if "roles must alternate between \"user\" and \"assistant\"" in str(e):
+                        if i < retries - 1:
+                            self.api_busy.emit()
+                            logging.warning("Server is busy. Retrying in 60 seconds.")
+                            time.sleep(60)
+                        else:
+                            logging.error("Max retries reached. Aborting.")
+                            self.api_error.emit("Failed to get a response from Claude after multiple retries.")
+                            return
+                    else:
+                        self.api_error.emit(str(e))
+                        return
                 except requests.exceptions.RequestException as e:
                     logging.error("Network error occurred.", exc_info=True)
                     self.api_error.emit("Cannot communicate with Anthropic API right now.")
@@ -257,7 +294,10 @@ class ClaudeChat(QWidget):
         self.resize(800, 600)
         QFontDatabase.addApplicationFont("fonts/Cabin-Regular.ttf")
         QFontDatabase.addApplicationFont("fonts/Cabin-Bold.ttf")
-        font = QFont("Cabin", 14)
+
+        screen_resolution = QApplication.primaryScreen().geometry()
+        font_size = int(screen_resolution.height() * 0.02)  # Adjust the multiplier as needed
+        font = QFont("Cabin", font_size)
 
         self.chat_label = QLabel("Chat History:")
 
@@ -275,12 +315,12 @@ class ClaudeChat(QWidget):
         self.user_input = MultiLineInput()
         self.user_input.setFont(font)
         self.user_input.setStyleSheet("""
-        QTextEdit {
-            border: 2px solid #c0c0c0;
-            border-radius: 5px;
-            padding: 5px;
-        }
-    """)
+            QTextEdit {
+                border: 2px solid #c0c0c0;
+                border-radius: 5px;
+                padding: 5px;
+            }
+        """)
         self.user_input.returnPressed.connect(self.send_message)
         self.user_input_highlighter = PythonHighlighter(self.user_input.document())
 
@@ -305,21 +345,21 @@ class ClaudeChat(QWidget):
 
         self.sidebar = QListWidget()
         self.sidebar.setMaximumWidth(400)  # Adjust the width as needed
-        sidebar_font = QFont("Cabin", 12)  # Adjust the font size as needed
+        sidebar_font = QFont("Cabin", font_size)  # Adjust the font size as needed
         self.sidebar.setFont(sidebar_font)
         self.sidebar.setStyleSheet("""
-        QListWidget {
-            background-color: #f0f0f0;
-            border: none;
-            padding: 10px;
-        }
-        QListWidget::item {
-            padding: 5px;
-        }
-        QListWidget::item:selected {
-            background-color: #c0c0c0;
-        }
-    """)
+            QListWidget {
+                background-color: #f0f0f0;
+                border: none;
+                padding: 10px;
+            }
+            QListWidget::item {
+                padding: 5px;
+            }
+            QListWidget::item:selected {
+                background-color: #c0c0c0;
+            }
+        """)
         self.sidebar.itemClicked.connect(self.load_conversation)
         main_layout = QHBoxLayout()
         sidebar_layout = QVBoxLayout()
@@ -331,51 +371,9 @@ class ClaudeChat(QWidget):
         right_layout.addLayout(input_layout)
         main_layout.addLayout(right_layout)
 
-        self.setLayout(main_layout)
-
-    def update_sidebar(self):
-        self.sidebar.clear()
-        conversations = self.conversation_history_db.load_conversations()
-        logging.info(f"Updating sidebar with {len(conversations)} conversations")
-        if not conversations:
-            item = QListWidgetItem("Untitled Conversation")
-            item.setData(Qt.UserRole, None)
-            item.setTextAlignment(Qt.AlignCenter)
-            item.setBackground(QColor("#f0f0f0"))
-            item.setForeground(QColor("#000000"))
-            item.setSizeHint(QSize(0, 40))  # Adjust the height as needed
-            self.sidebar.addItem(item)
-        else:
-            for conversation_id, title in conversations:
-                item = QListWidgetItem(title)
-                item.setData(Qt.UserRole, conversation_id)
-                item.setTextAlignment(Qt.AlignCenter)
-                item.setBackground(QColor("#f0f0f0"))
-                item.setForeground(QColor("#000000"))
-                item.setSizeHint(QSize(0, 40))  # Adjust the height as needed
-                self.sidebar.addItem(item)
-        logging.info("Sidebar updated")
-
-    def show_code_dialog(self, code_block):
-        dialog = QDialog(self)
-        dialog.setWindowTitle("Code Block")
-        layout = QVBoxLayout(dialog)
-
-        code_text_edit = QTextEdit()
-        code_text_edit.setReadOnly(True)
-        code_text_edit.setPlainText(code_block)
-        code_text_edit.setStyleSheet("""
-            QTextEdit {
-                background-color: #f5f5f5;
-                padding: 10px;
-                font-family: monospace;
-            }
-        """)
-        layout.addWidget(code_text_edit)
-
-        copy_button = QPushButton("Copy Code")
-        copy_button.clicked.connect(lambda: self.copy_code_to_clipboard(code_block))
-        copy_button.setStyleSheet("""
+        add_button = QPushButton("+")
+        add_button.clicked.connect(self.add_new_conversation)
+        add_button.setStyleSheet("""
             QPushButton {
                 background-color: #4CAF50;
                 color: white;
@@ -388,9 +386,121 @@ class ClaudeChat(QWidget):
                 background-color: #45a049;
             }
         """)
-        layout.addWidget(copy_button)
+        sidebar_layout.addWidget(add_button)
 
-        dialog.exec_()
+        self.setLayout(main_layout)
+
+    def update_sidebar(self):
+        self.sidebar.clear()
+        conversations = self.conversation_history_db.load_conversations()
+        logging.info(f"Updating sidebar with {len(conversations)} conversations")
+        if not conversations:
+            item = QListWidgetItem()
+            item.setData(Qt.UserRole, None)
+            item.setSizeHint(QSize(0, 50))  # Adjust the height as needed
+            item_widget = QLabel("Untitled Conversation")
+            item_widget.setAlignment(Qt.AlignCenter)
+            item_widget.setStyleSheet("""
+                QLabel {
+                    font-size: 14px;
+                    font-weight: bold;
+                    background-color: #ffffff;
+                    border: 1px solid #c0c0c0;
+                    border-radius: 5px;
+                    padding: 5px;
+                }
+            """)
+            self.sidebar.addItem(item)
+            self.sidebar.setItemWidget(item, item_widget)
+        else:
+            for conversation_id, title in conversations:
+                item = QListWidgetItem()
+                item.setData(Qt.UserRole, conversation_id)
+                item.setSizeHint(QSize(0, 50))  # Adjust the height as needed
+                item_widget = QLabel(title)
+                item_widget.setAlignment(Qt.AlignCenter)
+                item_widget.setStyleSheet("""
+                    QLabel {
+                        font-size: 14px;
+                        font-weight: bold;
+                        background-color: #ffffff;
+                        border: 1px solid #c0c0c0;
+                        border-radius: 5px;
+                        padding: 5px;
+                    }
+                """)
+                item_widget.setWordWrap(True)  # Enable word wrapping for long titles
+                self.sidebar.addItem(item)
+                self.sidebar.setItemWidget(item, item_widget)
+        logging.info("Sidebar updated")
+        
+        def show_context_menu(pos):
+            global_pos = self.sidebar.mapToGlobal(pos)
+            menu = QMenu(self.sidebar)
+            rename_action = menu.addAction("Rename")
+            delete_action = menu.addAction("Delete")
+            action = menu.exec_(global_pos)
+            if action == rename_action:
+                item = self.sidebar.itemAt(pos)
+                conversation_id = item.data(Qt.UserRole)
+                if conversation_id is not None:
+                    new_title, ok = QInputDialog.getText(self, "Rename Conversation", "Enter a new title:")
+                    if ok and new_title:
+                        self.rename_conversation(conversation_id, new_title)
+            elif action == delete_action:
+                item = self.sidebar.itemAt(pos)
+                conversation_id = item.data(Qt.UserRole)
+                if conversation_id is not None:
+                    reply = QMessageBox.question(self, "Delete Conversation", "Are you sure you want to delete this conversation?",
+                                                QMessageBox.Yes | QMessageBox.No)
+                    if reply == QMessageBox.Yes:
+                        self.delete_conversation(conversation_id)
+
+        self.sidebar.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.sidebar.customContextMenuRequested.connect(show_context_menu)
+
+    def rename_conversation(self, conversation_id, new_title):
+        self.conversation_history_db.rename_conversation(conversation_id, new_title)
+        self.update_sidebar()
+
+    def delete_conversation(self, conversation_id):
+        self.conversation_history_db.delete_conversation(conversation_id)
+        self.update_sidebar()
+        def show_code_dialog(self, code_block):
+            dialog = QDialog(self)
+            dialog.setWindowTitle("Code Block")
+            layout = QVBoxLayout(dialog)
+
+            code_text_edit = QTextEdit()
+            code_text_edit.setReadOnly(True)
+            code_text_edit.setPlainText(code_block)
+            code_text_edit.setStyleSheet("""
+                QTextEdit {
+                    background-color: #f5f5f5;
+                    padding: 10px;
+                    font-family: monospace;
+                }
+            """)
+            layout.addWidget(code_text_edit)
+
+            copy_button = QPushButton("Copy Code")
+            copy_button.clicked.connect(lambda: self.copy_code_to_clipboard(code_block))
+            copy_button.setStyleSheet("""
+                QPushButton {
+                    background-color: #4CAF50;
+                    color: white;
+                    padding: 5px 10px;
+                    border: none;
+                    border-radius: 4px;
+                    font-size: 12px;
+                }
+                QPushButton:hover {
+                    background-color: #45a049;
+                }
+            """)
+            layout.addWidget(copy_button)
+
+            dialog.exec_()
 
     def encode_image(self, image_path):
         try:
@@ -419,7 +529,8 @@ class ClaudeChat(QWidget):
                 conversation = json.loads(history)
                 for message in conversation:
                     if message["role"] == "user":
-                        user_message_widget = QLabel(f"User: {message['content']}")
+                        user_message = message["content"][0]["text"]
+                        user_message_widget = QLabel(f"User: {user_message}")
                         user_message_widget.setWordWrap(True)
                         user_message_widget.setTextInteractionFlags(Qt.TextSelectableByMouse)
                         user_message_widget.setStyleSheet("""
@@ -430,16 +541,54 @@ class ClaudeChat(QWidget):
                         """)
                         self.chat_history_layout.addWidget(user_message_widget)
                     elif message["role"] == "assistant":
-                        assistant_message_widget = QLabel(f"Assistant: {message['content']}")
-                        assistant_message_widget.setWordWrap(True)
-                        assistant_message_widget.setTextInteractionFlags(Qt.TextSelectableByMouse)
-                        assistant_message_widget.setStyleSheet("""
-                            QLabel {
-                                font-size: 16px;
-                                margin-bottom: 10px;
-                            }
-                        """)
-                        self.chat_history_layout.addWidget(assistant_message_widget)
+                        assistant_message = message["content"][0]["text"]
+                        if "```" in assistant_message:
+                            lines = assistant_message.split("\n")
+                            in_code_block = False
+                            code_block_content = ""
+                            for line in lines:
+                                if line.startswith("```"):
+                                    in_code_block = not in_code_block
+                                    if not in_code_block:
+                                        code_block_widget = QTextEdit()
+                                        code_block_widget.setReadOnly(True)
+                                        code_block_widget.setPlainText(code_block_content)
+                                        code_block_widget.setStyleSheet("""
+                                            QTextEdit {
+                                                background-color: #f5f5f5;
+                                                padding: 10px;
+                                                font-family: monospace;
+                                                font-size: 16px;
+                                            }
+                                        """)
+                                        self.chat_history_layout.addWidget(code_block_widget)
+                                        self.add_copy_button(code_block_content)
+                                        code_block_content = ""
+                                else:
+                                    if in_code_block:
+                                        code_block_content += line + "\n"
+                                    else:
+                                        assistant_message_widget = QLabel(line)
+                                        assistant_message_widget.setWordWrap(True)
+                                        assistant_message_widget.setTextInteractionFlags(Qt.TextSelectableByMouse)
+                                        assistant_message_widget.setStyleSheet("""
+                                            QLabel {
+                                                font-size: 16px;
+                                                margin-bottom: 10px;
+                                            }
+                                        """)
+                                        self.chat_history_layout.addWidget(assistant_message_widget)
+                        else:
+                            assistant_message_widget = QLabel(f"Assistant: {assistant_message}")
+                            assistant_message_widget.setWordWrap(True)
+                            assistant_message_widget.setTextInteractionFlags(Qt.TextSelectableByMouse)
+                            assistant_message_widget.setStyleSheet("""
+                                QLabel {
+                                    font-size: 16px;
+                                    margin-bottom: 10px;
+                                }
+                            """)
+                            self.chat_history_layout.addWidget(assistant_message_widget)
                 self.conversation_history = conversation  # Update the conversation history
                 self.user_input.setFocus()
 
@@ -459,7 +608,7 @@ class ClaudeChat(QWidget):
             self.chat_history_layout.addWidget(user_message_widget)
             self.user_input.clear()
 
-            self.conversation_history.append({"role": "user", "content": user_message})
+            self.conversation_history.append({"role": "user", "content": [{"type": "text", "text": user_message}]})
 
             self.user_input.setEnabled(False)
             self.send_button.setEnabled(False)
@@ -472,7 +621,7 @@ class ClaudeChat(QWidget):
             self.processor.api_busy.connect(self.api_busy)
             self.processor.api_error.connect(self.show_api_error)
             self.processor.finished.connect(self.enable_input)
-            self.processor.finished.connect(self.set_focus_to_input)  # Connect the finished signal to set_focus_to_input
+            self.processor.finished.connect(self.set_focus_to_input)
             self.processor.finished.connect(self.save_conversation)
 
             logging.info("Message processor created and connected")
@@ -486,39 +635,50 @@ class ClaudeChat(QWidget):
         else:
             logging.warning("Empty user message. Message not sent.")
 
+    
     def save_conversation(self):
-        history = self.get_chat_history()
-        title = self.generate_conversation_title(history)
-        logging.info(f"Saving conversation with title: {title}")
-        self.conversation_history_db.save_conversation_to_db(title, json.dumps(self.conversation_history))
-        logging.info("Conversation saved to the database")
-        self.update_sidebar()
+        if self.conversation_history:
+            if not hasattr(self, 'conversation_id'):
+                self.conversation_id = str(uuid.uuid4())  # Generate a unique conversation ID
+                title = self.generate_conversation_title()
+                logging.info(f"Saving conversation with title: {title}")
+                self.conversation_history_db.save_conversation_to_db(title, json.dumps(self.conversation_history))
+                logging.info("Conversation saved to the database")
+            else:
+                title = self.generate_conversation_title()
+                self.conversation_history_db.update_conversation_history(self.conversation_id, json.dumps(self.conversation_history))
+                self.conversation_history_db.rename_conversation(self.conversation_id, title)
+                logging.info("Conversation history updated in the database")
 
-    def get_chat_history(self):
-        history = ""
-        for i in range(self.chat_history_layout.count()):
-            widget = self.chat_history_layout.itemAt(i).widget()
-            if isinstance(widget, QLabel):
-                history += widget.text() + "\n"
-        return history
+            self.update_sidebar()  # Update the sidebar after saving/updating the conversation
+        else:
+            logging.warning("Conversation history is empty. Skipping save.")
     
     
-    def generate_conversation_title(self, history):
+    def generate_conversation_title(self):
         if len(self.conversation_history) < 2:
             return "New Conversation"
 
-        prompt = f"Please generate a concise and descriptive title for the following conversation:\n\n{history}\n\nTitle:"
+        user_messages = [message["content"][0]["text"] for message in self.conversation_history if message["role"] == "user"]
+        assistant_messages = [message["content"][0]["text"] for message in self.conversation_history if message["role"] == "assistant"]
+
+        conversation_summary = "\n".join(user_messages[-2:] + assistant_messages[-2:])
+
+        prompt = f"Please generate a concise and descriptive title for the following conversation (maximum 4 words):\n\n{conversation_summary}\n\nTitle:"
 
         try:
             response = self.client.messages.create(
                 model="claude-3-opus-20240229",
-                max_tokens=50,
+                max_tokens=10,
                 temperature=0,
-                system="You are a helpful assistant that generates concise and descriptive titles for conversations.",
+                system="You are a helpful assistant that generates concise and descriptive four-word titles for conversations.",
                 messages=[{"role": "user", "content": prompt}]
             )
 
             title = response.content[0].text.strip() if response.content else "Untitled Conversation"
+            title_words = title.split()
+            if len(title_words) > 4:
+                title = " ".join(title_words[:4])
             return title
 
         except Exception as e:
@@ -548,7 +708,7 @@ class ClaudeChat(QWidget):
                                 background-color: #f5f5f5;
                                 padding: 10px;
                                 font-family: monospace;
-                                font-size: 14px;  /* Increase the font size */
+                                font-size: 16px;  /* Increase the font size */
                             }
                         """)
                         self.chat_history_layout.addWidget(code_block_widget)
@@ -563,7 +723,7 @@ class ClaudeChat(QWidget):
                         message_widget.setTextInteractionFlags(Qt.TextSelectableByMouse)
                         message_widget.setStyleSheet("""
                             QLabel {
-                                font-size: 16px;
+                                font-size: 16px;  /* Increase the font size */
                                 margin-bottom: 10px;
                             }
                         """)
@@ -579,7 +739,7 @@ class ClaudeChat(QWidget):
                         background-color: #f5f5f5;
                         padding: 10px;
                         font-family: monospace;
-                        font-size: 14px;  /* Increase the font size */
+                        font-size: 16px;  /* Increase the font size */
                     }
                 """)
                 self.chat_history_layout.addWidget(code_block_widget)
@@ -591,7 +751,7 @@ class ClaudeChat(QWidget):
                 message_widget.setTextInteractionFlags(Qt.TextSelectableByMouse)
                 message_widget.setStyleSheet("""
                     QLabel {
-                        font-size: 14px;
+                        font-size: 18px;  /* Increase the font size */
                         margin-bottom: 10px;
                     }
                 """)
@@ -603,8 +763,15 @@ class ClaudeChat(QWidget):
         self.user_input.setFocus()  # Set focus back to the user input box
 
         logging.info(f"Chat updated with message: {message}")
-
-
+    
+    def add_new_conversation(self):
+        self.clear_chat()
+        self.conversation_history = []
+        self.user_input.setFocus()
+        self.conversation_id = str(uuid.uuid4())
+        title = "New Conversation"
+        self.conversation_history_db.save_conversation_to_db(title, json.dumps(self.conversation_history))
+        self.update_sidebar()
 
     def is_code_block(self, text):
             # Check if the text appears to be a code block without the ```python prefix
@@ -703,8 +870,6 @@ class ClaudeChat(QWidget):
         logging.error(f"API error: {error_message}")
         logging.info("API error message box shown")
 
-
-
     def upload_file(self):
         file_name, _ = QFileDialog.getOpenFileName(self, 'Open File')
         if file_name:
@@ -773,13 +938,14 @@ class ClaudeChat(QWidget):
                 if extension in ['.png', '.jpg', '.jpeg']:
                     self.conversation_history.append({"role": "user", "content": [file_content]})
                 else:
-                    prompt = f"You uploaded a file with the following content:\n{file_content}"
+                    prompt = f"I uploaded a file with the following content:\n{file_content}"
                     self.conversation_history.append({"role": "user", "content": [{"type": "text", "text": prompt}]})
                 logging.info(f"Conversation history updated with file content: {self.conversation_history}")
 
                 self.processor = MessageProcessor(self.client, self.conversation_history)
-                self.processor.new_message.connect(self.update_chat_history)
+                self.processor.new_message.connect(self.update_chat)
                 self.processor.api_error.connect(self.handle_api_error)
+                self.processor.finished.connect(self.close_progress_dialog)  # Connect the finished signal
                 self.processor.start()
                 logging.info("Message processor started")
 
@@ -790,6 +956,11 @@ class ClaudeChat(QWidget):
         else:
             logging.info("No file selected")
 
+    def close_progress_dialog(self):
+        if self.progress_dialog:
+            self.progress_dialog.close()
+            self.progress_dialog = None
+            logging.info("Progress dialog closed")
     def handle_api_error(self, error_message):
         msg = QMessageBox()
         msg.setIcon(QMessageBox.Critical)
