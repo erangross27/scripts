@@ -233,6 +233,7 @@ class MessageProcessor(QThread):
                         self.conversation_history.append({"role": "assistant", "content": [{"type": "text", "text": claude_response}]})
                         message_sent = True
                         logging.info(f"New message received: {claude_response}")
+                        logging.info(f"Conversation history updated: {self.conversation_history}")
                         break
                 except anthropic.InternalServerError as e:
                     logging.error("Failed to get a response from Claude.", exc_info=True)
@@ -466,41 +467,42 @@ class ClaudeChat(QWidget):
     def delete_conversation(self, conversation_id):
         self.conversation_history_db.delete_conversation(conversation_id)
         self.update_sidebar()
-        def show_code_dialog(self, code_block):
-            dialog = QDialog(self)
-            dialog.setWindowTitle("Code Block")
-            layout = QVBoxLayout(dialog)
 
-            code_text_edit = QTextEdit()
-            code_text_edit.setReadOnly(True)
-            code_text_edit.setPlainText(code_block)
-            code_text_edit.setStyleSheet("""
-                QTextEdit {
-                    background-color: #f5f5f5;
-                    padding: 10px;
-                    font-family: monospace;
-                }
-            """)
-            layout.addWidget(code_text_edit)
+    def show_code_dialog(self, code_block):
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Code Block")
+        layout = QVBoxLayout(dialog)
 
-            copy_button = QPushButton("Copy Code")
-            copy_button.clicked.connect(lambda: self.copy_code_to_clipboard(code_block))
-            copy_button.setStyleSheet("""
-                QPushButton {
-                    background-color: #4CAF50;
-                    color: white;
-                    padding: 5px 10px;
-                    border: none;
-                    border-radius: 4px;
-                    font-size: 12px;
-                }
-                QPushButton:hover {
-                    background-color: #45a049;
-                }
-            """)
-            layout.addWidget(copy_button)
+        code_text_edit = QTextEdit()
+        code_text_edit.setReadOnly(True)
+        code_text_edit.setPlainText(code_block)
+        code_text_edit.setStyleSheet("""
+            QTextEdit {
+                background-color: #f5f5f5;
+                padding: 10px;
+                font-family: monospace;
+            }
+        """)
+        layout.addWidget(code_text_edit)
 
-            dialog.exec_()
+        copy_button = QPushButton("Copy Code")
+        copy_button.clicked.connect(lambda: self.copy_code_to_clipboard(code_block))
+        copy_button.setStyleSheet("""
+            QPushButton {
+                background-color: #4CAF50;
+                color: white;
+                padding: 5px 10px;
+                border: none;
+                border-radius: 4px;
+                font-size: 12px;
+            }
+            QPushButton:hover {
+                background-color: #45a049;
+            }
+        """)
+        layout.addWidget(copy_button)
+
+        dialog.exec_()
 
     def encode_image(self, image_path):
         try:
@@ -653,7 +655,6 @@ class ClaudeChat(QWidget):
             self.update_sidebar()  # Update the sidebar after saving/updating the conversation
         else:
             logging.warning("Conversation history is empty. Skipping save.")
-    
     
     def generate_conversation_title(self):
         if len(self.conversation_history) < 2:
