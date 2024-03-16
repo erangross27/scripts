@@ -1,3 +1,12 @@
 {
-    "python.analysis.autoImportCompletions": true
+    "python.analysis.autoImportCompletions": true,
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "database": "${workspaceFolder:scripts}/conversation_history.db",
+            "name": "Conversation History"
+        }
+    ],
+    "sqltools.useNodeRuntime": true
 }

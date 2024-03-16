@@ -1,29 +1,28 @@
-import os
-import sys
-import anthropic
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QTextEdit, QLabel, QStatusBar, QMessageBox, QHBoxLayout, QScrollArea, QMenu, QInputDialog
-from PyQt5.QtCore import QThread, pyqtSignal, Qt, QRegularExpression,QSize
-from PyQt5.QtGui import QFont, QSyntaxHighlighter, QTextCharFormat, QColor, QFontDatabase
-from PyQt5.QtWidgets import QFileDialog, QProgressDialog, QListWidget, QListWidgetItem, QDialog
-import time
-import logging
-import os
-import fitz
-from PIL import Image
-import pythoncom
-import win32com.client as win32
 import base64
-from io import BytesIO
-import requests
-import os
-import sys
-import logging
-import sqlite3
 import json
+import logging
+import os
+import sqlite3
+import sys
+import time
 import uuid
+from io import BytesIO
+
+import anthropic
+import fitz
+import pythoncom
+import requests
+import win32com.client as win32
+from PIL import Image
+from PyQt5.QtCore import QThread, pyqtSignal, Qt, QRegularExpression, QSize
+from PyQt5.QtGui import QFont, QSyntaxHighlighter, QTextCharFormat, QColor, QFontDatabase
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QTextEdit, QLabel, QStatusBar, QMessageBox, \
+    QHBoxLayout, QScrollArea, QMenu, QInputDialog
+from PyQt5.QtWidgets import QFileDialog, QProgressDialog, QListWidget, QListWidgetItem, QDialog
 
 if sys.stdout is not None:
     sys.stdout.reconfigure(encoding='utf-8')
+
 
 def setup_logging():
     if getattr(sys, 'frozen', False):
@@ -72,30 +71,57 @@ def setup_logging():
 class ConversationHistory:
     def __init__(self, db_name):
         self.db_name = db_name
-        self.conn = sqlite3.connect(db_name)
-        self.create_table()
+        try:
+            logging.info(f"Connecting to the database: {db_name}")
+            self.conn = sqlite3.connect(db_name)
+            logging.info(f"Connected to the database: {db_name}")
+            self.create_table()
+        except sqlite3.Error as e:
+            logging.error(f"Error connecting to the database: {e}")
 
     def create_table(self):
-        cursor = self.conn.cursor()
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS conversations (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                title TEXT,
-                history TEXT
-            )
-        ''')
-        self.conn.commit()
+        try:
+            cursor = self.conn.cursor()
+            logging.info("Creating conversations table...")
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS conversations (
+                    id TEXT PRIMARY KEY,
+                    title TEXT,
+                    history TEXT
+                )
+            ''')
+            self.conn.commit()
+            logging.info("Conversations table created successfully")
+        except sqlite3.Error as e:
+            logging.error(f"Error creating the conversations table: {e}")
 
-    def save_conversation_to_db(self, title, history):
-        cursor = self.conn.cursor()
-        logging.info(f"Inserting conversation into the database with title: {title}")
-        cursor.execute('''
-            INSERT INTO conversations (title, history)
-            VALUES (?, ?)
-        ''', (title, history))
-        self.conn.commit()
-        logging.info("Conversation inserted into the database")
-
+    def save_conversation_to_db(self, conversation_id, title, history):
+        try:
+            cursor = self.conn.cursor()
+            
+            if not history:
+                # New conversation with empty history
+                logging.info(f"Creating new conversation in the database with ID: {conversation_id}, title: {title}")
+                cursor.execute('''
+                    INSERT INTO conversations (id, title, history)
+                    VALUES (?, ?, ?)
+                ''', (conversation_id, title, json.dumps([])))
+                logging.info("New conversation created in the database")
+            else:
+                # Existing conversation with history
+                logging.info(f"Updating conversation in the database with ID: {conversation_id}, title: {title}, history: {history}")
+                cursor.execute('''
+                    INSERT OR REPLACE INTO conversations (id, title, history)
+                    VALUES (?, ?, ?)
+                ''', (conversation_id, title, json.dumps(history)))
+                logging.info("Conversation updated in the database")
+            
+            self.conn.commit()
+            logging.info("Changes committed to the database")
+            return conversation_id
+        except sqlite3.Error as e:
+            logging.error(f"Error saving/updating conversation in the database: {e}")
+            raise
 
     def load_conversation_history(self, conversation_id):
         cursor = self.conn.cursor()
@@ -105,17 +131,17 @@ class ConversationHistory:
         ''', (conversation_id,))
         result = cursor.fetchone()
         return result[0] if result else None
-    
+
     def load_conversations(self):
         cursor = self.conn.cursor()
         logging.info("Loading conversations from the database")
         cursor.execute('''
-            SELECT id, title FROM conversations ORDER BY id DESC
+            SELECT id, title FROM conversations ORDER BY rowid DESC
         ''')
         conversations = cursor.fetchall()
         logging.info(f"Loaded {len(conversations)} conversations from the database")
         return conversations
-    
+
     def update_conversation_history(self, conversation_id, history):
         cursor = self.conn.cursor()
         logging.info(f"Updating conversation history in the database for conversation ID: {conversation_id}")
@@ -143,7 +169,18 @@ class ConversationHistory:
             WHERE id = ?
         ''', (conversation_id,))
         self.conn.commit()
-    
+
+    def get_conversation_title(self, conversation_id):
+        cursor = self.conn.cursor()
+        cursor.execute('''
+            SELECT title FROM conversations
+            WHERE id = ?
+        ''', (conversation_id,))
+        result = cursor.fetchone()
+        return result[0] if result else None
+
+
+
 class PythonHighlighter(QSyntaxHighlighter):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -153,7 +190,10 @@ class PythonHighlighter(QSyntaxHighlighter):
         keyword_format = QTextCharFormat()
         keyword_format.setForeground(QColor("#1f3864"))  # Set the color to dark blue
         keyword_format.setFontWeight(QFont.Bold)  # Set the font weight to bold
-        keywords = ["False", "await", "else", "import", "pass", "None", "break", "except", "in", "raise", "True", "class", "finally", "is", "return", "and", "continue", "for", "lambda", "try", "as", "def", "from", "nonlocal", "while", "assert", "del", "global", "not", "with", "async", "elif", "if", "or", "yield", "print", "range", "open", "self"]
+        keywords = ["False", "await", "else", "import", "pass", "None", "break", "except", "in", "raise", "True",
+                    "class", "finally", "is", "return", "and", "continue", "for", "lambda", "try", "as", "def", "from",
+                    "nonlocal", "while", "assert", "del", "global", "not", "with", "async", "elif", "if", "or", "yield",
+                    "print", "range", "open", "self"]
         self._highlight_rules.append((QRegularExpression(r"\b(" + "|".join(keywords) + r")\b"), keyword_format))
 
         # Define the format for strings
@@ -165,12 +205,14 @@ class PythonHighlighter(QSyntaxHighlighter):
         # Define the format for comments
         comment_format = QTextCharFormat()
         comment_format.setForeground(QColor("#9e9e9e"))  # Set the color to gray
-        self._highlight_rules.append((QRegularExpression(r"#[^\n]*"), comment_format))  # Match comments starting with '#'
+        self._highlight_rules.append(
+            (QRegularExpression(r"#[^\n]*"), comment_format))  # Match comments starting with '#'
 
         # Define the format for functions
         function_format = QTextCharFormat()
         function_format.setForeground(QColor("#ff9800"))  # Set the color to orange
-        self._highlight_rules.append((QRegularExpression(r"\b[A-Za-z0-9_]+(?=\()"), function_format))  # Match function names followed by '('
+        self._highlight_rules.append(
+            (QRegularExpression(r"\b[A-Za-z0-9_]+(?=\()"), function_format))  # Match function names followed by '('
 
         logging.info("PythonHighlighter initialized")
 
@@ -180,7 +222,8 @@ class PythonHighlighter(QSyntaxHighlighter):
                 match_iterator = pattern.globalMatch(text)
                 while match_iterator.hasNext():
                     match = match_iterator.next()
-                    self.setFormat(match.capturedStart(), match.capturedLength(), format)  # Apply the corresponding format to the matched text
+                    self.setFormat(match.capturedStart(), match.capturedLength(),
+                                   format)  # Apply the corresponding format to the matched text
             logging.info(f"Highlighted code block: {text}")
         else:  # Outside a code block
             logging.info(f"Non-code block: {text}")
@@ -230,9 +273,11 @@ class MessageProcessor(QThread):
 
                     if claude_response:
                         self.new_message.emit(claude_response)
-                        self.conversation_history.append({"role": "assistant", "content": [{"type": "text", "text": claude_response}]})
+                        self.conversation_history.append(
+                            {"role": "assistant", "content": [{"type": "text", "text": claude_response}]})
                         message_sent = True
                         logging.info(f"New message received: {claude_response}")
+                        logging.info(f"Conversation history updated: {self.conversation_history}")
                         break
                 except anthropic.InternalServerError as e:
                     logging.error("Failed to get a response from Claude.", exc_info=True)
@@ -390,15 +435,21 @@ class ClaudeChat(QWidget):
 
         self.setLayout(main_layout)
 
+        # Add a new conversation when the application starts
+        self.add_new_conversation()
+        self.user_input.setFocus()  # Set focus to the user input field
+
     def update_sidebar(self):
         self.sidebar.clear()
         conversations = self.conversation_history_db.load_conversations()
         logging.info(f"Updating sidebar with {len(conversations)} conversations")
-        if not conversations:
+
+        # Add existing conversations to the sidebar
+        for conversation_id, title in conversations:
             item = QListWidgetItem()
-            item.setData(Qt.UserRole, None)
+            item.setData(Qt.UserRole, conversation_id)
             item.setSizeHint(QSize(0, 50))  # Adjust the height as needed
-            item_widget = QLabel("Untitled Conversation")
+            item_widget = QLabel(title)
             item_widget.setAlignment(Qt.AlignCenter)
             item_widget.setStyleSheet("""
                 QLabel {
@@ -410,30 +461,18 @@ class ClaudeChat(QWidget):
                     padding: 5px;
                 }
             """)
+            item_widget.setWordWrap(True)  # Enable word wrapping for long titles
             self.sidebar.addItem(item)
             self.sidebar.setItemWidget(item, item_widget)
-        else:
-            for conversation_id, title in conversations:
-                item = QListWidgetItem()
-                item.setData(Qt.UserRole, conversation_id)
-                item.setSizeHint(QSize(0, 50))  # Adjust the height as needed
-                item_widget = QLabel(title)
-                item_widget.setAlignment(Qt.AlignCenter)
-                item_widget.setStyleSheet("""
-                    QLabel {
-                        font-size: 14px;
-                        font-weight: bold;
-                        background-color: #ffffff;
-                        border: 1px solid #c0c0c0;
-                        border-radius: 5px;
-                        padding: 5px;
-                    }
-                """)
-                item_widget.setWordWrap(True)  # Enable word wrapping for long titles
-                self.sidebar.addItem(item)
-                self.sidebar.setItemWidget(item, item_widget)
+
+        # Set the current conversation as active
+        if self.conversation_id is not None:
+            items = self.sidebar.findItems(self.conversation_id, Qt.MatchExactly)
+            if items:
+                self.sidebar.setCurrentItem(items[0])
+
         logging.info("Sidebar updated")
-        
+
         def show_context_menu(pos):
             global_pos = self.sidebar.mapToGlobal(pos)
             menu = QMenu(self.sidebar)
@@ -451,7 +490,8 @@ class ClaudeChat(QWidget):
                 item = self.sidebar.itemAt(pos)
                 conversation_id = item.data(Qt.UserRole)
                 if conversation_id is not None:
-                    reply = QMessageBox.question(self, "Delete Conversation", "Are you sure you want to delete this conversation?",
+                    reply = QMessageBox.question(self, "Delete Conversation",
+                                                "Are you sure you want to delete this conversation?",
                                                 QMessageBox.Yes | QMessageBox.No)
                     if reply == QMessageBox.Yes:
                         self.delete_conversation(conversation_id)
@@ -466,41 +506,42 @@ class ClaudeChat(QWidget):
     def delete_conversation(self, conversation_id):
         self.conversation_history_db.delete_conversation(conversation_id)
         self.update_sidebar()
-        def show_code_dialog(self, code_block):
-            dialog = QDialog(self)
-            dialog.setWindowTitle("Code Block")
-            layout = QVBoxLayout(dialog)
 
-            code_text_edit = QTextEdit()
-            code_text_edit.setReadOnly(True)
-            code_text_edit.setPlainText(code_block)
-            code_text_edit.setStyleSheet("""
-                QTextEdit {
-                    background-color: #f5f5f5;
-                    padding: 10px;
-                    font-family: monospace;
-                }
-            """)
-            layout.addWidget(code_text_edit)
+    def show_code_dialog(self, code_block):
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Code Block")
+        layout = QVBoxLayout(dialog)
 
-            copy_button = QPushButton("Copy Code")
-            copy_button.clicked.connect(lambda: self.copy_code_to_clipboard(code_block))
-            copy_button.setStyleSheet("""
-                QPushButton {
-                    background-color: #4CAF50;
-                    color: white;
-                    padding: 5px 10px;
-                    border: none;
-                    border-radius: 4px;
-                    font-size: 12px;
-                }
-                QPushButton:hover {
-                    background-color: #45a049;
-                }
-            """)
-            layout.addWidget(copy_button)
+        code_text_edit = QTextEdit()
+        code_text_edit.setReadOnly(True)
+        code_text_edit.setPlainText(code_block)
+        code_text_edit.setStyleSheet("""
+            QTextEdit {
+                background-color: #f5f5f5;
+                padding: 10px;
+                font-family: monospace;
+            }
+        """)
+        layout.addWidget(code_text_edit)
 
-            dialog.exec_()
+        copy_button = QPushButton("Copy Code")
+        copy_button.clicked.connect(lambda: self.copy_code_to_clipboard(code_block))
+        copy_button.setStyleSheet("""
+            QPushButton {
+                background-color: #4CAF50;
+                color: white;
+                padding: 5px 10px;
+                border: none;
+                border-radius: 4px;
+                font-size: 12px;
+            }
+            QPushButton:hover {
+                background-color: #45a049;
+            }
+        """)
+        layout.addWidget(copy_button)
+
+        dialog.exec_()
 
     def encode_image(self, image_path):
         try:
@@ -515,17 +556,20 @@ class ClaudeChat(QWidget):
             logging.error(f"Error encoding image: {image_path}")
             logging.exception(e)
             return None
-        
+
     def load_conversation(self, item):
         conversation_id = item.data(Qt.UserRole)
         if conversation_id is None:
             self.clear_chat()
             self.conversation_history = []
+            self.conversation_id = None  # Reset the conversation ID
+            self.user_input.clear()  # Clear the user input field
             self.user_input.setFocus()
         else:
             history = self.conversation_history_db.load_conversation_history(conversation_id)
             if history:
                 self.clear_chat()
+                self.conversation_id = conversation_id  # Set the conversation ID
                 conversation = json.loads(history)
                 for message in conversation:
                     if message["role"] == "user":
@@ -590,9 +634,12 @@ class ClaudeChat(QWidget):
                             """)
                             self.chat_history_layout.addWidget(assistant_message_widget)
                 self.conversation_history = conversation  # Update the conversation history
-                self.user_input.setFocus()
-
-
+                self.user_input.clear()  # Clear the user input field
+                self.user_input.setFocus()  # Set focus to the user input field
+                logging.info(f"Conversation loaded: {conversation}")
+            else:
+                logging.warning(f"Conversation history not found for ID: {conversation_id}")
+    
     def send_message(self):
         user_message = self.user_input.toPlainText().strip()
         if user_message:
@@ -635,56 +682,69 @@ class ClaudeChat(QWidget):
         else:
             logging.warning("Empty user message. Message not sent.")
 
-    
     def save_conversation(self):
         if self.conversation_history:
-            if not hasattr(self, 'conversation_id'):
-                self.conversation_id = str(uuid.uuid4())  # Generate a unique conversation ID
-                title = self.generate_conversation_title()
-                logging.info(f"Saving conversation with title: {title}")
-                self.conversation_history_db.save_conversation_to_db(title, json.dumps(self.conversation_history))
-                logging.info("Conversation saved to the database")
-            else:
-                title = self.generate_conversation_title()
-                self.conversation_history_db.update_conversation_history(self.conversation_id, json.dumps(self.conversation_history))
-                self.conversation_history_db.rename_conversation(self.conversation_id, title)
-                logging.info("Conversation history updated in the database")
-
+            logging.info(f"Updating conversation with ID: {self.conversation_id}")
+            title = self.generate_conversation_title(self.conversation_id)  # Generate a meaningful title based on the conversation history
+            self.conversation_history_db.save_conversation_to_db(self.conversation_id, title, self.conversation_history)
+            logging.info("Conversation history updated in the database")
             self.update_sidebar()  # Update the sidebar after saving/updating the conversation
         else:
             logging.warning("Conversation history is empty. Skipping save.")
-    
-    
-    def generate_conversation_title(self):
+
+    def generate_conversation_title(self, conversation_id):
         if len(self.conversation_history) < 2:
-            return "New Conversation"
+            logging.info("Conversation history is too short. Returning the existing title.")
+            existing_title = self.conversation_history_db.get_conversation_title(conversation_id)  # Get the existing title from the database
+            if existing_title is None:
+                logging.info("No existing title found. Returning 'New Conversation' as the title.")
+                return "New Conversation"  # Return a default title if no existing title is found
+            else:
+                return existing_title  # Return the existing title if found
+        else:
+            user_messages = [message["content"][0]["text"] for message in self.conversation_history if
+                            message["role"] == "user"]
+            assistant_messages = [message["content"][0]["text"] for message in self.conversation_history if
+                                message["role"] == "assistant"]
 
-        user_messages = [message["content"][0]["text"] for message in self.conversation_history if message["role"] == "user"]
-        assistant_messages = [message["content"][0]["text"] for message in self.conversation_history if message["role"] == "assistant"]
+            conversation_summary = "\n".join(user_messages[-2:] + assistant_messages[-2:])
 
-        conversation_summary = "\n".join(user_messages[-2:] + assistant_messages[-2:])
+            prompt = f"Please generate a concise and descriptive title for the following conversation (maximum 4 words):\n\n{conversation_summary}\n\nTitle:"
 
-        prompt = f"Please generate a concise and descriptive title for the following conversation (maximum 4 words):\n\n{conversation_summary}\n\nTitle:"
+            try:
+                response = self.client.messages.create(
+                    model="claude-3-opus-20240229",
+                    max_tokens=10,
+                    temperature=0,
+                    system="You are a helpful assistant that generates concise and descriptive four-word titles for conversations.",
+                    messages=[{"role": "user", "content": prompt}]
+                )
 
-        try:
-            response = self.client.messages.create(
-                model="claude-3-opus-20240229",
-                max_tokens=10,
-                temperature=0,
-                system="You are a helpful assistant that generates concise and descriptive four-word titles for conversations.",
-                messages=[{"role": "user", "content": prompt}]
-            )
+                if response.content:
+                    title = response.content[0].text.strip()
+                    title_words = title.split()
+                    if len(title_words) > 4:
+                        title = " ".join(title_words[:4])
+                    logging.info(f"Generated conversation title: {title}")
+                    return title
+                else:
+                    logging.info("No title generated by the API. Returning the existing title.")
+                    existing_title = self.conversation_history_db.get_conversation_title(conversation_id)  # Get the existing title from the database
+                    if existing_title is None:
+                        logging.info("No existing title found. Returning 'New Conversation' as the title.")
+                        return "New Conversation"  # Return a default title if no existing title is found
+                    else:
+                        return existing_title  # Return the existing title if found
 
-            title = response.content[0].text.strip() if response.content else "Untitled Conversation"
-            title_words = title.split()
-            if len(title_words) > 4:
-                title = " ".join(title_words[:4])
-            return title
-
-        except Exception as e:
-            logging.error(f"Error generating conversation title: {str(e)}")
-            return "Untitled Conversation"
-
+            except Exception as e:
+                logging.error(f"Error generating conversation title: {str(e)}")
+                existing_title = self.conversation_history_db.get_conversation_title(conversation_id)  # Get the existing title in case of an error
+                if existing_title is None:
+                    logging.info("No existing title found. Returning 'New Conversation' as the title.")
+                    return "New Conversation"  # Return a default title if no existing title is found
+                else:
+                    return existing_title  # Return the existing title if found
+       
     def set_focus_to_input(self):
         self.user_input.setFocus()
         logging.info("Focus set to user input")
@@ -763,32 +823,34 @@ class ClaudeChat(QWidget):
         self.user_input.setFocus()  # Set focus back to the user input box
 
         logging.info(f"Chat updated with message: {message}")
-    
+
     def add_new_conversation(self):
         self.clear_chat()
         self.conversation_history = []
         self.user_input.setFocus()
         self.conversation_id = str(uuid.uuid4())
         title = "New Conversation"
-        self.conversation_history_db.save_conversation_to_db(title, json.dumps(self.conversation_history))
+        logging.info(f"Adding new conversation with ID: {self.conversation_id} and title: {title}")
+        self.conversation_history_db.save_conversation_to_db(self.conversation_id, title, self.conversation_history)
+        logging.info(f"New conversation added to the database with ID: {self.conversation_id}")
         self.update_sidebar()
 
     def is_code_block(self, text):
-            # Check if the text appears to be a code block without the ```python prefix
-            is_code = text.startswith("def ") or text.startswith("import ") or text.startswith("class ")
-            logging.info(f"Checking if text is a code block: {text}")
-            logging.info(f"Is code block: {is_code}")
-            return is_code
+        # Check if the text appears to be a code block without the ```python prefix
+        is_code = text.startswith("def ") or text.startswith("import ") or text.startswith("class ")
+        logging.info(f"Checking if text is a code block: {text}")
+        logging.info(f"Is code block: {is_code}")
+        return is_code
 
     def add_copy_button(self, code_block_content):
-       # Generate a unique identifier for the code block
-       code_block_id = f"code_block_{len(self.code_blocks)}"
-       self.code_blocks[code_block_id] = code_block_content.strip()
+        # Generate a unique identifier for the code block
+        code_block_id = f"code_block_{len(self.code_blocks)}"
+        self.code_blocks[code_block_id] = code_block_content.strip()
 
-       # Create a copy button
-       copy_button = QPushButton("Copy Code")
-       copy_button.setFixedWidth(100)  # Set a fixed width for the button
-       copy_button.setStyleSheet("""
+        # Create a copy button
+        copy_button = QPushButton("Copy Code")
+        copy_button.setFixedWidth(100)  # Set a fixed width for the button
+        copy_button.setStyleSheet("""
            QPushButton {
                background-color: #4CAF50;
                color: white;
@@ -802,18 +864,17 @@ class ClaudeChat(QWidget):
                background-color: #45a049;
            }
        """)
-       copy_button.clicked.connect(lambda: self.copy_code_to_clipboard(code_block_id))
+        copy_button.clicked.connect(lambda: self.copy_code_to_clipboard(code_block_id))
 
-       button_layout = QHBoxLayout()
-       button_layout.addWidget(copy_button)
-       button_layout.setAlignment(Qt.AlignLeft)  # Align the button to the left
+        button_layout = QHBoxLayout()
+        button_layout.addWidget(copy_button)
+        button_layout.setAlignment(Qt.AlignLeft)  # Align the button to the left
 
-       button_widget = QWidget()
-       button_widget.setLayout(button_layout)
+        button_widget = QWidget()
+        button_widget.setLayout(button_layout)
 
-       self.chat_history_layout.addWidget(button_widget)
-       self.chat_history_layout.addSpacing(10)  # Add spacing between the button and the next message
-
+        self.chat_history_layout.addWidget(button_widget)
+        self.chat_history_layout.addSpacing(10)  # Add spacing between the button and the next message
 
     def copy_code_to_clipboard(self, code_block_id):
         if code_block_id in self.code_blocks:
@@ -829,7 +890,6 @@ class ClaudeChat(QWidget):
         logging.info(f"Progress dialog closed")
         logging.info(f"Current chat history: {self.chat_history}")
 
-
     def enable_input(self):
         self.user_input.setEnabled(True)
         self.send_button.setEnabled(True)
@@ -837,7 +897,6 @@ class ClaudeChat(QWidget):
         logging.info("User input enabled")
         logging.info(f"User input widget enabled: {self.user_input.isEnabled()}")
         logging.info(f"Send button enabled: {self.send_button.isEnabled()}")
-
 
     def clear_chat(self):
         while self.chat_history_layout.count():
@@ -855,14 +914,12 @@ class ClaudeChat(QWidget):
         logging.info("Chat cleared")
         logging.info(f"Conversation history reset: {self.conversation_history}")
 
-
     def api_busy(self):
         self.status_bar.showMessage("API is busy. Trying again in 60 seconds...", 60000)
 
         logging.warning("API busy")
         logging.info("Status bar message set: 'API is busy. Trying again in 60 seconds...'")
         logging.info("Status bar message timeout: 60000 ms")
-
 
     def show_api_error(self, error_message):
         QMessageBox.critical(self, "API Error", error_message)
@@ -925,7 +982,8 @@ class ClaudeChat(QWidget):
                     sheet = workbook.Worksheets[1]
                     file_content = ""
                     for row in sheet.UsedRange.Rows:
-                        file_content += " ".join([str(cell.Value) if cell.Value is not None else '' for cell in row.Cells]) + "\n"
+                        file_content += " ".join(
+                            [str(cell.Value) if cell.Value is not None else '' for cell in row.Cells]) + "\n"
                     logging.info(f"Excel file content extracted: {file_content}")
                 except Exception as e:
                     file_content = f"Error opening file: {e}"
@@ -961,6 +1019,7 @@ class ClaudeChat(QWidget):
             self.progress_dialog.close()
             self.progress_dialog = None
             logging.info("Progress dialog closed")
+
     def handle_api_error(self, error_message):
         msg = QMessageBox()
         msg.setIcon(QMessageBox.Critical)
@@ -972,20 +1031,19 @@ class ClaudeChat(QWidget):
         logging.error(f"API error: {error_message}")
         logging.info("API error message box shown")
 
+
 def main():
     app = QApplication(sys.argv)
+    setup_logging()
+    logging.info("Logging setup completed")
     logging.info("Application started")
-
     chat = ClaudeChat()
     chat.show()
     logging.info("ClaudeChat window shown")
-
-    setup_logging()
-    logging.info("Logging setup completed")
-
     exit_code = app.exec_()
     logging.info(f"Application exited with code: {exit_code}")
     sys.exit(exit_code)
+
 
 if __name__ == '__main__':
     main()
