@@ -241,8 +241,28 @@ class MultiLineInput(QTextEdit):
             logging.info(f"Key pressed: {event.text()}")
 
     def insertFromMimeData(self, source):
-        self.insertPlainText(source.text())
-        logging.info(f"Text inserted from mime data: {source.text()}")
+        if source.hasText():
+            text = source.text()
+            if self.is_code_block(text):
+                # Format the code block
+                formatted_text = self.format_code_block(text)
+                self.insertPlainText(formatted_text)
+            else:
+                self.insertPlainText(text)
+            logging.info(f"Text inserted from mime data: {text}")
+
+    def is_code_block(self, text):
+        # Check if the text appears to be a code block
+        return text.startswith("def ") or text.startswith("import ") or text.startswith("class ")
+
+    def format_code_block(self, code_block):
+        # Format the code block by adding indentation and line breaks
+        lines = code_block.split("\n")
+        formatted_lines = []
+        for line in lines:
+            formatted_lines.append("    " + line)
+        formatted_code_block = "\n".join(formatted_lines)
+        return formatted_code_block
 
 
 class MessageProcessor(QThread):
