@@ -154,21 +154,33 @@ class ConversationHistory:
         logging.info("Conversation history updated in the database")
 
     def rename_conversation(self, conversation_id, new_title):
-        cursor = self.conn.cursor()
-        cursor.execute('''
-            UPDATE conversations
-            SET title = ?
-            WHERE id = ?
-        ''', (new_title, conversation_id))
-        self.conn.commit()
+        try:
+            cursor = self.conn.cursor()
+            logging.info(f"Renaming conversation with ID: {conversation_id} to new title: {new_title}")
+            cursor.execute('''
+                UPDATE conversations
+                SET title = ?
+                WHERE id = ?
+            ''', (new_title, conversation_id))
+            self.conn.commit()
+            logging.info("Conversation renamed successfully in the database")
+        except sqlite3.Error as e:
+            logging.error(f"Error renaming conversation in the database: {e}")
+            raise
 
     def delete_conversation(self, conversation_id):
-        cursor = self.conn.cursor()
-        cursor.execute('''
-            DELETE FROM conversations
-            WHERE id = ?
-        ''', (conversation_id,))
-        self.conn.commit()
+        try:
+            cursor = self.conn.cursor()
+            logging.info(f"Deleting conversation with ID: {conversation_id}")
+            cursor.execute('''
+                DELETE FROM conversations
+                WHERE id = ?
+            ''', (conversation_id,))
+            self.conn.commit()
+            logging.info("Conversation deleted successfully from the database")
+        except sqlite3.Error as e:
+            logging.error(f"Error deleting conversation from the database: {e}")
+            raise
 
     def get_conversation_title(self, conversation_id):
         cursor = self.conn.cursor()
@@ -493,21 +505,27 @@ class ClaudeChat(QWidget):
 
         logging.info("Sidebar updated")
 
-        def show_context_menu(pos):
+        self.sidebar.setContextMenuPolicy(Qt.CustomContextMenu)
+        try:
+            self.sidebar.customContextMenuRequested.disconnect()
+        except TypeError:
+            pass  # Ignore if it was not connected
+        self.sidebar.customContextMenuRequested.connect(self.show_context_menu)
+    def show_context_menu(self, pos):
+        item = self.sidebar.itemAt(pos)
+        if item is not None:
             global_pos = self.sidebar.mapToGlobal(pos)
             menu = QMenu(self.sidebar)
             rename_action = menu.addAction("Rename")
             delete_action = menu.addAction("Delete")
             action = menu.exec_(global_pos)
             if action == rename_action:
-                item = self.sidebar.itemAt(pos)
                 conversation_id = item.data(Qt.UserRole)
                 if conversation_id is not None:
                     new_title, ok = QInputDialog.getText(self, "Rename Conversation", "Enter a new title:")
                     if ok and new_title:
                         self.rename_conversation(conversation_id, new_title)
             elif action == delete_action:
-                item = self.sidebar.itemAt(pos)
                 conversation_id = item.data(Qt.UserRole)
                 if conversation_id is not None:
                     reply = QMessageBox.question(self, "Delete Conversation",
@@ -516,17 +534,18 @@ class ClaudeChat(QWidget):
                     if reply == QMessageBox.Yes:
                         self.delete_conversation(conversation_id)
 
-        self.sidebar.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.sidebar.customContextMenuRequested.connect(show_context_menu)
-
     def rename_conversation(self, conversation_id, new_title):
         self.conversation_history_db.rename_conversation(conversation_id, new_title)
         self.update_sidebar()
 
     def delete_conversation(self, conversation_id):
         self.conversation_history_db.delete_conversation(conversation_id)
+        if self.conversation_id == conversation_id:
+            self.conversation_id = None
+            self.chat_history.clear()
+            self.clear_chat()  # Clear the chat history layout
         self.update_sidebar()
-
+        
     def show_code_dialog(self, code_block):
         dialog = QDialog(self)
         dialog.setWindowTitle("Code Block")
