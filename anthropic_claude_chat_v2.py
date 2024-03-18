@@ -467,32 +467,45 @@ class MessageProcessor(QThread):
 
 
 class APIKeyDialog(QDialog):
+    # Initialize the APIKeyDialog class
     def __init__(self, parent=None):
+        # Call the parent class's constructor
         super().__init__(parent)
+        # Set the window title
         self.setWindowTitle("Enter API Key")
+        # Set the window size
         self.setFixedSize(700, 100)
 
+        # Create a vertical layout
         layout = QVBoxLayout()
 
+        # Create a label and add it to the layout
         label = QLabel("Please enter your Anthropic API Key:")
         layout.addWidget(label)
 
+        # Create a line edit for the API key input and add it to the layout
         self.api_key_input = QLineEdit()
         layout.addWidget(self.api_key_input)
 
+        # Create a horizontal layout for the buttons
         button_box = QHBoxLayout()
+        # Create an OK button, connect its clicked signal to the dialog's accept slot, and add it to the button layout
         ok_button = QPushButton("OK")
         ok_button.clicked.connect(self.accept)
         button_box.addWidget(ok_button)
 
+        # Create a Cancel button, connect its clicked signal to the dialog's reject slot, and add it to the button layout
         cancel_button = QPushButton("Cancel")
         cancel_button.clicked.connect(self.reject)
         button_box.addWidget(cancel_button)
 
+        # Add the button layout to the main layout
         layout.addLayout(button_box)
 
+        # Set the dialog's layout to the main layout
         self.setLayout(layout)
 
+    # Method to get the entered API key
     def get_api_key(self):
         return self.api_key_input.text()
 
@@ -532,21 +545,29 @@ class ClaudeChat(QWidget):
         logging.info(f"Chat history: {self.chat_history}")
 
     def set_windows_env_variable(self, name, value):
-        try:
-            winreg.CreateKey(winreg.HKEY_CURRENT_USER, 'Environment')
-            registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, 'Environment', 0, winreg.KEY_WRITE)
-            winreg.SetValueEx(registry_key, name, 0, winreg.REG_SZ, value)
-            winreg.CloseKey(registry_key)
-            
-            # Refresh the environment variables
-            HWND_BROADCAST = 0xFFFF
-            WM_SETTINGCHANGE = 0x1A
-            SMTO_ABORTIFHUNG = 0x0002
-            result = ctypes.c_long()
-            SendMessageTimeoutW = ctypes.windll.user32.SendMessageTimeoutW
-            SendMessageTimeoutW(HWND_BROADCAST, WM_SETTINGCHANGE, 0, u'Environment', SMTO_ABORTIFHUNG, 5000, ctypes.byref(result))
-        except WindowsError:
-            logging.error(f"Failed to set environment variable '{name}'")
+            try:
+                # Create a new key in the Windows registry under HKEY_CURRENT_USER
+                winreg.CreateKey(winreg.HKEY_CURRENT_USER, 'Environment')
+                # Open the 'Environment' key with write permissions
+                registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, 'Environment', 0, winreg.KEY_WRITE)
+                # Set the value of the specified environment variable
+                winreg.SetValueEx(registry_key, name, 0, winreg.REG_SZ, value)
+                # Close the registry key
+                winreg.CloseKey(registry_key)
+                
+                # Constants for the SendMessageTimeout function
+                HWND_BROADCAST = 0xFFFF
+                WM_SETTINGCHANGE = 0x1A
+                SMTO_ABORTIFHUNG = 0x0002
+                # Create a long integer to receive the result of the SendMessageTimeout function
+                result = ctypes.c_long()
+                # Get a reference to the SendMessageTimeout function
+                SendMessageTimeoutW = ctypes.windll.user32.SendMessageTimeoutW
+                # Call SendMessageTimeout to notify all windows of the environment variable change
+                SendMessageTimeoutW(HWND_BROADCAST, WM_SETTINGCHANGE, 0, u'Environment', SMTO_ABORTIFHUNG, 5000, ctypes.byref(result))
+            except WindowsError:
+                # Log an error message if setting the environment variable fails
+                logging.error(f"Failed to set environment variable '{name}'")
 
     def init_ui(self):
             # Set the window title and size
