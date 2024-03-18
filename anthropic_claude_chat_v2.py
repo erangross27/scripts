@@ -6,6 +6,8 @@ import sqlite3
 import sys
 import time
 import uuid
+import winreg
+import ctypes
 from io import BytesIO
 
 import anthropic
@@ -17,7 +19,7 @@ from PIL import Image
 from PyQt5.QtCore import QThread, pyqtSignal, Qt, QRegularExpression, QSize
 from PyQt5.QtGui import QFont, QSyntaxHighlighter, QTextCharFormat, QColor, QFontDatabase
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QTextEdit, QLabel, QStatusBar, QMessageBox, \
-    QHBoxLayout, QScrollArea, QMenu, QInputDialog
+    QHBoxLayout, QScrollArea, QMenu, QInputDialog,QTextEdit,QLineEdit,QDialog
 from PyQt5.QtWidgets import QFileDialog, QProgressDialog, QListWidget, QListWidgetItem, QDialog
 
 if sys.stdout is not None:
@@ -70,6 +72,8 @@ def setup_logging():
     logger.addHandler(warning_handler)
     logger.addHandler(error_handler)
 
+
+    
 
 class ConversationHistory:
     def __init__(self, db_name):
@@ -252,8 +256,6 @@ class ConversationHistory:
         # If a result was found, return the title (which is the first element of the result tuple)
         # If no result was found, return None
         return result[0] if result else None
-
-
 
 class PythonHighlighter(QSyntaxHighlighter):
     def __init__(self, parent=None):
@@ -461,7 +463,38 @@ class MessageProcessor(QThread):
             # If a message was not sent, log a warning and wait for 60 seconds before trying again
             logging.warning("Message not sent. Retrying in 60 seconds.")
             time.sleep(60)
+            
 
+
+class APIKeyDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Enter API Key")
+        self.setFixedSize(700, 100)
+
+        layout = QVBoxLayout()
+
+        label = QLabel("Please enter your Anthropic API Key:")
+        layout.addWidget(label)
+
+        self.api_key_input = QLineEdit()
+        layout.addWidget(self.api_key_input)
+
+        button_box = QHBoxLayout()
+        ok_button = QPushButton("OK")
+        ok_button.clicked.connect(self.accept)
+        button_box.addWidget(ok_button)
+
+        cancel_button = QPushButton("Cancel")
+        cancel_button.clicked.connect(self.reject)
+        button_box.addWidget(cancel_button)
+
+        layout.addLayout(button_box)
+
+        self.setLayout(layout)
+
+    def get_api_key(self):
+        return self.api_key_input.text()
 
 class ClaudeChat(QWidget):
     def __init__(self):
@@ -471,7 +504,14 @@ class ClaudeChat(QWidget):
         self.api_key = os.getenv('ANTHROPIC_API_KEY')
         # If the API key was not found in the environment variables, prompt the user to enter it
         if not self.api_key:
-            self.api_key = input("Enter your Anthropic API Key: ")
+            api_key_dialog = APIKeyDialog(self)
+            if api_key_dialog.exec_() == QDialog.Accepted:
+                self.api_key = api_key_dialog.get_api_key()
+                os.environ['ANTHROPIC_API_KEY'] = self.api_key
+                self.set_windows_env_variable('ANTHROPIC_API_KEY', self.api_key)
+            else:
+                QMessageBox.critical(self, "Error", "API key is required to run the application.")
+                sys.exit(1)
 
         # Create an Anthropic client using the API key
         self.client = anthropic.Anthropic(api_key=self.api_key)
@@ -490,6 +530,23 @@ class ClaudeChat(QWidget):
         logging.info(f"API key: {self.api_key}")
         logging.info(f"Conversation history: {self.conversation_history}")
         logging.info(f"Chat history: {self.chat_history}")
+
+    def set_windows_env_variable(self, name, value):
+        try:
+            winreg.CreateKey(winreg.HKEY_CURRENT_USER, 'Environment')
+            registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, 'Environment', 0, winreg.KEY_WRITE)
+            winreg.SetValueEx(registry_key, name, 0, winreg.REG_SZ, value)
+            winreg.CloseKey(registry_key)
+            
+            # Refresh the environment variables
+            HWND_BROADCAST = 0xFFFF
+            WM_SETTINGCHANGE = 0x1A
+            SMTO_ABORTIFHUNG = 0x0002
+            result = ctypes.c_long()
+            SendMessageTimeoutW = ctypes.windll.user32.SendMessageTimeoutW
+            SendMessageTimeoutW(HWND_BROADCAST, WM_SETTINGCHANGE, 0, u'Environment', SMTO_ABORTIFHUNG, 5000, ctypes.byref(result))
+        except WindowsError:
+            logging.error(f"Failed to set environment variable '{name}'")
 
     def init_ui(self):
             # Set the window title and size
