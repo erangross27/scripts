@@ -2,6 +2,7 @@ import base64
 import json
 import logging
 import os
+from pyexpat import model
 import sqlite3
 import sys
 import time
@@ -12,6 +13,7 @@ from io import BytesIO
 
 import anthropic
 import fitz
+from httpx import get
 import pythoncom
 import requests
 import win32com.client as win32
@@ -20,7 +22,7 @@ from PyQt5.QtCore import QThread, pyqtSignal, Qt, QRegularExpression, QSize
 from PyQt5.QtGui import QFont, QSyntaxHighlighter, QTextCharFormat, QColor, QFontDatabase
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QTextEdit, QLabel, QStatusBar, QMessageBox, \
     QHBoxLayout, QScrollArea, QMenu, QInputDialog,QTextEdit,QLineEdit,QDialog
-from PyQt5.QtWidgets import QFileDialog, QProgressDialog, QListWidget, QListWidgetItem, QDialog
+from PyQt5.QtWidgets import QFileDialog, QProgressDialog, QListWidget, QListWidgetItem, QComboBox,QGroupBox
 
 if sys.stdout is not None:
     sys.stdout.reconfigure(encoding='utf-8')
@@ -268,6 +270,7 @@ class PythonHighlighter(QSyntaxHighlighter):
         keyword_format = QTextCharFormat()
         keyword_format.setForeground(QColor("#1f3864"))  # Set the color to dark blue
         keyword_format.setFontWeight(QFont.Bold)  # Set the font weight to bold
+        keyword_format.setFontFamily("Cabin")  # Set the font family to "Cabin"
         # List of Python keywords
         keywords = ["False", "await", "else", "import", "pass", "None", "break", "except", "in", "raise", "True",
                     "class", "finally", "is", "return", "and", "continue", "for", "lambda", "try", "as", "def", "from",
@@ -279,6 +282,7 @@ class PythonHighlighter(QSyntaxHighlighter):
         # Define the format for strings
         string_format = QTextCharFormat()
         string_format.setForeground(QColor("#4caf50"))  # Set the color to green
+        string_format.setFontFamily("Cabin")  # Set the font family to "Cabin"
         # Add the string highlight rules to the list of highlight rules
         self._highlight_rules.append((QRegularExpression(r"\".*\""), string_format))  # Match double-quoted strings
         self._highlight_rules.append((QRegularExpression(r"\'.*\'"), string_format))  # Match single-quoted strings
@@ -286,12 +290,14 @@ class PythonHighlighter(QSyntaxHighlighter):
         # Define the format for comments
         comment_format = QTextCharFormat()
         comment_format.setForeground(QColor("#9e9e9e"))  # Set the color to gray
+        comment_format.setFontFamily("Cabin")  # Set the font family to "Cabin"
         # Add the comment highlight rule to the list of highlight rules
         self._highlight_rules.append((QRegularExpression(r"#[^\n]*"), comment_format))  # Match comments starting with '#'
 
         # Define the format for function names
         function_format = QTextCharFormat()
         function_format.setForeground(QColor("#ff9800"))  # Set the color to orange
+        function_format.setFontFamily("Cabin")  # Set the font family to "Cabin"
         # Add the function name highlight rule to the list of highlight rules
         self._highlight_rules.append((QRegularExpression(r"\b[A-Za-z0-9_]+(?=\()"), function_format))  # Match function names followed by '('
 
@@ -321,6 +327,14 @@ class PythonHighlighter(QSyntaxHighlighter):
 class MultiLineInput(QTextEdit):
     # Define a signal that will be emitted when the return key is pressed
     returnPressed = pyqtSignal()
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setAcceptRichText(False)
+        self.setLineWrapMode(QTextEdit.WidgetWidth)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.document().documentLayout().documentSizeChanged.connect(self.adjustHeight)
 
     def keyPressEvent(self, event):
         # Check if the pressed key is the return key and the control modifier is also pressed
@@ -370,6 +384,10 @@ class MultiLineInput(QTextEdit):
         formatted_code_block = "\n".join(formatted_lines)
         return formatted_code_block
 
+    def adjustHeight(self):
+        doc_height = self.document().size().height()
+        self.setFixedHeight(int(doc_height) + 10)
+
 
 class MessageProcessor(QThread):
     # Define a signal that will be emitted when a new message is received
@@ -379,15 +397,15 @@ class MessageProcessor(QThread):
     # Define a signal that will be emitted when an API error occurs
     api_error = pyqtSignal(str)
 
-    def __init__(self, client, conversation_history):
+    def __init__(self, client, conversation_history, selected_model):
         # Call the parent class's constructor
         super().__init__()
         # Store the client object
         self.client = client
         # Store the conversation history
         self.conversation_history = conversation_history
-        # Log the initialization of the MessageProcessor
-        logging.info("MessageProcessor initialized")
+        # Store the selected model
+        self.selected_model = selected_model
 
     def run(self):
         # Initialize a flag to indicate whether a message has been sent
@@ -401,7 +419,7 @@ class MessageProcessor(QThread):
                 try:
                     # Create a message using the client's create method
                     message = self.client.messages.create(
-                        model="claude-3-opus-20240229",
+                        model=self.selected_model,
                         max_tokens=4096,
                         temperature=0,
                         messages=self.conversation_history
@@ -570,132 +588,234 @@ class ClaudeChat(QWidget):
                 logging.error(f"Failed to set environment variable '{name}'")
 
     def init_ui(self):
-            # Set the window title and size
-            self.setWindowTitle("Chat with Claude")
-            self.resize(800, 600)
-            # Add custom fonts for the application
-            QFontDatabase.addApplicationFont("fonts/Cabin-Regular.ttf")
-            QFontDatabase.addApplicationFont("fonts/Cabin-Bold.ttf")
+        # Set the window title and size
+        self.setWindowTitle("Chat with Claude")
+        self.showMaximized()  # Open the window in full screen mode
 
-            # Get the screen resolution and calculate the font size based on it
-            screen_resolution = QApplication.primaryScreen().geometry()
-            font_size = int(screen_resolution.height() * 0.02)  # Adjust the multiplier as needed
-            font = QFont("Cabin", font_size)
+        # Add custom fonts for the application
+        QFontDatabase.addApplicationFont("fonts/Cabin-Regular.ttf")
+        QFontDatabase.addApplicationFont("fonts/Cabin-Bold.ttf")
 
-            # Create a label for the chat history
-            self.chat_label = QLabel("Chat History:")
+        # Get the screen resolution and calculate the font size based on it
+        screen_resolution = QApplication.primaryScreen().geometry()
+        font_size = int(screen_resolution.height() * 0.02)  # Adjust the multiplier as needed
+        font = QFont("Cabin", font_size)
 
-            # Create a widget and layout for the chat history
-            self.chat_history_widget = QWidget()
-            self.chat_history_layout = QVBoxLayout(self.chat_history_widget)
-            self.chat_history_layout.setAlignment(Qt.AlignTop)
-            self.chat_history_layout.setSpacing(10)
+        # Create a label for the chat history
+        self.chat_label = QLabel("Chat History:")
 
-            # Create a scroll area for the chat history and set the chat history widget as its child
-            self.scroll_area = QScrollArea()
-            self.scroll_area.setWidgetResizable(True)
-            self.scroll_area.setWidget(self.chat_history_widget)
+        # Create a widget and layout for the chat history
+        self.chat_history_widget = QWidget()
+        self.chat_history_layout = QVBoxLayout(self.chat_history_widget)
+        self.chat_history_layout.setAlignment(Qt.AlignTop)
+        self.chat_history_layout.setSpacing(10)
 
-            # Create a label for the user input field
-            self.input_label = QLabel("Type your question here (press Ctrl+Enter to send):")
+        # Create a scroll area for the chat history and set the chat history widget as its child
+        self.scroll_area = QScrollArea()
+        self.scroll_area.setWidgetResizable(True)
+        self.scroll_area.setWidget(self.chat_history_widget)
 
-            # Create a multiline input field for the user input
-            self.user_input = MultiLineInput()
-            self.user_input.setFont(font)
-            self.user_input.setStyleSheet("""
-                QTextEdit {
-                    border: 2px solid #c0c0c0;
-                    border-radius: 5px;
-                    padding: 5px;
-                }
-            """)
-            # Connect the returnPressed signal of the user input field to the send_message method
-            self.user_input.returnPressed.connect(self.send_message)
-            # Add a Python syntax highlighter to the user input field
-            self.user_input_highlighter = PythonHighlighter(self.user_input.document())
+        # Create a label for the user input field
+        self.input_label = QLabel("Type your question here (press Ctrl+Enter to send):")
 
-            # Create a send button and connect its clicked signal to the send_message method
-            self.send_button = QPushButton("Send")
-            self.send_button.clicked.connect(self.send_message)
+        # Create a multiline input field for the user input
+        self.user_input = MultiLineInput(self)
+        self.user_input.setFont(font)
+        self.user_input.setStyleSheet("""
+            QTextEdit {
+                border: 2px solid #c0c0c0;
+                border-radius: 5px;
+                padding: 5px;
+                background-color: #f0f0f0;
+                font-weight: normal;
+            }
+        """)
+        # Connect the returnPressed signal of the user input field to the send_message method
+        self.user_input.returnPressed.connect(self.send_message)
+        # Add a Python syntax highlighter to the user input field
+        self.user_input_highlighter = PythonHighlighter(self.user_input.document())
 
-            # Create a clear button and connect its clicked signal to the clear_chat method
-            self.clear_button = QPushButton("Clear")
-            self.clear_button.clicked.connect(self.clear_chat)
+        # Create a send button and connect its clicked signal to the send_message method
+        self.send_button = QPushButton("Send")
+        self.send_button.setFixedSize(100, 30)  # Set a fixed size for the button
+        self.send_button.setStyleSheet("""
+            QPushButton {
+                background-color: #4CAF50;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                font-size: 12px;
+            }
+            QPushButton:hover {
+                background-color: #45a049;
+            }
+        """)
+        self.send_button.clicked.connect(self.send_message)
 
-            # Create a status bar
-            self.status_bar = QStatusBar()
+        # Create a clear button and connect its clicked signal to the clear_chat method
+        self.clear_button = QPushButton("Clear")
+        self.clear_button.setFixedSize(100, 30)  # Set a fixed size for the button
+        self.clear_button.setStyleSheet("""
+            QPushButton {
+                background-color: #f44336;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                font-size: 12px;
+            }
+            QPushButton:hover {
+                background-color: #d32f2f;
+            }
+        """)
+        self.clear_button.clicked.connect(self.clear_chat)
 
-            # Create an upload button and connect its clicked signal to the upload_file method
-            self.upload_button = QPushButton("Upload")
-            self.upload_button.clicked.connect(self.upload_file)
+        # Create a status bar
+        self.status_bar = QStatusBar()
 
-            # Create a layout for the input field and buttons
-            input_layout = QVBoxLayout()
-            input_layout.addWidget(self.input_label)
-            input_layout.addWidget(self.user_input)
-            input_layout.addWidget(self.send_button)
-            input_layout.addWidget(self.clear_button)
-            input_layout.addWidget(self.upload_button)
-            input_layout.addWidget(self.status_bar)
+        # Create an upload button and connect its clicked signal to the upload_file method
+        self.upload_button = QPushButton("Upload")
+        self.upload_button.setFixedSize(100, 30)  # Set a fixed size for the button
+        self.upload_button.setStyleSheet("""
+            QPushButton {
+                background-color: #2196F3;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                font-size: 12px;
+            }
+            QPushButton:hover {
+                background-color: #1976D2;
+            }
+        """)
+        self.upload_button.clicked.connect(self.upload_file)
 
-            # Create a sidebar list widget
-            self.sidebar = QListWidget()
-            self.sidebar.setMaximumWidth(400)  # Adjust the width as needed
-            sidebar_font = QFont("Cabin", font_size)  # Adjust the font size as needed
-            self.sidebar.setFont(sidebar_font)
-            self.sidebar.setStyleSheet("""
-                QListWidget {
-                    background-color: #f0f0f0;
-                    border: none;
-                    padding: 10px;
-                }
-                QListWidget::item {
-                    padding: 5px;
-                }
-                QListWidget::item:selected {
-                    background-color: #c0c0c0;
-                }
-            """)
-            # Connect the itemClicked signal of the sidebar to the load_conversation method
-            self.sidebar.itemClicked.connect(self.load_conversation)
+        # Create a layout for the input field and buttons
+        input_layout = QVBoxLayout()
+        input_layout.addWidget(self.user_input)
 
-            # Create the main layout and add the sidebar and right layouts to it
-            main_layout = QHBoxLayout()
-            sidebar_layout = QVBoxLayout()
-            sidebar_layout.addWidget(self.sidebar)
-            main_layout.addLayout(sidebar_layout)
+        button_layout = QHBoxLayout()
+        button_layout.addWidget(self.send_button)
+        button_layout.addWidget(self.clear_button)
+        button_layout.addWidget(self.upload_button)
+        button_layout.setAlignment(Qt.AlignLeft)  # Align buttons to the left
 
-            right_layout = QVBoxLayout()
-            right_layout.addWidget(self.scroll_area)
-            right_layout.addLayout(input_layout)
-            main_layout.addLayout(right_layout)
+        input_layout.addLayout(button_layout)
 
-            # Create an add button and connect its clicked signal to the add_new_conversation method
-            add_button = QPushButton("+")
-            add_button.clicked.connect(self.add_new_conversation)
-            add_button.setStyleSheet("""
-                QPushButton {
-                    background-color: #4CAF50;
-                    color: white;
-                    padding: 5px 10px;
-                    border: none;
-                    border-radius: 4px;
-                    font-size: 12px;
-                }
-                QPushButton:hover {
-                    background-color: #45a049;
-                }
-            """)
-            # Add the add button to the sidebar layout
-            sidebar_layout.addWidget(add_button)
+        # Create a sidebar list widget for conversation titles
+        self.sidebar = QListWidget()
+        self.sidebar.setMaximumWidth(300)  # Adjust the width as needed
+        sidebar_font = QFont("Cabin", font_size)  # Adjust the font size as needed
+        self.sidebar.setFont(sidebar_font)
+        self.sidebar.setStyleSheet("""
+            QListWidget {
+                background-color: #f0f0f0;
+                border: none;
+                padding: 10px;
+            }
+            QListWidget::item {
+                padding: 10px;
+                border-radius: 5px;
+                background-color: #ffffff;
+                margin-bottom: 5px;
+                font-weight: normal;
+            }
+            QListWidget::item:selected {
+                background-color: #c0c0c0;
+            }
+        """)
+        # Connect the itemClicked signal of the sidebar to the load_conversation method
+        self.sidebar.itemClicked.connect(self.load_conversation)
 
-            # Set the main layout as the layout of the window
-            self.setLayout(main_layout)
+        # Create a right sidebar for options
+        self.right_sidebar = QWidget()
+        self.right_sidebar.setMaximumWidth(200)  # Adjust the width as needed
+        right_sidebar_layout = QVBoxLayout()
+        right_sidebar_layout.setContentsMargins(10, 10, 10, 10)  # Add margins to the layout
+        right_sidebar_layout.setSpacing(10)  # Add spacing between widgets
 
-            # Add a new conversation when the application starts
-            self.add_new_conversation()
-            # Set focus to the user input field
-            self.user_input.setFocus()  # Set focus to the user input field
+        # Create a label for the model selection
+        model_label = QLabel("Select Model:")
+        model_label.setStyleSheet("""
+            QLabel {
+                font-size: 14px;
+                font-weight: bold;
+            }
+        """)
+
+        # Create a combo box for model selection
+        self.model_combo_box = QComboBox()
+        self.model_combo_box.addItem("Claude-3-Opus")
+        self.model_combo_box.addItem("Claude-3-Sonnet")
+        self.model_combo_box.addItem("Claude-3-Haiku")
+        self.model_combo_box.setStyleSheet("""
+            QComboBox {
+                padding: 5px;
+                border: 1px solid #c0c0c0;
+                border-radius: 4px;
+            }
+            QComboBox::drop-down {
+                width: 20px;
+                border: none;
+            }
+            QComboBox::down-arrow {
+                image: url(:/icons/down_arrow.png);
+                width: 12px;
+                height: 12px;
+            }
+        """)
+
+        # Add the label and combo box to the right sidebar layout
+        right_sidebar_layout.addWidget(model_label)
+        right_sidebar_layout.addWidget(self.model_combo_box)
+
+        # Add a stretch to push the widgets to the top
+        right_sidebar_layout.addStretch()
+
+        self.right_sidebar.setLayout(right_sidebar_layout)  # Set the layout for the right sidebar
+        # Add more options to the right sidebar as needed
+
+        # Create the main layout and add the sidebar, chat history, input layout, and right sidebar to it
+        main_layout = QHBoxLayout()
+        sidebar_layout = QVBoxLayout()
+        sidebar_layout.addWidget(self.sidebar)
+        main_layout.addLayout(sidebar_layout)
+
+        right_layout = QVBoxLayout()
+        right_layout.addWidget(self.scroll_area)
+        right_layout.addWidget(self.input_label)
+        right_layout.addLayout(input_layout)
+        right_layout.addWidget(self.status_bar)
+        main_layout.addLayout(right_layout)
+
+        main_layout.addWidget(self.right_sidebar)
+
+        # Create an add button and connect its clicked signal to the add_new_conversation method
+        add_button = QPushButton("+")
+        add_button.setFixedSize(30, 30)  # Set a fixed size for the button
+        add_button.setStyleSheet("""
+            QPushButton {
+                background-color: #4CAF50;
+                color: white;
+                border: none;
+                border-radius: 15px;
+                font-size: 18px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #45a049;
+            }
+        """)
+        add_button.clicked.connect(self.add_new_conversation)
+        # Add the add button to the sidebar layout at the top center
+        sidebar_layout.insertWidget(0, add_button, alignment=Qt.AlignHCenter)
+
+        # Set the main layout as the layout of the window
+        self.setLayout(main_layout)
+
+        # Add a new conversation when the application starts
+        self.add_new_conversation()
+        # Set focus to the user input field
+        self.user_input.setFocus()
 
     def update_sidebar(self):
             # Clear the sidebar
@@ -864,171 +984,150 @@ class ClaudeChat(QWidget):
                 return None
 
     def load_conversation(self, item):
-            # Get the conversation ID from the item
-            conversation_id = item.data(Qt.UserRole)
-            # If the conversation ID is None, clear the chat
-            if conversation_id is None:
+        conversation_id = item.data(Qt.UserRole)
+        if conversation_id is None:
+            self.clear_chat()
+            self.conversation_history = []
+            self.conversation_id = None
+            self.user_input.clear()
+            self.user_input.setFocus()
+        else:
+            history = self.conversation_history_db.load_conversation_history(conversation_id)
+            if history:
                 self.clear_chat()
-                self.conversation_history = []
-                self.conversation_id = None  # Reset the conversation ID
-                self.user_input.clear()  # Clear the user input field
-                self.user_input.setFocus()  # Set focus to the user input field
-            else:
-                # Load the conversation history from the database
-                history = self.conversation_history_db.load_conversation_history(conversation_id)
-                # If the history exists, load the conversation
-                if history:
-                    self.clear_chat()
-                    self.conversation_id = conversation_id  # Set the conversation ID
-                    # Parse the conversation history from JSON
-                    conversation = json.loads(history)
-                    # Iterate over each message in the conversation
-                    for message in conversation:
-                        # If the message is from the user
-                        if message["role"] == "user":
-                            # Get the user's message
-                            user_message = message["content"][0]["text"]
-                            # Create a label for the user's message
-                            user_message_widget = QLabel(f"User: {user_message}")
-                            user_message_widget.setWordWrap(True)
-                            user_message_widget.setTextInteractionFlags(Qt.TextSelectableByMouse)
-                            user_message_widget.setStyleSheet("""
-                                QLabel {
-                                    font-size: 16px;
-                                    margin-bottom: 10px;
-                                }
-                            """)
-                            # Add the user's message to the chat history layout
-                            self.chat_history_layout.addWidget(user_message_widget)
-                        # If the message is from the assistant
-                        elif message["role"] == "assistant":
-                            # Get the assistant's message
-                            assistant_message = message["content"][0]["text"]
-                            # If the assistant's message contains a code block
-                            if "```" in assistant_message:
-                                # Split the assistant's message into lines
-                                lines = assistant_message.split("\n")
-                                in_code_block = False
+                self.conversation_id = conversation_id
+                conversation = json.loads(history)
+                for message in conversation:
+                    in_code_block = False
+                    code_block_content = ""
+                    message_content = ""
+                    if message["content"][0]["type"] == "text":
+                        lines = message["content"][0]["text"].split("\n")
+                    elif message["content"][0]["type"] == "image" and message['role'] == 'user':
+                        continue
+                    else:
+                        lines = []
+                    for line in lines:
+                        if line.startswith("```"):
+                            in_code_block = not in_code_block
+                            if in_code_block:
                                 code_block_content = ""
-                                # Iterate over each line in the assistant's message
-                                for line in lines:
-                                    # If the line starts with "```", toggle whether we're in a code block
-                                    if line.startswith("```"):
-                                        in_code_block = not in_code_block
-                                        # If we're not in a code block, add the code block to the chat history layout
-                                        if not in_code_block:
-                                            code_block_widget = QTextEdit()
-                                            code_block_widget.setReadOnly(True)
-                                            code_block_widget.setPlainText(code_block_content)
-                                            code_block_widget.setStyleSheet("""
-                                                QTextEdit {
-                                                    background-color: #f5f5f5;
-                                                    padding: 10px;
-                                                    font-family: monospace;
-                                                    font-size: 16px;
-                                                }
-                                            """)
-                                            self.chat_history_layout.addWidget(code_block_widget)
-                                            self.add_copy_button(code_block_content)
-                                            code_block_content = ""
-                                    else:
-                                        # If we're in a code block, add the line to the code block content
-                                        if in_code_block:
-                                            code_block_content += line + "\n"
-                                        else:
-                                            # If we're not in a code block, add the line to the chat history layout
-                                            assistant_message_widget = QLabel(line)
-                                            assistant_message_widget.setWordWrap(True)
-                                            assistant_message_widget.setTextInteractionFlags(Qt.TextSelectableByMouse)
-                                            assistant_message_widget.setStyleSheet("""
-                                                QLabel {
-                                                    font-size: 16px;
-                                                    margin-bottom: 10px;
-                                                }
-                                            """)
-                                            self.chat_history_layout.addWidget(assistant_message_widget)
                             else:
-                                # If the assistant's message doesn't contain a code block, add it to the chat history layout
-                                assistant_message_widget = QLabel(f"Assistant: {assistant_message}")
-                                assistant_message_widget.setWordWrap(True)
-                                assistant_message_widget.setTextInteractionFlags(Qt.TextSelectableByMouse)
-                                assistant_message_widget.setStyleSheet("""
-                                    QLabel {
+                                code_block_widget = QTextEdit()
+                                code_block_widget.setReadOnly(True)
+                                code_block_widget.setPlainText(code_block_content)
+                                code_block_widget.setStyleSheet("""
+                                    QTextEdit {
+                                        background-color: #f5f5f5;
+                                        padding: 10px;
+                                        font-family: monospace;
                                         font-size: 16px;
-                                        margin-bottom: 10px;
+                                        border: 1px solid #c0c0c0;
+                                        border-radius: 5px;
                                     }
                                 """)
-                                self.chat_history_layout.addWidget(assistant_message_widget)
-                    # Update the conversation history
-                    self.conversation_history = conversation
-                    # Clear the user input field
-                    self.user_input.clear()
-                    # Set focus to the user input field
-                    self.user_input.setFocus()
-                    # Log that the conversation was loaded
-                    logging.info(f"Conversation loaded: {conversation}")
-                else:
-                    # Log a warning if the conversation history was not found
-                    logging.warning(f"Conversation history not found for ID: {conversation_id}")
+                                self.chat_history_layout.addWidget(code_block_widget)
+                                self.add_copy_button(code_block_content)
+                                logging.info(f"Code block detected: {code_block_content}")
+                        else:
+                            if in_code_block or self.is_code_block(line):
+                                code_block_content += line + "\n"
+                            else:
+                                message_content += line + "\n"
+
+                    message_widget = QLabel(f"{message['role'].capitalize()}: {message_content}")
+                    message_widget.setWordWrap(True)
+                    message_widget.setTextInteractionFlags(Qt.TextSelectableByMouse)
+                    message_widget.setStyleSheet("""
+                        QLabel {
+                            font-size: 16px;
+                            margin-bottom: 10px;
+                            padding: 10px;
+                            background-color: #e0e0e0;
+                            border: 1px solid #c0c0c0;
+                            border-radius: 5px;
+                            color: #000000;
+                            font-family: "Cabin";
+                        }
+                    """)
+                    self.chat_history_layout.addWidget(message_widget)
+
+                self.conversation_history = conversation
+                self.user_input.clear()
+                self.user_input.setFocus()
+                logging.info(f"Conversation loaded: {conversation}")
+            else:
+                logging.warning(f"Conversation history not found for ID: {conversation_id}")
     
     def send_message(self):
-            # Get the user's message from the input field and strip any leading/trailing whitespace
-            user_message = self.user_input.toPlainText().strip()
-            # If the user's message is not empty
-            if user_message:
-                # Create a label for the user's message
-                user_message_widget = QLabel(f"User: {user_message}")
-                user_message_widget.setWordWrap(True)
-                user_message_widget.setTextInteractionFlags(Qt.TextSelectableByMouse)
-                user_message_widget.setStyleSheet("""
-                    QLabel {
-                        font-size: 16px;
-                        margin-bottom: 10px;
-                    }
-                """)
-                # Add the user's message to the chat history layout
-                self.chat_history_layout.addWidget(user_message_widget)
-                # Clear the user input field
-                self.user_input.clear()
+        # Get the user's message from the input field and strip any leading/trailing whitespace
+        user_message = self.user_input.toPlainText().strip()
+        # If the user's message is not empty
+        if user_message:
+            # Create a QLabel widget for the user's message
+            user_message_widget = QLabel(f"User: {user_message}")
+            user_message_widget.setWordWrap(True)
+            user_message_widget.setTextInteractionFlags(Qt.TextSelectableByMouse)
+            user_message_widget.setStyleSheet("""
+                QLabel {
+                    font-size: 16px;
+                    margin-bottom: 10px;
+                    padding: 10px;
+                    background-color: #e0e0e0;
+                    border: 1px solid #c0c0c0;
+                    border-radius: 5px;
+                    color: #000000;
+                    font-family: "Cabin";
+                }
+            """)
+            # Add the user's message to the chat history layout
+            self.chat_history_layout.addWidget(user_message_widget)
+            # Clear the user input field
+            self.user_input.clear()
 
-                # Add the user's message to the conversation history
-                self.conversation_history.append({"role": "user", "content": [{"type": "text", "text": user_message}]})
+            # Add the user's message to the conversation history
+            self.conversation_history.append({"role": "user", "content": [{"type": "text", "text": user_message}]})
 
-                # Disable the user input field and the send button
-                self.user_input.setEnabled(False)
-                self.send_button.setEnabled(False)
+            # Disable the user input field, send button, clear button, and upload button
+            self.user_input.setEnabled(False)
+            self.send_button.setEnabled(False)
+            self.clear_button.setEnabled(False)
+            self.upload_button.setEnabled(False)
+            
+            # Get the selected model from the combo box
+            model_name = self.get_the_current_model()
+            # Create a new message processor with the client, the conversation history, and the selected model
+            self.processor = MessageProcessor(self.client, self.conversation_history, model_name)
+            # Connect the new message signal to the update chat slot
+            self.processor.new_message.connect(self.update_chat)
+            # Connect the API busy signal to the API busy slot
+            self.processor.api_busy.connect(self.api_busy)
+            # Connect the API error signal to the show API error slot
+            self.processor.api_error.connect(self.show_api_error)
+            # Connect the finished signal to the enable input, set focus to input, and save conversation slots
+            self.processor.finished.connect(self.enable_input)
+            self.processor.finished.connect(self.set_focus_to_input)
+            self.processor.finished.connect(self.save_conversation)
 
-                # Log that the user's message was sent and the conversation history was updated
-                logging.info(f"User message sent: {user_message}")
-                logging.info(f"Conversation history updated: {self.conversation_history}")
+            # Start the message processor
+            self.processor.start()
+        else:
+            # If the user's message is empty, log a warning
+            logging.warning("Empty user message. Message not sent.")
 
-                # Create a new message processor with the client and the conversation history
-                self.processor = MessageProcessor(self.client, self.conversation_history)
-                # Connect the new message signal to the update chat slot
-                self.processor.new_message.connect(self.update_chat)
-                # Connect the API busy signal to the API busy slot
-                self.processor.api_busy.connect(self.api_busy)
-                # Connect the API error signal to the show API error slot
-                self.processor.api_error.connect(self.show_api_error)
-                # Connect the finished signal to the enable input, set focus to input, and save conversation slots
-                self.processor.finished.connect(self.enable_input)
-                self.processor.finished.connect(self.set_focus_to_input)
-                self.processor.finished.connect(self.save_conversation)
-
-                # Log that the message processor was created and connected
-                logging.info("Message processor created and connected")
-                logging.info(f"Message processor connected to: {self.processor.receivers(self.processor.new_message)}")
-                logging.info(f"API busy signal connected to: {self.processor.receivers(self.processor.api_busy)}")
-                logging.info(f"API error signal connected to: {self.processor.receivers(self.processor.api_error)}")
-                logging.info(f"Finished signal connected to: {self.processor.receivers(self.processor.finished)}")
-
-                # Start the message processor
-                self.processor.start()
-                logging.info("Message processor started")
+    def get_the_current_model(self):
+        # Get the selected model from the combo box
+            selected_model = self.model_combo_box.currentText()
+            if selected_model == "Claude-3-Opus":
+                model_name = "claude-3-opus-20240229"
+            elif selected_model == "Claude-3-Sonnet":
+                model_name = "claude-3-sonnet-20240229"
+            elif selected_model == "Claude-3-Haiku":
+                model_name = "claude-3-haiku-20240307"
             else:
-                # If the user's message is empty, log a warning
-                logging.warning("Empty user message. Message not sent.")
-
+                model_name = "claude-3-opus-20240229"  # Default to Claude-3-Opus if no valid selection
+            return model_name
+    
     def save_conversation(self):
             # If the conversation history is not empty
             if self.conversation_history:
@@ -1047,78 +1146,84 @@ class ClaudeChat(QWidget):
                 logging.warning("Conversation history is empty. Skipping save.")
 
     def generate_conversation_title(self, conversation_id):
-            # If the conversation history is too short
-            if len(self.conversation_history) < 2:
-                # Log that the conversation history is too short
-                logging.info("Conversation history is too short. Returning the existing title.")
-                # Get the existing title from the database
-                existing_title = self.conversation_history_db.get_conversation_title(conversation_id)
-                # If no existing title is found
-                if existing_title is None:
-                    # Log that no existing title was found
-                    logging.info("No existing title found. Returning 'New Conversation' as the title.")
-                    # Return a default title
-                    return "New Conversation"
-                else:
-                    # Return the existing title
-                    return existing_title
+        # If the conversation history is too short
+        if len(self.conversation_history) < 2:
+            # Log that the conversation history is too short
+            logging.info("Conversation history is too short. Returning the existing title.")
+            # Get the existing title from the database
+            existing_title = self.conversation_history_db.get_conversation_title(conversation_id)
+            # If no existing title is found
+            if existing_title is None:
+                # Log that no existing title was found
+                logging.info("No existing title found. Returning 'New Conversation' as the title.")
+                # Return a default title
+                return "New Conversation"
             else:
-                # Extract the user's messages from the conversation history
-                user_messages = [message["content"][0]["text"] for message in self.conversation_history if
-                                message["role"] == "user"]
-                # Extract the assistant's messages from the conversation history
-                assistant_messages = [message["content"][0]["text"] for message in self.conversation_history if
-                                    message["role"] == "assistant"]
+                # Return the existing title
+                return existing_title
+        else:
+            # Extract the user's messages from the conversation history
+            user_messages = [message["content"][0]["text"] for message in self.conversation_history if
+                            message["role"] == "user" and 'text' in message["content"][0]]
 
+            # Extract the assistant's messages from the conversation history
+            assistant_messages = [message["content"][0]["text"] for message in self.conversation_history if
+                                message["role"] == "assistant" and 'text' in message["content"][0]]
+
+            # Check if there are user messages
+            if user_messages:
                 # Generate a summary of the conversation by joining the last two messages from the user and the assistant
                 conversation_summary = "\n".join(user_messages[-2:] + assistant_messages[-2:])
+            else:
+                # If there are no user messages, just use the assistant messages
+                conversation_summary = "\n".join(assistant_messages[-2:])
 
-                # Generate a prompt for the API to generate a title
-                prompt = f"Please generate a concise and descriptive title for the following conversation (maximum 4 words):\n\n{conversation_summary}\n\nTitle:"
+            # Generate a prompt for the API to generate a title
+            prompt = f"Please generate a concise and descriptive title for the following conversation (maximum 4 words):\n\n{conversation_summary}\n\nTitle:"
 
-                try:
-                    # Send the prompt to the API and get a response
-                    response = self.client.messages.create(
-                        model="claude-3-opus-20240229",
-                        max_tokens=10,
-                        temperature=0,
-                        system="You are a helpful assistant that generates concise and descriptive four-word titles for conversations.",
-                        messages=[{"role": "user", "content": prompt}]
-                    )
+            try:
+                # Send the prompt to the API and get a response
+                response = self.client.messages.create(
+                    model="claude-3-opus-20240229",
+                    max_tokens=10,
+                    temperature=0,
+                    system="You are a helpful assistant that generates concise and descriptive four-word titles for conversations.",
+                    messages=[{"role": "user", "content": prompt}]
+                )
 
-                    # If the API response has content
-                    if response.content:
-                        # Extract the title from the response
-                        title = response.content[0].text.strip()
-                        # Split the title into words
-                        title_words = title.split()
-                        # If the title is more than 4 words long, truncate it to 4 words
-                        if len(title_words) > 4:
-                            title = " ".join(title_words[:4])
-                        # Log the generated title
-                        logging.info(f"Generated conversation title: {title}")
-                        # Return the generated title
-                        return title
-                    else:
-                        # If the API did not generate a title, log this and return the existing title
-                        logging.info("No title generated by the API. Returning the existing title.")
-                        existing_title = self.conversation_history_db.get_conversation_title(conversation_id)
-                        if existing_title is None:
-                            logging.info("No existing title found. Returning 'New Conversation' as the title.")
-                            return "New Conversation"
-                        else:
-                            return existing_title
-
-                except Exception as e:
-                    # If an error occurred while generating the title, log the error and return the existing title
-                    logging.error(f"Error generating conversation title: {str(e)}")
+                # If the API response has content
+                if response.content:
+                    # Extract the title from the response
+                    title = response.content[0].text.strip()
+                    # Split the title into words
+                    title_words = title.split()
+                    # If the title is more than 4 words long, truncate it to 4 words
+                    if len(title_words) > 4:
+                        title = " ".join(title_words[:4])
+                    # Log the generated title
+                    logging.info(f"Generated conversation title: {title}")
+                    # Return the generated title
+                    return title
+                else:
+                    # If the API did not generate a title, log this and return the existing title
+                    logging.info("No title generated by the API. Returning the existing title.")
                     existing_title = self.conversation_history_db.get_conversation_title(conversation_id)
                     if existing_title is None:
                         logging.info("No existing title found. Returning 'New Conversation' as the title.")
                         return "New Conversation"
                     else:
                         return existing_title
-       
+
+            except Exception as e:
+                # If an error occurred while generating the title, log the error and return the existing title
+                logging.error(f"Error generating conversation title: {str(e)}")
+                existing_title = self.conversation_history_db.get_conversation_title(conversation_id)
+                if existing_title is None:
+                    logging.info("No existing title found. Returning 'New Conversation' as the title.")
+                    return "New Conversation"
+                else:
+                    return existing_title
+        
     def set_focus_to_input(self):
         # Set the focus to the user input field
         self.user_input.setFocus()
@@ -1126,71 +1231,35 @@ class ClaudeChat(QWidget):
         logging.info("Focus set to user input")
 
     def update_chat(self, message):
-            # If the message contains multiple lines
-            if "\n" in message:
-                # Split the message into lines
-                lines = message.split("\n")
-                # Initialize variables to track whether we're in a code block and the content of the code block
-                in_code_block = False
-                code_block_content = ""
-                # Iterate over each line in the message
-                for line in lines:
-                    # If the line starts with "```", we're entering or exiting a code block
-                    if line.startswith("```"):
-                        in_code_block = not in_code_block
-                        if in_code_block:
-                            # If we're entering a code block, reset the code block content
-                            code_block_content = ""
-                        else:
-                            # If we're exiting a code block, create a read-only QTextEdit widget to display the code block
-                            code_block_widget = QTextEdit()
-                            code_block_widget.setReadOnly(True)
-                            code_block_widget.setPlainText(code_block_content)
-                            code_block_widget.setStyleSheet("""
-                                QTextEdit {
-                                    background-color: #f5f5f5;
-                                    padding: 10px;
-                                    font-family: monospace;
-                                    font-size: 16px;  /* Increase the font size */
-                                }
-                            """)
-                            # Add the code block widget to the chat history layout
-                            self.chat_history_layout.addWidget(code_block_widget)
-                            # Add a button to copy the code block content
-                            self.add_copy_button(code_block_content)
-                            # Log that a code block was detected
-                            logging.info(f"Code block detected: {code_block_content}")
-                    else:
-                        # If we're in a code block or the line is a code block, add the line to the code block content
-                        if in_code_block or self.is_code_block(line):
-                            code_block_content += line + "\n"
-                        else:
-                            # If the line is not a code block, create a QLabel widget to display the line
-                            message_widget = QLabel(line)
-                            message_widget.setWordWrap(True)
-                            message_widget.setTextInteractionFlags(Qt.TextSelectableByMouse)
-                            message_widget.setStyleSheet("""
-                                QLabel {
-                                    font-size: 16px;  /* Increase the font size */
-                                    margin-bottom: 10px;
-                                }
-                            """)
-                            # Add the message widget to the chat history layout
-                            self.chat_history_layout.addWidget(message_widget)
-            else:
-                # If the message is a single line
-                if self.is_code_block(message):
-                    # If the message is a code block, create a read-only QTextEdit widget to display the code block
-                    code_block_content = message
+        # Initialize variables to track whether we're in a code block and the content of the code block
+        in_code_block = False
+        code_block_content = ""
+        message_content = ""
+
+        # Split the message into lines
+        lines = message.split("\n")
+
+        # Iterate over each line in the message
+        for line in lines:
+            # If the line starts with "```", we're entering or exiting a code block
+            if line.startswith("```"):
+                in_code_block = not in_code_block
+                if in_code_block:
+                    # If we're entering a code block, reset the code block content
+                    code_block_content = ""
+                else:
+                    # If we're exiting a code block, create a read-only QTextEdit widget to display the code block
                     code_block_widget = QTextEdit()
                     code_block_widget.setReadOnly(True)
-                    code_block_widget.setPlainText(message)
+                    code_block_widget.setPlainText(code_block_content)
                     code_block_widget.setStyleSheet("""
                         QTextEdit {
                             background-color: #f5f5f5;
                             padding: 10px;
                             font-family: monospace;
-                            font-size: 16px;  /* Increase the font size */
+                            font-size: 16px;
+                            border: 1px solid #c0c0c0;
+                            border-radius: 5px;
                         }
                     """)
                     # Add the code block widget to the chat history layout
@@ -1199,28 +1268,41 @@ class ClaudeChat(QWidget):
                     self.add_copy_button(code_block_content)
                     # Log that a code block was detected
                     logging.info(f"Code block detected: {code_block_content}")
+            else:
+                # If we're in a code block or the line is a code block, add the line to the code block content
+                if in_code_block or self.is_code_block(line):
+                    code_block_content += line + "\n"
                 else:
-                    # If the message is not a code block, create a QLabel widget to display the message
-                    message_widget = QLabel(f"Claude: {message}")
-                    message_widget.setWordWrap(True)
-                    message_widget.setTextInteractionFlags(Qt.TextSelectableByMouse)
-                    message_widget.setStyleSheet("""
-                        QLabel {
-                            font-size: 18px;  /* Increase the font size */
-                            margin-bottom: 10px;
-                        }
-                    """)
-                    # Add the message widget to the chat history layout
-                    self.chat_history_layout.addWidget(message_widget)
+                    # Add the line to the message content
+                    message_content += line + "\n"
 
-            # Scroll to the bottom of the chat history
-            self.scroll_area.verticalScrollBar().setValue(self.scroll_area.verticalScrollBar().maximum())
+        # Create a QLabel widget to display the entire message
+        message_widget = QLabel(f"Assistant: {message_content}")
+        message_widget.setWordWrap(True)
+        message_widget.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        message_widget.setStyleSheet("""
+            QLabel {
+                font-size: 16px;
+                margin-bottom: 10px;
+                padding: 10px;
+                background-color: #e0e0e0;
+                border: 1px solid #c0c0c0;
+                border-radius: 5px;
+                color: #000000;
+                font-family: "Cabin";
+            }
+        """)
+        # Add the message widget to the chat history layout
+        self.chat_history_layout.addWidget(message_widget)
 
-            # Set focus back to the user input box
-            self.user_input.setFocus()
+        # Scroll to the bottom of the chat history
+        self.scroll_area.verticalScrollBar().setValue(self.scroll_area.verticalScrollBar().maximum())
 
-            # Log that the chat was updated with a new message
-            logging.info(f"Chat updated with message: {message}")
+        # Set focus back to the user input box
+        self.user_input.setFocus()
+
+        # Log that the chat was updated with a new message
+        logging.info(f"Chat updated with message: {message}")
 
     def add_new_conversation(self):
         # Clear the current chat history
@@ -1321,9 +1403,11 @@ class ClaudeChat(QWidget):
         logging.info(f"Current chat history: {self.chat_history}")
 
     def enable_input(self):
-        # Enable the user input field and the send button
+        # Enable the user input field, send button, clear button, and upload button
         self.user_input.setEnabled(True)
         self.send_button.setEnabled(True)
+        self.clear_button.setEnabled(True)
+        self.upload_button.setEnabled(True)
 
         # Log that the user input has been enabled
         logging.info("User input enabled")
@@ -1331,6 +1415,10 @@ class ClaudeChat(QWidget):
         logging.info(f"User input widget enabled: {self.user_input.isEnabled()}")
         # Log the current enabled state of the send button
         logging.info(f"Send button enabled: {self.send_button.isEnabled()}")
+        # Log the current enabled state of the clear button
+        logging.info(f"Clear button enabled: {self.clear_button.isEnabled()}")
+        # Log the current enabled state of the upload button
+        logging.info(f"Upload button enabled: {self.upload_button.isEnabled()}")
 
     def clear_chat(self):
         # While there are items in the chat history layout
@@ -1459,18 +1547,32 @@ class ClaudeChat(QWidget):
 
                 # If file content is successfully extracted
                 if file_content is not None:
+                    user_message = None
                     if extension in ['.png', '.jpg', '.jpeg']:
-                        self.conversation_history.append({"role": "user", "content": [file_content]})
+                        user_message = {"role": "user", "content": [file_content]}
                     else:
                         prompt = f"I uploaded a file with the following content:\n{file_content}"
-                        self.conversation_history.append({"role": "user", "content": [{"type": "text", "text": prompt}]})
+                        user_message = {"role": "user", "content": [{"type": "text", "text": prompt}]}
+                        # Extract the message string from the user_message dictionary
+                        if 'text' in user_message['content'][0]:
+                            message_string = user_message['content'][0]['text']
+                            # Manually update the chat with the user message
+                            self.update_chat(message_string)
+                    self.conversation_history.append(user_message)
                     logging.info(f"Conversation history updated with file content: {self.conversation_history}")
 
+                    
+
                     # Start the message processor
-                    self.processor = MessageProcessor(self.client, self.conversation_history)
+                    selected_model = self.get_the_current_model()   # Get the selected model from the combo box
+                    self.processor = MessageProcessor(self.client, self.conversation_history,selected_model)
                     self.processor.new_message.connect(self.update_chat)
                     self.processor.api_error.connect(self.handle_api_error)
                     self.processor.finished.connect(self.close_progress_dialog)  # Connect the finished signal
+                    # Connect the finished signal to the enable input, set focus to input, and save conversation slots
+                    self.processor.finished.connect(self.enable_input)
+                    self.processor.finished.connect(self.set_focus_to_input)
+                    self.processor.finished.connect(self.save_conversation)
                     self.processor.start()
                     logging.info("Message processor started")
 
@@ -1479,8 +1581,8 @@ class ClaudeChat(QWidget):
                     self.progress_dialog.setWindowModality(Qt.WindowModal)
                     self.progress_dialog.show()
                     logging.info("Progress dialog shown")
-            else:
-                logging.info("No file selected")
+                else:
+                    logging.info("No file selected")
 
     def close_progress_dialog(self):
             # If a progress dialog exists
