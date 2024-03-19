@@ -744,9 +744,9 @@ class ClaudeChat(QWidget):
 
         # Create a combo box for model selection
         self.model_combo_box = QComboBox()
+        self.model_combo_box.addItem("Claude-3-Haiku")
         self.model_combo_box.addItem("Claude-3-Opus")
         self.model_combo_box.addItem("Claude-3-Sonnet")
-        self.model_combo_box.addItem("Claude-3-Haiku")
         self.model_combo_box.setStyleSheet("""
             QComboBox {
                 padding: 5px;
@@ -1125,7 +1125,7 @@ class ClaudeChat(QWidget):
             elif selected_model == "Claude-3-Haiku":
                 model_name = "claude-3-haiku-20240307"
             else:
-                model_name = "claude-3-opus-20240229"  # Default to Claude-3-Opus if no valid selection
+                model_name = "claude-3-haiku-20240307"  # Default to Claude-3-Opus if no valid selection
             return model_name
     
     def save_conversation(self):
@@ -1180,11 +1180,13 @@ class ClaudeChat(QWidget):
 
             # Generate a prompt for the API to generate a title
             prompt = f"Please generate a concise and descriptive title for the following conversation (maximum 4 words):\n\n{conversation_summary}\n\nTitle:"
-
+            
+            # Get the name of the model to use
+            model_name = self.get_the_current_model()
             try:
                 # Send the prompt to the API and get a response
                 response = self.client.messages.create(
-                    model="claude-3-opus-20240229",
+                    model=model_name,
                     max_tokens=10,
                     temperature=0,
                     system="You are a helpful assistant that generates concise and descriptive four-word titles for conversations.",
