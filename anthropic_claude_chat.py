@@ -332,9 +332,12 @@ class MultiLineInput(QTextEdit):
         super().__init__(parent)
         self.setAcceptRichText(False)
         self.setLineWrapMode(QTextEdit.WidgetWidth)
-        self.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.document().documentLayout().documentSizeChanged.connect(self.adjustHeight)
+        # Set a fixed height for the widget
+        self.setFixedHeight(300)  # Change this value as needed
+        # Comment out the line below if you don't want the height to adjust dynamically
+        # self.document().documentLayout().documentSizeChanged.connect(self.adjustHeight)
 
     def keyPressEvent(self, event):
         # Check if the pressed key is the return key and the control modifier is also pressed
@@ -364,6 +367,8 @@ class MultiLineInput(QTextEdit):
             else:
                 # If the text is not a code block, insert it as is into the text edit
                 self.insertPlainText(text)
+                # Scroll to the end of the text edit
+                self.verticalScrollBar().setValue(self.verticalScrollBar().maximum())
             # Log the insertion of text from mime data
             logging.info(f"Text inserted from mime data: {text}")
 
@@ -1233,35 +1238,71 @@ class ClaudeChat(QWidget):
         logging.info("Focus set to user input")
 
     def update_chat(self, message):
-        # Initialize variables to track whether we're in a code block and the content of the code block
-        in_code_block = False
-        code_block_content = ""
-        message_content = ""
-
-        # Split the message into lines
-        lines = message.split("\n")
-
-        # Iterate over each line in the message
-        for line in lines:
-            # If the line starts with "```", we're entering or exiting a code block
-            if line.startswith("```"):
-                in_code_block = not in_code_block
-                if in_code_block:
-                    # If we're entering a code block, reset the code block content
-                    code_block_content = ""
-                else:
-                    # If we're exiting a code block, create a read-only QTextEdit widget to display the code block
+            # If the message contains multiple lines
+            if "\n" in message:
+                # Split the message into lines
+                lines = message.split("\n")
+                # Initialize variables to track whether we're in a code block and the content of the code block
+                in_code_block = False
+                code_block_content = ""
+                # Iterate over each line in the message
+                for line in lines:
+                    # If the line starts with "```", we're entering or exiting a code block
+                    if line.startswith("```"):
+                        in_code_block = not in_code_block
+                        if in_code_block:
+                            # If we're entering a code block, reset the code block content
+                            code_block_content = ""
+                        else:
+                            # If we're exiting a code block, create a read-only QTextEdit widget to display the code block
+                            code_block_widget = QTextEdit()
+                            code_block_widget.setReadOnly(True)
+                            code_block_widget.setPlainText(code_block_content)
+                            code_block_widget.setStyleSheet("""
+                                QTextEdit {
+                                    background-color: #f5f5f5;
+                                    padding: 10px;
+                                    font-family: monospace;
+                                    font-size: 16px;  /* Increase the font size */
+                                }
+                            """)
+                            # Add the code block widget to the chat history layout
+                            self.chat_history_layout.addWidget(code_block_widget)
+                            # Add a button to copy the code block content
+                            self.add_copy_button(code_block_content)
+                            # Log that a code block was detected
+                            logging.info(f"Code block detected: {code_block_content}")
+                    else:
+                        # If we're in a code block or the line is a code block, add the line to the code block content
+                        if in_code_block or self.is_code_block(line):
+                            code_block_content += line + "\n"
+                        else:
+                            # If the line is not a code block, create a QLabel widget to display the line
+                            message_widget = QLabel(line)
+                            message_widget.setWordWrap(True)
+                            message_widget.setTextInteractionFlags(Qt.TextSelectableByMouse)
+                            message_widget.setStyleSheet("""
+                                QLabel {
+                                    font-size: 16px;  /* Increase the font size */
+                                    margin-bottom: 10px;
+                                }
+                            """)
+                            # Add the message widget to the chat history layout
+                            self.chat_history_layout.addWidget(message_widget)
+            else:
+                # If the message is a single line
+                if self.is_code_block(message):
+                    # If the message is a code block, create a read-only QTextEdit widget to display the code block
+                    code_block_content = message
                     code_block_widget = QTextEdit()
                     code_block_widget.setReadOnly(True)
-                    code_block_widget.setPlainText(code_block_content)
+                    code_block_widget.setPlainText(message)
                     code_block_widget.setStyleSheet("""
                         QTextEdit {
                             background-color: #f5f5f5;
                             padding: 10px;
                             font-family: monospace;
-                            font-size: 16px;
-                            border: 1px solid #c0c0c0;
-                            border-radius: 5px;
+                            font-size: 16px;  /* Increase the font size */
                         }
                     """)
                     # Add the code block widget to the chat history layout
@@ -1270,41 +1311,31 @@ class ClaudeChat(QWidget):
                     self.add_copy_button(code_block_content)
                     # Log that a code block was detected
                     logging.info(f"Code block detected: {code_block_content}")
-            else:
-                # If we're in a code block or the line is a code block, add the line to the code block content
-                if in_code_block or self.is_code_block(line):
-                    code_block_content += line + "\n"
                 else:
-                    # Add the line to the message content
-                    message_content += line + "\n"
-
-        # Create a QLabel widget to display the entire message
-        message_widget = QLabel(f"Assistant: {message_content}")
-        message_widget.setWordWrap(True)
-        message_widget.setTextInteractionFlags(Qt.TextSelectableByMouse)
-        message_widget.setStyleSheet("""
-            QLabel {
-                font-size: 16px;
-                margin-bottom: 10px;
-                padding: 10px;
-                background-color: #e0e0e0;
-                border: 1px solid #c0c0c0;
-                border-radius: 5px;
-                color: #000000;
-                font-family: "Cabin";
-            }
-        """)
-        # Add the message widget to the chat history layout
-        self.chat_history_layout.addWidget(message_widget)
-
-        # Scroll to the bottom of the chat history
-        self.scroll_area.verticalScrollBar().setValue(self.scroll_area.verticalScrollBar().maximum())
-
-        # Set focus back to the user input box
-        self.user_input.setFocus()
-
-        # Log that the chat was updated with a new message
-        logging.info(f"Chat updated with message: {message}")
+                    # If the message is not a code block, create a QLabel widget to display the message
+                    message_widget = QLabel(f"Claude: {message}")
+                    message_widget.setWordWrap(True)
+                    message_widget.setTextInteractionFlags(Qt.TextSelectableByMouse)
+                    message_widget.setStyleSheet("""
+                        QLabel {
+                            font-size: 16px;
+                            margin-bottom: 10px;
+                            padding: 10px;
+                            background-color: #e0e0e0;
+                            border: 1px solid #c0c0c0;
+                            border-radius: 5px;
+                            color: #000000;
+                            font-family: "Cabin";
+                        }
+                    """)
+                    # Add the message widget to the chat history layout
+                    self.chat_history_layout.addWidget(message_widget)
+            # Scroll to the bottom of the chat history
+            self.scroll_area.verticalScrollBar().setValue(self.scroll_area.verticalScrollBar().maximum())
+            # Set focus back to the user input box
+            self.user_input.setFocus()
+            # Log that the chat was updated with a new message
+            logging.info(f"Chat updated with message: {message}")
 
     def add_new_conversation(self):
         # Clear the current chat history
