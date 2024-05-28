@@ -1,7 +1,7 @@
 import psutil
 
 # Get disk usage statistics
-disk_usage = psutil.disk_partitions(all=True)
+disk_usage = [p for p in psutil.disk_partitions(all=True) if p.device.startswith('C:') or p.device.startswith('D:')]
 
 # Iterate over each partition and display free space in GB
 for partition in disk_usage:
@@ -14,4 +14,3 @@ cpu_times = psutil.cpu_times_percent(interval=1, percpu=True)
 # Display CPU usage details
 for i, cpu in enumerate(cpu_times):
      print(f"CPU {i}: {cpu.user}% user, {cpu.system}% system, {cpu.idle}% idle")
-     
