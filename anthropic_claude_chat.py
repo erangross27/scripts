@@ -749,6 +749,7 @@ class ClaudeChat(QWidget):
 
         # Create a combo box for model selection
         self.model_combo_box = QComboBox()
+        self.model_combo_box.addItem("claude-3-5-sonnet")
         self.model_combo_box.addItem("Claude-3-Haiku")
         self.model_combo_box.addItem("Claude-3-Opus")
         self.model_combo_box.addItem("Claude-3-Sonnet")
@@ -1129,6 +1130,8 @@ class ClaudeChat(QWidget):
                 model_name = "claude-3-sonnet-20240229"
             elif selected_model == "Claude-3-Haiku":
                 model_name = "claude-3-haiku-20240307"
+            elif selected_model == "claude-3-5-sonnet":
+                model_name = "claude-3-5-sonnet-20240620"
             else:
                 model_name = "claude-3-haiku-20240307"  # Default to Claude-3-Opus if no valid selection
             return model_name

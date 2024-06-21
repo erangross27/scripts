@@ -62,7 +62,7 @@ class DiskSpaceAlertService(win32serviceutil.ServiceFramework):
         email_from = "maayan12scomputersalerts@gmail.com"
         email_to = "maayan12scomputersalerts@gmail.com"
         email_username = "maayan12scomputersalerts@gmail.com"
-        email_password = "alwicjdyyxwxnepz"
+        email_password = "caoiogajsbsneoxw"
 
         subject = f"Disk space alert on {computer_name}"
         body = f"The disk {device_id} on {computer_name} has {free_space_gb:.2f} GB of free space left."
