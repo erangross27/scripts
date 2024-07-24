@@ -1,91 +1,127 @@
 import sys
 import torch
 import numpy as np
-import moviepy.editor as mp
 import cv2
 import logging
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QFileDialog, QLabel, QProgressBar, QMessageBox
-from PyQt5.QtCore import QThread, pyqtSignal, QTimer
-from PIL import Image, ImageDraw
+import os
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QFileDialog, QLabel, QProgressBar, QMessageBox, QInputDialog
+from PyQt5.QtCore import QThread, pyqtSignal
+from PIL import Image
 from diffusers import StableDiffusionInpaintPipeline
 
 # Set up logging
-logging.basicConfig(filename='video_watermark_remover.log', level=logging.DEBUG,
-                    format='%(asctime)s - %(levelname)s - %(message)s')
+log_file = 'video_watermark_remover.log'
+logging.basicConfig(filename=log_file, level=logging.DEBUG,
+                    format='%(asctime)s - %(levelname)s - %(message)s',
+                    filemode='w')  # 'w' mode overwrites the file each run
 
-# Thread class for video processing
+# Add console handler
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+console_handler.setFormatter(formatter)
+logging.getLogger('').addHandler(console_handler)
+
+# Test logging
+logging.info(f"Logging initialized. Log file: {os.path.abspath(log_file)}")
+
 class VideoProcessingThread(QThread):
     finished = pyqtSignal()
     error_occurred = pyqtSignal(str)
+    progress_updated = pyqtSignal(int)
     def __init__(self, video_path, output_path, pipeline):
         super().__init__()
         self.video_path = video_path
         self.output_path = output_path
         self.pipeline = pipeline
-        self.progress = 0
-    # Method to detect watermark in a frame
+        self.watermark_region = None
     def detect_watermark(self, frame):
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         edges = cv2.Canny(gray, 100, 200)
         contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
+        
+        cv2.imwrite('first_frame.png', frame)
+        cv2.imwrite('edge_detection.png', edges)
         for contour in contours:
             x, y, w, h = cv2.boundingRect(contour)
             aspect_ratio = float(w) / h
-            if 2 < aspect_ratio < 5 and 0.05 < (w * h) / (frame.shape[0] * frame.shape[1]) < 0.2:
-                return (x, y, x + w, y + h)
+            area_ratio = (w * h) / (frame.shape[0] * frame.shape[1])
+            
+            if 1.5 < aspect_ratio < 10 and 0.01 < area_ratio < 0.1:
+                logging.info(f"Potential watermark detected: x={x}, y={y}, w={w}, h={h}")
+                return (int(x), int(y), int(x + w), int(y + h))
+        
+        logging.warning("No watermark detected with current criteria")
         return None
 
-    # Method to inpaint a frame (remove watermark)
-    def inpaint_frame(self, frame, region):
-        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        im = Image.fromarray(frame_rgb)
-        mask = Image.new("RGB", im.size, (0, 0, 0))
-        mask_draw = ImageDraw.Draw(mask)
-        mask_draw.rectangle(region, fill=(255, 255, 255))
+    def inpaint_frame(self, frame):
+        x, y, x2, y2 = self.watermark_region
+        h, w = y2 - y, x2 - x
 
-        # Perform inpainting
+        pad_h, pad_w = (8 - h % 8) % 8, (8 - w % 8) % 8
+        padded_region = frame[max(0, y-pad_h//2):min(frame.shape[0], y2+pad_h//2),
+                              max(0, x-pad_w//2):min(frame.shape[1], x2+pad_w//2)]
+
+        mask = np.ones(padded_region.shape[:2], dtype=np.uint8) * 255
+        pil_region = Image.fromarray(cv2.cvtColor(padded_region, cv2.COLOR_BGR2RGB))
+        pil_mask = Image.fromarray(mask)
+
         result = self.pipeline(
-            prompt="",  # Empty prompt or you can add a general description
-            image=im,
-            mask_image=mask,
-            num_inference_steps=50
+            prompt="",
+            image=pil_region,
+            mask_image=pil_mask,
+            num_inference_steps=50,
         ).images[0]
-        
-        inpainted_frame = cv2.cvtColor(np.array(result), cv2.COLOR_RGB2BGR)
-        return inpainted_frame
 
-    # Main processing method
+        inpainted_region = cv2.cvtColor(np.array(result), cv2.COLOR_RGB2BGR)
+        crop_y, crop_x = (inpainted_region.shape[0] - h) // 2, (inpainted_region.shape[1] - w) // 2
+        inpainted_region = inpainted_region[crop_y:crop_y+h, crop_x:crop_x+w]
+        frame[y:y2, x:x2] = inpainted_region
+
+        return frame
+
     def run(self):
         try:
             logging.info(f"Starting video processing: {self.video_path}")
-            video = mp.VideoFileClip(self.video_path)
-            total_frames = int(video.fps * video.duration)
+            cap = cv2.VideoCapture(self.video_path)
             
-            first_frame = video.get_frame(0)
-            watermark_region = self.detect_watermark(first_frame)
+            if not cap.isOpened():
+                raise Exception("Error opening video file")
+            total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+            fps = cap.get(cv2.CAP_PROP_FPS)
+            width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+            height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
             
-            if not watermark_region:
-                error_msg = "No watermark detected. Please check the video."
-                logging.error(error_msg)
+            fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+            out = cv2.VideoWriter(self.output_path, fourcc, fps, (width, height))
+            ret, first_frame = cap.read()
+            if not ret:
+                raise Exception("Failed to read the first frame")
+            self.watermark_region = self.detect_watermark(first_frame)
+            if not self.watermark_region:
+                error_msg = "No watermark detected automatically. Manual input required."
+                logging.warning(error_msg)
                 self.error_occurred.emit(error_msg)
                 return
 
-            logging.info(f"Watermark region detected: {watermark_region}")
+            logging.info(f"Watermark region detected: {self.watermark_region}")
 
-            processed_frames = []
-            for i, frame in enumerate(video.iter_frames()):
-                processed_frame = self.inpaint_frame(frame, watermark_region)
-                processed_frames.append(processed_frame)
+            frame_count = 0
+            while True:
+                ret, frame = cap.read()
+                if not ret:
+                    break
+                processed_frame = self.inpaint_frame(frame)
+                out.write(processed_frame)
                 
-                self.progress = int((i + 1) / total_frames * 100)
-                if (i + 1) % 10 == 0:
-                    logging.info(f"Processed frame {i + 1}/{total_frames}")
+                frame_count += 1
+                progress = int((frame_count / total_frames) * 100)
+                self.progress_updated.emit(progress)
+                if frame_count % 100 == 0:
+                    logging.info(f"Processed frame {frame_count}/{total_frames}")
 
-            logging.info(f"Writing processed video to: {self.output_path}")
-            processed_video = mp.ImageSequenceClip(processed_frames, fps=video.fps)
-            processed_video.write_videofile(self.output_path, codec='libx264')
-            
+            cap.release()
+            out.release()
             logging.info("Video processing completed successfully")
             self.finished.emit()
         except Exception as e:
@@ -93,11 +129,6 @@ class VideoProcessingThread(QThread):
             logging.exception(error_msg)
             self.error_occurred.emit(error_msg)
 
-    # Method to get current progress
-    def get_progress(self):
-        return self.progress
-
-# Main application class
 class VideoEditorApp(QWidget):
     def __init__(self):
         super().__init__()
@@ -105,11 +136,9 @@ class VideoEditorApp(QWidget):
         self.processing_thread = None
         self.initUI()
 
-    # Initialize the user interface
     def initUI(self):
         self.setWindowTitle("Video Watermark Remover")
         self.setGeometry(100, 100, 400, 200)
-
         layout = QVBoxLayout()
 
         self.file_label = QLabel("No file selected")
@@ -138,49 +167,38 @@ class VideoEditorApp(QWidget):
         self.video_file_path = ""
         self.output_file_path = ""
 
-        self.timer = QTimer(self)
-        self.timer.timeout.connect(self.update_progress)
-
-    # Method to load input video file
     def load_file(self):
         self.video_file_path, _ = QFileDialog.getOpenFileName(self, "Select Video File", "", "Video Files (*.mp4)")
         self.file_label.setText(self.video_file_path)
         logging.info(f"Input video file selected: {self.video_file_path}")
 
-    # Method to set output video file
     def save_file(self):
         self.output_file_path, _ = QFileDialog.getSaveFileName(self, "Save Output File", "", "Video Files (*.mp4)")
         self.output_label.setText(self.output_file_path)
         logging.info(f"Output video file selected: {self.output_file_path}")
 
-    # Method to load the inpainting pipeline
     def load_pipeline(self):
         if not self.pipeline:
             try:
                 model_name = "stabilityai/stable-diffusion-2-inpainting"
                 logging.info(f"Loading pipeline: {model_name}")
-                
                 if torch.cuda.is_available():
                     logging.info("CUDA is available. Using GPU.")
                     self.pipeline = StableDiffusionInpaintPipeline.from_pretrained(
-                        model_name, 
+                        model_name,
                         torch_dtype=torch.float16
                     )
                     self.pipeline = self.pipeline.to("cuda")
                 else:
                     logging.info("CUDA is not available. Using CPU.")
                     self.pipeline = StableDiffusionInpaintPipeline.from_pretrained(model_name)
-                
-                # Optional: Enable attention slicing for lower memory usage
                 self.pipeline.enable_attention_slicing()
-                
                 logging.info("Pipeline loaded successfully")
             except Exception as e:
                 error_msg = f"Error loading pipeline: {str(e)}"
                 logging.exception(error_msg)
                 QMessageBox.critical(self, "Error", error_msg)
 
-    # Method to start video processing
     def process_video(self):
         if not self.video_file_path or not self.output_file_path:
             error_msg = "Please select both input and output file locations."
@@ -190,35 +208,42 @@ class VideoEditorApp(QWidget):
 
         self.load_pipeline()
         self.progress_bar.setValue(0)
-
         self.processing_thread = VideoProcessingThread(
             self.video_file_path, self.output_file_path, self.pipeline
         )
         self.processing_thread.error_occurred.connect(self.show_error)
         self.processing_thread.finished.connect(self.processing_finished)
+        self.processing_thread.progress_updated.connect(self.update_progress)
         self.processing_thread.start()
 
-        # Start the timer to update progress
-        self.timer.start(100)  # Update every 100 ms
-
-    # Method to update progress bar
-    def update_progress(self):
-        if self.processing_thread and self.processing_thread.isRunning():
-            progress = self.processing_thread.get_progress()
-            self.progress_bar.setValue(progress)
-    # Method to show error messages
+    def update_progress(self, value):
+        self.progress_bar.setValue(value)
     def show_error(self, error_message):
-        self.timer.stop()
         logging.error(f"Error in processing: {error_message}")
-        QMessageBox.critical(self, "Error", f"An error occurred: {error_message}")
+        if "Manual input required" in error_message:
+            self.get_manual_watermark_region()
+        else:
+            QMessageBox.critical(self, "Error", f"An error occurred: {error_message}")
 
-    # Method called when processing is finished
+    def get_manual_watermark_region(self):
+        x, ok = QInputDialog.getInt(self, "Manual Input", "Enter x coordinate:")
+        if ok:
+            y, ok = QInputDialog.getInt(self, "Manual Input", "Enter y coordinate:")
+            if ok:
+                w, ok = QInputDialog.getInt(self, "Manual Input", "Enter width:")
+                if ok:
+                    h, ok = QInputDialog.getInt(self, "Manual Input", "Enter height:")
+                    if ok:
+                        self.processing_thread.watermark_region = (x, y, x+w, y+h)
+                        logging.info(f"Manual watermark region set: {self.processing_thread.watermark_region}")
+                        self.processing_thread.start()
+                        return
+        self.processing_finished()
+
     def processing_finished(self):
-        self.timer.stop()
-        logging.info("Video processing completed successfully")
-        QMessageBox.information(self, "Success", "Video processing completed successfully!")
+        logging.info("Video processing completed")
+        QMessageBox.information(self, "Success", "Video processing completed!")
 
-# Main entry point
 if __name__ == '__main__':
     logging.info("Starting application")
     app = QApplication(sys.argv)
