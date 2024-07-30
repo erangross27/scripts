@@ -2,10 +2,10 @@ import torch
 import cv2
 import numpy as np
 import tkinter as tk
-from tkinter import filedialog, messagebox, scrolledtext
+from tkinter import filedialog, messagebox, scrolledtext, ttk
 from PIL import Image, ImageTk
 import logging
-import os
+import threading
 from tqdm import tqdm
 
 # Set up logging
@@ -16,12 +16,13 @@ class WatermarkDetectionApp:
     def __init__(self, master):
         self.master = master
         self.master.title("Watermark Detection")
-        self.master.geometry("900x750")
+        self.master.geometry("900x800")
 
         self.model_path = tk.StringVar()
         self.input_path = tk.StringVar()
         self.output_path = tk.StringVar()
         self.model = None
+        self.processing = False
 
         self.create_widgets()
 
@@ -42,15 +43,20 @@ class WatermarkDetectionApp:
         tk.Button(self.master, text="Browse", command=self.browse_output).grid(row=2, column=2, padx=5, pady=5)
 
         # Process button
-        tk.Button(self.master, text="Process File", command=self.process_file).grid(row=3, column=1, padx=5, pady=10)
+        self.process_button = tk.Button(self.master, text="Process File", command=self.start_processing)
+        self.process_button.grid(row=3, column=1, padx=5, pady=10)
+
+        # Progress bar
+        self.progress_var = tk.DoubleVar()
+        self.progress_bar = ttk.Progressbar(self.master, variable=self.progress_var, maximum=100)
+        self.progress_bar.grid(row=4, column=0, columnspan=3, padx=5, pady=5, sticky="ew")
 
         # Log display
         self.log_text = scrolledtext.ScrolledText(self.master, height=20)
-        self.log_text.grid(row=4, column=0, columnspan=3, padx=5, pady=5, sticky="nsew")
-
+        self.log_text.grid(row=5, column=0, columnspan=3, padx=5, pady=5, sticky="nsew")
         # Configure grid
         self.master.grid_columnconfigure(1, weight=1)
-        self.master.grid_rowconfigure(4, weight=1)
+        self.master.grid_rowconfigure(5, weight=1)
     def browse_model(self):
         filename = filedialog.askopenfilename(filetypes=[("PyTorch Model", "*.pt")])
         if filename:
@@ -80,10 +86,18 @@ class WatermarkDetectionApp:
             self.output_path.set(filename)
             logger.info(f"Output path selected: {filename}")
 
+    def start_processing(self):
+        if not self.processing:
+            self.processing = True
+            self.process_button.config(state=tk.DISABLED)
+            threading.Thread(target=self.process_file, daemon=True).start()
+
     def process_file(self):
         if self.model is None:
             messagebox.showerror("Error", "Please load a model first.")
             logger.error("No model loaded")
+            self.processing = False
+            self.process_button.config(state=tk.NORMAL)
             return
 
         input_path = self.input_path.get()
@@ -92,6 +106,8 @@ class WatermarkDetectionApp:
         if not input_path or not output_path:
             messagebox.showerror("Error", "Please select both input and output paths.")
             logger.error("Input or output path not selected")
+            self.processing = False
+            self.process_button.config(state=tk.NORMAL)
             return
 
         try:
@@ -102,6 +118,10 @@ class WatermarkDetectionApp:
         except Exception as e:
             messagebox.showerror("Error", f"An error occurred: {str(e)}")
             logger.error(f"Error during processing: {str(e)}", exc_info=True)
+        finally:
+            self.processing = False
+            self.process_button.config(state=tk.NORMAL)
+            self.progress_var.set(0)
 
     def process_image(self, input_path, output_path):
         img = cv2.imread(input_path)
@@ -111,6 +131,7 @@ class WatermarkDetectionApp:
         cv2.imwrite(output_path, processed_img)
         logger.info(f"Processed image saved: {output_path}")
 
+        self.progress_var.set(100)
         messagebox.showinfo("Success", "Image processing completed successfully!")
 
     def process_video(self, input_path, output_path):
@@ -118,21 +139,18 @@ class WatermarkDetectionApp:
         if not cap.isOpened():
             raise ValueError("Error opening video file")
 
-        # Get video properties
         width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         fps = cap.get(cv2.CAP_PROP_FPS)
         total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
-        # Create VideoWriter object
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
         out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
 
         logger.info(f"Processing video: {input_path}")
         logger.info(f"Total frames: {total_frames}")
 
-        # Process each frame
-        for _ in tqdm(range(total_frames), desc="Processing frames"):
+        for frame_num in range(total_frames):
             ret, frame = cap.read()
             if not ret:
                 break
@@ -140,7 +158,9 @@ class WatermarkDetectionApp:
             processed_frame = self.detect_watermark(frame)
             out.write(processed_frame)
 
-        # Release everything
+            progress = (frame_num + 1) / total_frames * 100
+            self.progress_var.set(progress)
+            self.master.update_idletasks()
         cap.release()
         out.release()
 
