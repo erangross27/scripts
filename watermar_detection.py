@@ -1,273 +1,181 @@
-import sys
+import torch
 import cv2
 import numpy as np
-import torch
-from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QFileDialog, QVBoxLayout, QWidget, QLabel, QProgressBar
-from PyQt5.QtCore import Qt, QThread, pyqtSignal
-from PyQt5.QtGui import QImage, QPixmap
-import os
+import tkinter as tk
+from tkinter import filedialog, messagebox, scrolledtext
+from PIL import Image, ImageTk
 import logging
-import datetime
-from yolov5.models.experimental import attempt_load
-import torch.nn.functional as F
-
-print(f"PyTorch version: {torch.__version__}")
-print(f"Python version: {sys.version}")
-
+import os
+from tqdm import tqdm
 
 # Set up logging
-log_filename = f"watermark_detection_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
-logging.basicConfig(filename=log_filename, level=logging.DEBUG,
-                    format='%(asctime)s - %(levelname)s - %(message)s')
-console = logging.StreamHandler()
-console.setLevel(logging.INFO)
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-console.setFormatter(formatter)
-logging.getLogger('').addHandler(console)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
-class WatermarkDetector:
-    def __init__(self, model_path):
-        logging.info(f"Initializing WatermarkDetector with model: {model_path}")
+class WatermarkDetectionApp:
+    def __init__(self, master):
+        self.master = master
+        self.master.title("Watermark Detection")
+        self.master.geometry("900x750")
+
+        self.model_path = tk.StringVar()
+        self.input_path = tk.StringVar()
+        self.output_path = tk.StringVar()
+        self.model = None
+
+        self.create_widgets()
+
+    def create_widgets(self):
+        # Model selection
+        tk.Label(self.master, text="YOLOv5 Model:").grid(row=0, column=0, padx=5, pady=5, sticky="e")
+        tk.Entry(self.master, textvariable=self.model_path, width=50).grid(row=0, column=1, padx=5, pady=5)
+        tk.Button(self.master, text="Browse", command=self.browse_model).grid(row=0, column=2, padx=5, pady=5)
+
+        # Input selection
+        tk.Label(self.master, text="Input File:").grid(row=1, column=0, padx=5, pady=5, sticky="e")
+        tk.Entry(self.master, textvariable=self.input_path, width=50).grid(row=1, column=1, padx=5, pady=5)
+        tk.Button(self.master, text="Browse", command=self.browse_input).grid(row=1, column=2, padx=5, pady=5)
+
+        # Output selection
+        tk.Label(self.master, text="Output File:").grid(row=2, column=0, padx=5, pady=5, sticky="e")
+        tk.Entry(self.master, textvariable=self.output_path, width=50).grid(row=2, column=1, padx=5, pady=5)
+        tk.Button(self.master, text="Browse", command=self.browse_output).grid(row=2, column=2, padx=5, pady=5)
+
+        # Process button
+        tk.Button(self.master, text="Process File", command=self.process_file).grid(row=3, column=1, padx=5, pady=10)
+
+        # Log display
+        self.log_text = scrolledtext.ScrolledText(self.master, height=20)
+        self.log_text.grid(row=4, column=0, columnspan=3, padx=5, pady=5, sticky="nsew")
+
+        # Configure grid
+        self.master.grid_columnconfigure(1, weight=1)
+        self.master.grid_rowconfigure(4, weight=1)
+    def browse_model(self):
+        filename = filedialog.askopenfilename(filetypes=[("PyTorch Model", "*.pt")])
+        if filename:
+            self.model_path.set(filename)
+            logger.info(f"Model selected: {filename}")
+            self.load_model()
+
+    def load_model(self):
         try:
-            if not os.path.isfile(model_path):
-                raise FileNotFoundError(f"Model file not found: {model_path}")
-            # Load YOLOv5 model
-            self.model = attempt_load(model_path, device='cpu')
-            self.model.eval()
-            logging.info(f"Model architecture: {type(self.model).__name__}")
-            logging.info(f"Model summary: {self.model}")
-            logging.info("Model loaded successfully from local file")
-            
-            # Get the input size that the model expects
-            self.input_size = self.model.stride.max().int().item() * 32  # This is typically 640 for YOLOv5
-            logging.info(f"Model expected input size: {self.input_size}x{self.input_size}")
+            self.model = torch.hub.load('ultralytics/yolov5', 'custom', path=self.model_path.get())
+            logger.info("Model loaded successfully")
+            messagebox.showinfo("Success", "Model loaded successfully!")
         except Exception as e:
-            logging.error(f"Error loading model: {str(e)}")
-            raise
+            logger.error(f"Error loading model: {str(e)}")
+            messagebox.showerror("Error", f"Failed to load model: {str(e)}")
+            self.model = None
 
-    def detect_watermark(self, frame):
-        logging.debug(f"Processing frame: shape={frame.shape}, dtype={frame.dtype}")
+    def browse_input(self):
+        filename = filedialog.askopenfilename(filetypes=[("Video files", "*.mp4"), ("Image files", "*.jpg *.jpeg *.png *.bmp *.gif")])
+        if filename:
+            self.input_path.set(filename)
+            logger.info(f"Input file selected: {filename}")
+
+    def browse_output(self):
+        filename = filedialog.asksaveasfilename(defaultextension=".mp4", filetypes=[("MP4 files", "*.mp4"), ("JPEG files", "*.jpg")])
+        if filename:
+            self.output_path.set(filename)
+            logger.info(f"Output path selected: {filename}")
+
+    def process_file(self):
+        if self.model is None:
+            messagebox.showerror("Error", "Please load a model first.")
+            logger.error("No model loaded")
+            return
+
+        input_path = self.input_path.get()
+        output_path = self.output_path.get()
+
+        if not input_path or not output_path:
+            messagebox.showerror("Error", "Please select both input and output paths.")
+            logger.error("Input or output path not selected")
+            return
+
         try:
-            # Convert frame to RGB (OpenCV uses BGR by default)
-            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            
-            # Convert numpy array to PyTorch tensor
-            frame_tensor = torch.from_numpy(frame_rgb).float().permute(2, 0, 1).unsqueeze(0) / 255.0
-            
-            # Resize the tensor to match the model's expected input size
-            frame_tensor = F.interpolate(frame_tensor, size=(self.input_size, self.input_size), mode='bilinear', align_corners=False)
-            
-            # Move tensor to the same device as the model
-            frame_tensor = frame_tensor.to(next(self.model.parameters()).device)
-            
-            logging.debug(f"Frame tensor shape after resize: {frame_tensor.shape}")
-            
-            # Perform detection
-            with torch.no_grad():
-                results = self.model(frame_tensor)
-                logging.debug(f"Raw model output type: {type(results)}")
-                logging.debug(f"Raw model output: {results}")
-            # Process results
-            if isinstance(results, tuple):
-                # If results is a tuple, it might contain multiple outputs
-                # Let's assume the first element contains the detections
-                detections = results[0]
+            if input_path.lower().endswith(('.mp4', '.avi', '.mov')):
+                self.process_video(input_path, output_path)
             else:
-                detections = results
-            
-            # Convert detections to numpy array
-            if isinstance(detections, torch.Tensor):
-                detections = detections.cpu().numpy()
-            
-            # If detections is a list of tensors, take the first one
-            if isinstance(detections, list):
-                detections = detections[0]
-            
-            # Ensure detections is a 2D array
-            if len(detections.shape) == 1:
-                detections = detections.reshape(1, -1)
-            
-            # Scale back the detections to match the original image size
-            scale_x = frame.shape[1] / self.input_size
-            scale_y = frame.shape[0] / self.input_size
-            detections[:, [0, 2]] *= scale_x
-            detections[:, [1, 3]] *= scale_y
-            
-            logging.debug(f"Raw detections shape: {detections.shape}")
-            logging.debug(f"Raw detections: {detections}")
-            return detections
+                self.process_image(input_path, output_path)
         except Exception as e:
-            logging.error(f"Error during detection: {str(e)}")
-            logging.error(f"Results type: {type(results)}")
-            logging.error(f"Results content: {results}")
-            return []
+            messagebox.showerror("Error", f"An error occurred: {str(e)}")
+            logger.error(f"Error during processing: {str(e)}", exc_info=True)
 
+    def process_image(self, input_path, output_path):
+        img = cv2.imread(input_path)
+        logger.info(f"Image read successfully: {input_path}")
 
-class VideoProcessingThread(QThread):
-    update_frame = pyqtSignal(np.ndarray)
-    update_progress = pyqtSignal(int)
-    finished = pyqtSignal()
+        processed_img = self.detect_watermark(img)
+        cv2.imwrite(output_path, processed_img)
+        logger.info(f"Processed image saved: {output_path}")
 
-    def __init__(self, input_path, output_path, model_path):
-        super().__init__()
-        self.input_path = input_path
-        self.output_path = output_path
-        logging.info(f"Initializing VideoProcessingThread with input: {input_path}, output: {output_path}")
-        try:
-            self.watermark_detector = WatermarkDetector(model_path)
-        except Exception as e:
-            logging.error(f"Failed to initialize WatermarkDetector: {str(e)}")
-            raise
+        messagebox.showinfo("Success", "Image processing completed successfully!")
 
-    def run(self):
-        logging.info("Starting video processing")
-        cap = cv2.VideoCapture(self.input_path)
-        fps = cap.get(cv2.CAP_PROP_FPS)
+    def process_video(self, input_path, output_path):
+        cap = cv2.VideoCapture(input_path)
+        if not cap.isOpened():
+            raise ValueError("Error opening video file")
+
+        # Get video properties
         width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        fps = cap.get(cv2.CAP_PROP_FPS)
         total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-        logging.info(f"Video properties: FPS={fps}, Width={width}, Height={height}, Total Frames={total_frames}")
-        
+
+        # Create VideoWriter object
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-        out = cv2.VideoWriter(self.output_path, fourcc, fps, (width, height))
-        
-        frame_count = 0
-        while cap.isOpened():
+        out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
+
+        logger.info(f"Processing video: {input_path}")
+        logger.info(f"Total frames: {total_frames}")
+
+        # Process each frame
+        for _ in tqdm(range(total_frames), desc="Processing frames"):
             ret, frame = cap.read()
             if not ret:
-                logging.info("Reached end of video")
                 break
 
-            detections = self.watermark_detector.detect_watermark(frame)
-            logging.debug(f"Frame {frame_count} detections:")
+            processed_frame = self.detect_watermark(frame)
+            out.write(processed_frame)
 
-            for det in detections:
-                x1, y1, x2, y2, conf, cls = det
-                x1, y1, x2, y2 = map(int, (x1, y1, x2, y2))
-                logging.debug(f"Confidence: {conf:.2f}, Class: {cls}, Coordinates: ({x1}, {y1}, {x2}, {y2})")
-                
-                # Draw rectangle regardless of confidence
-                cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
-                cv2.putText(frame, f'Watermark {conf:.2f}', (x1, y1 - 10),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
-                logging.info(f"Watermark detected in frame {frame_count} with confidence {conf:.2f}")
-
-            out.write(frame)
-            self.update_frame.emit(frame)
-            frame_count += 1
-            progress = int((frame_count / total_frames) * 100)
-            self.update_progress.emit(progress)
-
-            if frame_count == 1:
-                preview_path = os.path.splitext(self.output_path)[0] + "_preview.png"
-                cv2.imwrite(preview_path, frame)
-                logging.info(f"Preview frame saved as {preview_path}")
-
-        
+        # Release everything
         cap.release()
         out.release()
-        logging.info("Video processing completed")
-        self.finished.emit()
 
+        logger.info(f"Processed video saved: {output_path}")
+        messagebox.showinfo("Success", "Video processing completed successfully!")
 
+    def detect_watermark(self, img):
+        results = self.model(img)
 
+        if len(results.xyxy[0]) > 0:
+            for det in results.xyxy[0]:
+                x1, y1, x2, y2, conf, cls = det.tolist()
+                x1, y1, x2, y2 = map(int, [x1, y1, x2, y2])
+                cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                logger.info(f"Watermark detected at ({x1}, {y1}, {x2}, {y2}) with confidence {conf:.2f}")
+        else:
+            logger.warning("No watermark detected in the frame")
 
-class MainWindow(QMainWindow):
-    def __init__(self):
+        return img
+    def update_log(self, message):
+        self.log_text.insert(tk.END, message + '\n')
+        self.log_text.see(tk.END)
+
+class GUILogHandler(logging.Handler):
+    def __init__(self, callback):
         super().__init__()
-        self.setWindowTitle("YOLO Watermark Detector")
-        self.setGeometry(100, 100, 800, 600)
-        logging.info("Initializing MainWindow")
+        self.callback = callback
 
-        layout = QVBoxLayout()
-        self.model_button = QPushButton("Select Model File")
-        self.model_button.clicked.connect(self.select_model)
-        layout.addWidget(self.model_button)
-        self.input_button = QPushButton("Select Input Video")
-        self.input_button.clicked.connect(self.select_input)
-        layout.addWidget(self.input_button)
+    def emit(self, record):
+        log_entry = self.format(record)
+        self.callback(log_entry)
 
-        self.output_button = QPushButton("Select Output Location")
-        self.output_button.clicked.connect(self.select_output)
-        layout.addWidget(self.output_button)
-
-        self.process_button = QPushButton("Process Video")
-        self.process_button.clicked.connect(self.process_video)
-        layout.addWidget(self.process_button)
-
-        self.status_label = QLabel("Status: Ready")
-        layout.addWidget(self.status_label)
-        self.progress_bar = QProgressBar()
-        layout.addWidget(self.progress_bar)
-
-        self.frame_label = QLabel()
-        layout.addWidget(self.frame_label)
-        container = QWidget()
-        container.setLayout(layout)
-        self.setCentralWidget(container)
-        self.model_path = ""
-        self.input_path = ""
-        self.output_path = ""
-    def select_model(self):
-        self.model_path, _ = QFileDialog.getOpenFileName(self, "Select Model File (best.pt)", "", "PyTorch Model (*.pt)")
-        if self.model_path:
-            if os.path.basename(self.model_path) != "best.pt":
-                logging.warning(f"Selected file is not named 'best.pt': {self.model_path}")
-            self.model_button.setText(f"Model: {os.path.basename(self.model_path)}")
-            logging.info(f"Selected model: {self.model_path}")
-
-
-    def select_input(self):
-        self.input_path, _ = QFileDialog.getOpenFileName(self, "Select Input Video", "", "Video Files (*.mp4 *.avi)")
-        if self.input_path:
-            self.input_button.setText(f"Input: {self.input_path}")
-            logging.info(f"Selected input video: {self.input_path}")
-
-    def select_output(self):
-        self.output_path, _ = QFileDialog.getSaveFileName(self, "Select Output Location", "", "Video Files (*.mp4)")
-        if self.output_path:
-            self.output_button.setText(f"Output: {self.output_path}")
-            logging.info(f"Selected output location: {self.output_path}")
-
-    def process_video(self):
-        if not self.model_path or not self.input_path or not self.output_path:
-            self.status_label.setText("Status: Please select model, input, and output files")
-            logging.warning("Attempted to process video without all necessary paths selected")
-            return
-        
-        logging.info(f"Starting video processing with model: {self.model_path}")
-        logging.info(f"Input video: {self.input_path}")
-        logging.info(f"Output video: {self.output_path}")
-        self.status_label.setText("Status: Processing...")
-        self.progress_bar.setValue(0)
-        
-        try:
-            self.thread = VideoProcessingThread(self.input_path, self.output_path, self.model_path)
-            self.thread.update_frame.connect(self.update_frame)
-            self.thread.update_progress.connect(self.update_progress)
-            self.thread.finished.connect(self.processing_finished)
-            self.thread.start()
-        except Exception as e:
-            logging.error(f"Error starting video processing: {str(e)}")
-            self.status_label.setText(f"Status: Error - {str(e)}")
-
-    def update_frame(self, frame):
-        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        h, w, ch = rgb_frame.shape
-        bytes_per_line = ch * w
-        q_img = QImage(rgb_frame.data, w, h, bytes_per_line, QImage.Format_RGB888)
-        pixmap = QPixmap.fromImage(q_img)
-        self.frame_label.setPixmap(pixmap.scaled(640, 480, Qt.KeepAspectRatio, Qt.SmoothTransformation))
-    def update_progress(self, value):
-        self.progress_bar.setValue(value)
-        logging.debug(f"Progress updated: {value}%")
-    def processing_finished(self):
-        preview_path = os.path.splitext(self.output_path)[0] + "_preview.png"
-        self.status_label.setText(f"Status: Processing complete. Preview saved as {preview_path}")
-        logging.info("Video processing finished")
 if __name__ == "__main__":
-    logging.info("Starting application")
-    app = QApplication(sys.argv)
-    window = MainWindow()
-    window.show()
-    sys.exit(app.exec_())
+    root = tk.Tk()
+    app = WatermarkDetectionApp(root)
+    gui_handler = GUILogHandler(app.update_log)
+    logger.addHandler(gui_handler)
+    root.mainloop()
