@@ -6,7 +6,7 @@ from tkinter import filedialog, messagebox, scrolledtext, ttk
 from PIL import Image
 import logging
 import threading
-from diffusers import StableDiffusionInpaintPipeline
+from diffusers import StableDiffusionInpaintPipeline,AutoPipelineForInpainting
 import os
 from datetime import datetime
 
@@ -19,16 +19,25 @@ class WatermarkDetectionApp:
         self.master = master
         self.master.title("Watermark Detection and Inpainting")
         self.master.geometry("900x800")
-
+        
         self.model_path = tk.StringVar()
         self.input_path = tk.StringVar()
         self.output_path = tk.StringVar()
+        
         self.watermark_model = None
         self.inpainting_pipeline = None
         self.processing = False
-
+        
+        # Add a variable to store the device (CPU/GPU)
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        
+        # Add a variable to store the inpainting model type
+        self.inpainting_model_type = "SDXL"
+        
         self.create_widgets()
-        self.download_and_load_inpainting_model()
+        
+
+
 
     def create_widgets(self):
         # Model selection
@@ -63,17 +72,31 @@ class WatermarkDetectionApp:
         self.master.grid_columnconfigure(1, weight=1)
         self.master.grid_rowconfigure(5, weight=1)
 
+
     def download_and_load_inpainting_model(self):
-        model_id = "runwayml/stable-diffusion-inpainting"
+        model_id = "stabilityai/stable-diffusion-xl-base-1.0"
         try:
-            self.inpainting_pipeline = StableDiffusionInpaintPipeline.from_pretrained(
-                model_id, 
-                torch_dtype=torch.float32
-            ).to("cpu")
-            logger.info("Inpainting model loaded successfully")
+            self.inpainting_pipeline = AutoPipelineForInpainting.from_pretrained(
+                model_id,
+                torch_dtype=torch.float16,
+                variant="fp16",
+                use_safetensors=True
+            )
+          
+            # Check if CUDA is available and use it, otherwise fall back to CPU
+            device = "cuda" if torch.cuda.is_available() else "cpu"
+            if device == "cpu":
+                # If using CPU, change to float32 for better compatibility
+                self.inpainting_pipeline.to(torch.float32)
+            
+            self.inpainting_pipeline.to(device)
+            
+            logger.info(f"SDXL Inpainting model loaded successfully on {device} with safety checker disabled")
+            messagebox.showinfo("Success", f"SDXL Inpainting model loaded successfully on {device} with safety checker disabled")
         except Exception as e:
-            logger.error(f"Error loading inpainting model: {str(e)}")
-            messagebox.showerror("Error", f"Failed to load inpainting model: {str(e)}")
+            logger.error(f"Error loading SDXL inpainting model: {str(e)}")
+            messagebox.showerror("Error", f"Failed to load SDXL inpainting model: {str(e)}")
+
 
     def browse_model(self):
         filename = filedialog.askopenfilename(filetypes=[("PyTorch Model", "*.pt")])
@@ -112,7 +135,19 @@ class WatermarkDetectionApp:
         if not self.processing:
             self.processing = True
             self.process_button.config(state=tk.DISABLED)
-            threading.Thread(target=self.process_file, daemon=True).start()
+
+            # Load the inpainting model synchronously if it hasn't been loaded yet
+            if self.inpainting_pipeline is None:
+                self.download_and_load_inpainting_model()
+
+            # Only start processing if the model was loaded successfully
+            if self.inpainting_pipeline is not None:
+                threading.Thread(target=self.process_file, daemon=True).start()
+            else:
+                self.processing = False
+                self.process_button.config(state=tk.NORMAL)
+                messagebox.showerror("Error", "Failed to load the inpainting model. Cannot process file.")
+
 
     def process_file(self):
         if self.watermark_model is None:
@@ -175,7 +210,6 @@ class WatermarkDetectionApp:
         height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         fps = cap.get(cv2.CAP_PROP_FPS)
         total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
         out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
 
@@ -192,7 +226,6 @@ class WatermarkDetectionApp:
         original_frames_dir = os.path.join(run_dir, "original_frames")
         detected_frames_dir = os.path.join(run_dir, "detected_frames")
         inpainted_frames_dir = os.path.join(run_dir, "inpainted_frames")
-        
         os.makedirs(original_frames_dir, exist_ok=True)
         os.makedirs(detected_frames_dir, exist_ok=True)
         os.makedirs(inpainted_frames_dir, exist_ok=True)
@@ -217,22 +250,44 @@ class WatermarkDetectionApp:
             mask_vis_path = os.path.join(detected_frames_dir, f"frame_{frame_num:04d}_mask.jpg")
             cv2.imwrite(mask_vis_path, mask_vis)
 
-            inpainted_frame, inpaint_vis = self.inpaint_image(
-                frame, 
-                watermark_mask,
-                prompt="A person exercising on a red bench press machine in a dark gym, high quality photograph",
-                negative_prompt="text, watermark, logo, blurry, distorted",
-                num_inference_steps=100,
-                guidance_scale=7.5,
-                strength=1.0,
-                seed=frame_num
-            )
+            inpainting_successful = False
+            for attempt in range(3):  # Run inpainting three times
+                try:
+                    inpainted_frame, inpaint_vis = self.inpaint_image(
+                        inpainted_frame if attempt > 0 else frame,
+                        watermark_mask,
+                        prompt="Continuous skin texture and muscle definition, matching the surrounding areas",
+                        negative_prompt="text, watermark, logo, shutterstock, copyright symbol, overlay, green rectangle, bounding box, inappropriate content, nsfw",
+                        num_inference_steps=50,  # Reduced for SDXL
+                        guidance_scale=7.5,  # Adjusted for SDXL
+                        strength=0.8 if attempt > 0 else 1.0,  # Slightly reduced strength for subsequent attempts
+                        seed=frame_num + (attempt * 1000)
+                    )
+                    
+                    # Save inpainted frame and visualization for this attempt
+                    attempt_frame_path = os.path.join(inpainted_frames_dir, f"frame_{frame_num:04d}_attempt_{attempt+1}.jpg")
+                    cv2.imwrite(attempt_frame_path, inpainted_frame)
+                    attempt_vis_path = os.path.join(inpainted_frames_dir, f"frame_{frame_num:04d}_attempt_{attempt+1}_vis.jpg")
+                    cv2.imwrite(attempt_vis_path, inpaint_vis)
+                    
+                    inpainting_successful = True
+                    logger.info(f"Successfully inpainted frame {frame_num}, attempt {attempt+1}")
+                    break  # Exit the loop if inpainting is successful
+                    
+                except Exception as e:
+                    logger.warning(f"Inpainting attempt {attempt+1} for frame {frame_num} failed: {str(e)}")
+                    # Optionally, you could add a small delay here to allow GPU memory to clear
+                    # time.sleep(1)
+            
+            if not inpainting_successful:
+                logger.error(f"All inpainting attempts failed for frame {frame_num}. Using original frame.")
+                inpainted_frame = frame
+                inpaint_vis = frame
 
-
-            # Save inpainted frame and visualization
-            inpainted_frame_path = os.path.join(inpainted_frames_dir, f"frame_{frame_num:04d}.jpg")
+            # Save final inpainted frame and visualization
+            inpainted_frame_path = os.path.join(inpainted_frames_dir, f"frame_{frame_num:04d}_final.jpg")
             cv2.imwrite(inpainted_frame_path, inpainted_frame)
-            inpaint_vis_path = os.path.join(inpainted_frames_dir, f"frame_{frame_num:04d}_vis.jpg")
+            inpaint_vis_path = os.path.join(inpainted_frames_dir, f"frame_{frame_num:04d}_final_vis.jpg")
             cv2.imwrite(inpaint_vis_path, inpaint_vis)
 
             # Write to output video
@@ -247,10 +302,11 @@ class WatermarkDetectionApp:
 
         cap.release()
         out.release()
-
         logger.info(f"Processed video saved: {output_path}")
         logger.info(f"Intermediate frames saved in: {run_dir}")
         messagebox.showinfo("Success", f"Video processing completed successfully!\nResults saved in: {run_dir}")
+
+
 
     def detect_and_mark_watermark(self, img):
         results = self.watermark_model(img)
@@ -288,7 +344,7 @@ class WatermarkDetectionApp:
         vis[mask > 0] = cv2.addWeighted(img[mask > 0], 0.5, np.full_like(img[mask > 0], [0, 255, 0]), 0.5, 0)
         return vis
 
-    def inpaint_image(self, img, mask, prompt="", negative_prompt="", num_inference_steps=100, guidance_scale=7.5, strength=1.0, seed=None):
+    def inpaint_image(self, img, mask, prompt="", negative_prompt="", num_inference_steps=50, guidance_scale=7.5, strength=1.0, seed=None):
         if mask is None or np.sum(mask) == 0:
             return img, img
 
@@ -299,11 +355,12 @@ class WatermarkDetectionApp:
         rows, cols = np.where(mask > 0)
         if len(rows) == 0 or len(cols) == 0:
             return img, img
+
         top, left = np.min(rows), np.min(cols)
         bottom, right = np.max(rows), np.max(cols)
 
         # Expand the bounding box slightly
-        padding = 20
+        padding = 40  # Increased padding for SDXL
         top = max(0, top - padding)
         left = max(0, left - padding)
         bottom = min(img.shape[0], bottom + padding)
@@ -317,14 +374,14 @@ class WatermarkDetectionApp:
         img_pil = Image.fromarray(cv2.cvtColor(img_crop, cv2.COLOR_BGR2RGB))
         mask_pil = Image.fromarray(mask_crop)
 
-        # Resize to 512x512
-        img_pil = img_pil.resize((512, 512), Image.LANCZOS)
-        mask_pil = mask_pil.resize((512, 512), Image.NEAREST)
+        # Resize to 1024x1024 (SDXL's preferred size)
+        img_pil = img_pil.resize((1024, 1024), Image.LANCZOS)
+        mask_pil = mask_pil.resize((1024, 1024), Image.NEAREST)
 
-        # Invert mask (Stable Diffusion expects white for inpainting area)
+        # Invert mask (SDXL expects white for inpainting area)
         mask_pil = Image.fromarray(255 - np.array(mask_pil))
 
-        generator = torch.Generator("cpu").manual_seed(seed) if seed is not None else None
+        generator = torch.Generator(self.device).manual_seed(seed) if seed is not None else None
 
         # Perform inpainting
         inpainted = self.inpainting_pipeline(
@@ -353,6 +410,7 @@ class WatermarkDetectionApp:
         cv2.rectangle(vis, (left, top), (right, bottom), (0, 255, 0), 2)
 
         return result, vis
+
 
 
 
