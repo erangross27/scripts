@@ -3,13 +3,12 @@ import cv2
 import numpy as np
 import tkinter as tk
 from tkinter import filedialog, messagebox, scrolledtext, ttk
-from PIL import Image
 import logging
 import threading
 from diffusers import StableDiffusionInpaintPipeline,AutoPipelineForInpainting
 import os
 from datetime import datetime
-
+from PIL import Image, ImageOps
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -205,23 +204,23 @@ class WatermarkDetectionApp:
         cap = cv2.VideoCapture(input_path)
         if not cap.isOpened():
             raise ValueError("Error opening video file")
-
+        
         width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         fps = cap.get(cv2.CAP_PROP_FPS)
         total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
         out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
-
+        
         logger.info(f"Processing video: {input_path}")
         logger.info(f"Total frames: {total_frames}")
-
+        
         # Create timestamped directory for this run
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         base_dir = os.path.dirname(output_path)
         run_dir = os.path.join(base_dir, f"run_{timestamp}")
         os.makedirs(run_dir, exist_ok=True)
-
+        
         # Create subdirectories for each step
         original_frames_dir = os.path.join(run_dir, "original_frames")
         detected_frames_dir = os.path.join(run_dir, "detected_frames")
@@ -229,38 +228,38 @@ class WatermarkDetectionApp:
         os.makedirs(original_frames_dir, exist_ok=True)
         os.makedirs(detected_frames_dir, exist_ok=True)
         os.makedirs(inpainted_frames_dir, exist_ok=True)
-
+        
         for frame_num in range(total_frames):
             ret, frame = cap.read()
             if not ret:
                 logger.warning(f"Failed to read frame {frame_num}")
                 break
-
+            
             # Save original frame
             original_frame_path = os.path.join(original_frames_dir, f"frame_{frame_num:04d}.jpg")
             cv2.imwrite(original_frame_path, frame)
-
+            
             # Detect watermark and save frame with detection
             watermark_mask, detected_frame = self.detect_and_mark_watermark(frame)
             detected_frame_path = os.path.join(detected_frames_dir, f"frame_{frame_num:04d}.jpg")
             cv2.imwrite(detected_frame_path, detected_frame)
-
+            
             # Visualize and save the mask
             mask_vis = self.visualize_mask(frame, watermark_mask)
             mask_vis_path = os.path.join(detected_frames_dir, f"frame_{frame_num:04d}_mask.jpg")
             cv2.imwrite(mask_vis_path, mask_vis)
-
+            
             inpainting_successful = False
             for attempt in range(3):  # Run inpainting three times
                 try:
                     inpainted_frame, inpaint_vis = self.inpaint_image(
                         inpainted_frame if attempt > 0 else frame,
                         watermark_mask,
-                        prompt="Continuous skin texture and muscle definition, matching the surrounding areas",
-                        negative_prompt="text, watermark, logo, shutterstock, copyright symbol, overlay, green rectangle, bounding box, inappropriate content, nsfw",
-                        num_inference_steps=50,  # Reduced for SDXL
-                        guidance_scale=7.5,  # Adjusted for SDXL
-                        strength=0.8 if attempt > 0 else 1.0,  # Slightly reduced strength for subsequent attempts
+                        prompt="remove watermark surrounding with green rectangle and repaint the scene based on surrounding ",
+                        negative_prompt="text, watermark, logo, shutterstock, copyright, blurry, distorted, low quality",
+                        num_inference_steps=50,
+                        guidance_scale=10.0,
+                        strength=1.0,
                         seed=frame_num + (attempt * 1000)
                     )
                     
@@ -273,38 +272,36 @@ class WatermarkDetectionApp:
                     inpainting_successful = True
                     logger.info(f"Successfully inpainted frame {frame_num}, attempt {attempt+1}")
                     break  # Exit the loop if inpainting is successful
-                    
                 except Exception as e:
                     logger.warning(f"Inpainting attempt {attempt+1} for frame {frame_num} failed: {str(e)}")
-                    # Optionally, you could add a small delay here to allow GPU memory to clear
-                    # time.sleep(1)
             
             if not inpainting_successful:
                 logger.error(f"All inpainting attempts failed for frame {frame_num}. Using original frame.")
                 inpainted_frame = frame
                 inpaint_vis = frame
-
+            
             # Save final inpainted frame and visualization
             inpainted_frame_path = os.path.join(inpainted_frames_dir, f"frame_{frame_num:04d}_final.jpg")
             cv2.imwrite(inpainted_frame_path, inpainted_frame)
             inpaint_vis_path = os.path.join(inpainted_frames_dir, f"frame_{frame_num:04d}_final_vis.jpg")
             cv2.imwrite(inpaint_vis_path, inpaint_vis)
-
+            
             # Write to output video
             out.write(inpainted_frame)
-
+            
             progress = (frame_num + 1) / total_frames * 100
             self.progress_var.set(progress)
             self.master.update_idletasks()
-
-            if frame_num % 100 == 0:
-                logger.info(f"Processed frame {frame_num}/{total_frames}")
-
+            
+            if frame_num % 10 == 0:  # Log every 10 frames for more frequent updates
+                logger.info(f"Processed frame {frame_num}/{total_frames} ({progress:.2f}%)")
+        
         cap.release()
         out.release()
         logger.info(f"Processed video saved: {output_path}")
         logger.info(f"Intermediate frames saved in: {run_dir}")
         messagebox.showinfo("Success", f"Video processing completed successfully!\nResults saved in: {run_dir}")
+
 
 
 
@@ -344,72 +341,85 @@ class WatermarkDetectionApp:
         vis[mask > 0] = cv2.addWeighted(img[mask > 0], 0.5, np.full_like(img[mask > 0], [0, 255, 0]), 0.5, 0)
         return vis
 
-    def inpaint_image(self, img, mask, prompt="", negative_prompt="", num_inference_steps=50, guidance_scale=7.5, strength=1.0, seed=None):
+        
+
+    def inpaint_image(self, img, mask, prompt="", negative_prompt="", num_inference_steps=50, guidance_scale=10.0, strength=1.0, seed=None):
         if mask is None or np.sum(mask) == 0:
             return img, img
-
+        
         img_pil = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
         mask_pil = Image.fromarray(mask)
-
+        
         # Get the bounding box of the mask
         rows, cols = np.where(mask > 0)
         if len(rows) == 0 or len(cols) == 0:
             return img, img
-
+        
         top, left = np.min(rows), np.min(cols)
         bottom, right = np.max(rows), np.max(cols)
-
+        
         # Expand the bounding box slightly
-        padding = 40  # Increased padding for SDXL
+        padding = 40
         top = max(0, top - padding)
         left = max(0, left - padding)
         bottom = min(img.shape[0], bottom + padding)
         right = min(img.shape[1], right + padding)
-
+        
         # Crop the image and mask to the expanded bounding box
         img_crop = img[top:bottom, left:right]
         mask_crop = mask[top:bottom, left:right]
-
+        
         # Convert cropped image and mask to PIL
         img_pil = Image.fromarray(cv2.cvtColor(img_crop, cv2.COLOR_BGR2RGB))
         mask_pil = Image.fromarray(mask_crop)
-
+        
         # Resize to 1024x1024 (SDXL's preferred size)
+        orig_size = img_pil.size
         img_pil = img_pil.resize((1024, 1024), Image.LANCZOS)
         mask_pil = mask_pil.resize((1024, 1024), Image.NEAREST)
-
+        
+        # Ensure mask is binary
+        mask_pil = mask_pil.convert('L')
+        mask_pil = mask_pil.point(lambda x: 255 if x > 128 else 0, '1')
+        
         # Invert mask (SDXL expects white for inpainting area)
-        mask_pil = Image.fromarray(255 - np.array(mask_pil))
-
-        generator = torch.Generator(self.device).manual_seed(seed) if seed is not None else None
-
-        # Perform inpainting
-        inpainted = self.inpainting_pipeline(
-            prompt=prompt,
-            image=img_pil,
-            mask_image=mask_pil,
-            negative_prompt=negative_prompt,
-            num_inference_steps=num_inference_steps,
-            guidance_scale=guidance_scale,
-            strength=strength,
-            generator=generator
-        ).images[0]
-
-        # Convert back to OpenCV format and original crop size
+        mask_pil = ImageOps.invert(mask_pil)
+        
+        generator = torch.manual_seed(seed) if seed is not None else None
+        
+        # Perform inpainting multiple times
+        for _ in range(2):  # Run inpainting twice
+            inpainted = self.inpainting_pipeline(
+                prompt=prompt or "Clear image of a muscular man exercising on a red bench press machine in a dark gym, high quality sports photography",
+                image=img_pil,
+                mask_image=mask_pil,
+                negative_prompt=negative_prompt or "text, watermark, logo, shutterstock, copyright, blurry, distorted, low quality",
+                num_inference_steps=num_inference_steps,
+                guidance_scale=guidance_scale,
+                strength=strength,
+                generator=generator
+            ).images[0]
+            img_pil = inpainted  # Use the result for the next iteration
+        
+        # Resize back to original crop size
+        inpainted = inpainted.resize(orig_size, Image.LANCZOS)
+        
+        # Convert back to OpenCV format
         inpainted = cv2.cvtColor(np.array(inpainted), cv2.COLOR_RGB2BGR)
-        inpainted = cv2.resize(inpainted, (right - left, bottom - top))
-
+        
         # Blend the inpainted area back into the original image
         result = img.copy()
         mask_crop_3d = np.repeat(mask_crop[:, :, np.newaxis], 3, axis=2) / 255.0
         result[top:bottom, left:right] = (1 - mask_crop_3d) * img_crop + mask_crop_3d * inpainted
-
+        
         # Create visualization
         vis = img.copy()
         vis[top:bottom, left:right] = cv2.addWeighted(img_crop, 0.5, inpainted, 0.5, 0)
         cv2.rectangle(vis, (left, top), (right, bottom), (0, 255, 0), 2)
-
+        
         return result, vis
+
+
 
 
 
