@@ -4,7 +4,6 @@ warnings.filterwarnings("ignore", category=DeprecationWarning, module="cryptogra
 
 # Import necessary modules
 import scapy.all as scapy
-from scapy.layers import http
 import time
 import os
 import psutil
@@ -12,8 +11,8 @@ from bidi.algorithm import get_display
 from collections import defaultdict
 import socket
 from collections import deque
-import time
-
+import re
+from scapy.layers import http, dns
 # List of known malicious IP addresses (you should update this with real data)
 MALICIOUS_IPS = {'192.168.1.100', '10.0.0.50'}
 
@@ -68,33 +67,60 @@ def resolve_ip(ip):
     except (socket.herror, socket.timeout):
         return ip  # Return the IP if resolution fails
 
+
+
 def analyze_traffic(packets):
     suspicious_activities = []
     inbound_connections = defaultdict(lambda: defaultdict(int))
-    outbound_connections = deque(maxlen=10000)  # Limit to last 10000 connections
+    outbound_connections = deque(maxlen=10000)
+    data_transfer = defaultdict(int)
+    dns_queries = defaultdict(set)
+    port_scans = defaultdict(set)
     current_time = time.time()
     local_ip = None
 
+    # Regular expressions for sensitive information
+    password_regex = re.compile(r'password=\S+', re.IGNORECASE)
+    credit_card_regex = re.compile(r'\b(?:\d{4}[-\s]?){3}\d{4}\b')
+
     for packet in packets:
-        if packet.haslayer(scapy.IP) and packet.haslayer(scapy.TCP):
+        if packet.haslayer(scapy.IP):
             src_ip = packet[scapy.IP].src
             dst_ip = packet[scapy.IP].dst
-            src_port = packet[scapy.TCP].sport
-            dst_port = packet[scapy.TCP].dport
 
             # Determine local IP if not yet set
-            if local_ip is None:
-                if packet.sniffed_on:
-                    local_ip = [addr.address for addr in psutil.net_if_addrs()[packet.sniffed_on] if addr.family == socket.AF_INET][0]
+            if local_ip is None and packet.sniffed_on:
+                local_ip = next((addr.address for addr in psutil.net_if_addrs()[packet.sniffed_on] 
+                                 if addr.family == socket.AF_INET), None)
 
-            # Track outbound connections
-            if src_ip == local_ip and packet[scapy.TCP].flags & 0x02:  # SYN flag (outbound connection attempt)
-                outbound_connections.append((dst_ip, dst_port, src_port, current_time))
+            # Track data transfer
+            data_transfer[src_ip] += len(packet)
 
-            # Track inbound connections
-            elif dst_ip == local_ip and packet[scapy.TCP].flags & 0x12:  # SYN-ACK flags (inbound connection or response)
-                if not any(conn[:3] == (src_ip, src_port, dst_port) for conn in outbound_connections):
+            if packet.haslayer(scapy.TCP):
+                src_port = packet[scapy.TCP].sport
+                dst_port = packet[scapy.TCP].dport
+
+                # Credential theft detection
+                if packet.haslayer(http.HTTPRequest):
+                    payload = str(packet[http.HTTPRequest].Fields)
+                    if password_regex.search(payload):
+                        suspicious_activities.append(('Potential password transmission', src_ip, dst_ip))
+                    if credit_card_regex.search(payload):
+                        suspicious_activities.append(('Potential credit card transmission', src_ip, dst_ip))
+
+                # Track outbound connections
+                if src_ip == local_ip and packet[scapy.TCP].flags & 0x02:
+                    outbound_connections.append((dst_ip, dst_port, src_port, current_time))
+
+                # Track inbound connections and potential port scans
+                elif dst_ip == local_ip and packet[scapy.TCP].flags & 0x02:
                     inbound_connections[dst_port][src_ip] += 1
+                    port_scans[src_ip].add(dst_port)
+
+            # DNS query monitoring (part of discovery phase)
+            if packet.haslayer(dns.DNSQR):
+                query = packet[dns.DNSQR].qname.decode('utf-8')
+                dns_queries[src_ip].add(query)
 
     # Clear old outbound connections
     outbound_connections = deque((conn for conn in outbound_connections if current_time - conn[3] < 60), maxlen=10000)
@@ -102,13 +128,39 @@ def analyze_traffic(packets):
     # Analyze inbound connections for potential threats
     for port, connections in inbound_connections.items():
         total_attempts = sum(connections.values())
-        
-        if total_attempts > 0 and port < 1024:  # Focus on well-known ports
+        if total_attempts > 0 and port < 1024:
             suspicious_activities.append((
                 'Unsolicited inbound connection attempt',
                 port,
                 total_attempts,
-                f"Sources: {', '.join(map(socket.gethostbyaddr, connections.keys()))}"
+                f"Sources: {', '.join(map(resolve_ip, connections.keys()))}"
+            ))
+
+    # Detect potential lateral movement
+    for src_ip, ports in port_scans.items():
+        if len(ports) > 10:  # Adjust threshold as needed
+            suspicious_activities.append((
+                'Potential port scan (lateral movement attempt)',
+                src_ip,
+                f"Scanned ports: {', '.join(map(str, ports))}"
+            ))
+
+    # Detect unusual data collection or exfiltration
+    for ip, amount in data_transfer.items():
+        if amount > 10000000:  # 10 MB, adjust as needed
+            suspicious_activities.append((
+                'Large data transfer (potential exfiltration)',
+                ip,
+                f"{amount/1000000:.2f} MB"
+            ))
+
+    # Detect excessive DNS queries (potential discovery phase activity)
+    for ip, queries in dns_queries.items():
+        if len(queries) > 50:  # Adjust threshold as needed
+            suspicious_activities.append((
+                'Excessive DNS queries (potential discovery activity)',
+                ip,
+                f"Number of unique queries: {len(queries)}"
             ))
 
     return suspicious_activities
