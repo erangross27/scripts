@@ -1,8 +1,6 @@
 import sys
 import fitz
-from PyQt5.QtWidgets import (QApplication, QMainWindow, QFileDialog, QMessageBox,
-                             QPushButton, QVBoxLayout, QHBoxLayout, QWidget, QLabel, QScrollArea,
-                             QComboBox, QColorDialog, QSpinBox, QFrame, QFormLayout)
+from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox, QPushButton, QVBoxLayout, QHBoxLayout, QWidget, QLabel, QScrollArea, QComboBox, QColorDialog, QSpinBox, QFrame, QFormLayout
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap, QImage, QColor, QPainter, QFont, QPen
 
