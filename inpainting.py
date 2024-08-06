@@ -9,6 +9,7 @@ from diffusers import StableDiffusionInpaintPipeline,AutoPipelineForInpainting
 import os
 from datetime import datetime
 from PIL import Image, ImageOps
+
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -255,7 +256,7 @@ class WatermarkDetectionApp:
                     inpainted_frame, inpaint_vis = self.inpaint_image(
                         inpainted_frame if attempt > 0 else frame,
                         watermark_mask,
-                        prompt="remove watermark surrounding with green rectangle and repaint the scene based on surrounding ",
+                        prompt="remove watermark surrounding with green rectangle and repaint the scene based on surrounding",
                         negative_prompt="text, watermark, logo, shutterstock, copyright, blurry, distorted, low quality",
                         num_inference_steps=50,
                         guidance_scale=10.0,
@@ -390,7 +391,7 @@ class WatermarkDetectionApp:
         # Perform inpainting multiple times
         for _ in range(2):  # Run inpainting twice
             inpainted = self.inpainting_pipeline(
-                prompt=prompt or "Clear image of a muscular man exercising on a red bench press machine in a dark gym, high quality sports photography",
+                prompt=prompt,
                 image=img_pil,
                 mask_image=mask_pil,
                 negative_prompt=negative_prompt or "text, watermark, logo, shutterstock, copyright, blurry, distorted, low quality",
