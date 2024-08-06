@@ -389,7 +389,7 @@ class WatermarkDetectionApp:
         generator = torch.manual_seed(seed) if seed is not None else None
         
         # Perform inpainting multiple times
-        for _ in range(2):  # Run inpainting twice
+        for _ in range(1):  # Run inpainting twice
             inpainted = self.inpainting_pipeline(
                 prompt=prompt,
                 image=img_pil,
