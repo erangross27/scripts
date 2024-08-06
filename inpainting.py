@@ -419,11 +419,6 @@ class WatermarkDetectionApp:
         
         return result, vis
 
-
-
-
-
-
     def resize_and_pad(self, img, mask, size=512):
         # Resize image and mask, maintaining aspect ratio
         img.thumbnail((size, size))
