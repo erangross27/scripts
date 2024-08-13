@@ -1,7 +1,15 @@
+# Import CryptographyDeprecationWarning
+from cryptography.utils import CryptographyDeprecationWarning
 import warnings
-import scapy.all as scapy
-import time
 import os
+# Suppress DeprecationWarnings from cryptography module
+warnings.filterwarnings("ignore", category=DeprecationWarning, module="cryptography")
+warnings.filterwarnings("ignore", category=CryptographyDeprecationWarning)
+
+# Suppress DeprecationWarnings from cryptography module
+os.environ['SCAPY_MANUF'] = ''
+
+import time
 import psutil
 from bidi.algorithm import get_display
 from collections import defaultdict, deque
@@ -11,9 +19,7 @@ from scapy.layers import http, dns
 import newrelic.agent
 import logging
 import sys
-
-# Suppress DeprecationWarnings from cryptography module
-warnings.filterwarnings("ignore", category=DeprecationWarning, module="cryptography")
+import scapy.all as scapy
 
 # Get New Relic config file path from environment variable
 new_relic_config = os.environ.get('NEW_RELIC_CONFIG_FILE')
@@ -127,7 +133,7 @@ def analyze_traffic(packets):
 
                 # Credential theft detection
                 if packet.haslayer(http.HTTPRequest):
-                    payload = str(packet[http.HTTPRequest].Fields)
+                    payload = str(packet[http.HTTPRequest].fields)  # Changed from .Fields to .fields
                     if password_regex.search(payload):
                         suspicious_activities.append(('Potential password transmission', src_ip, dst_ip))
                     if credit_card_regex.search(payload):
