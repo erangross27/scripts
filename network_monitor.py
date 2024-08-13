@@ -1,18 +1,57 @@
 import warnings
-# Suppress DeprecationWarnings from cryptography module
-warnings.filterwarnings("ignore", category=DeprecationWarning, module="cryptography")
-
-# Import necessary modules
 import scapy.all as scapy
 import time
 import os
 import psutil
 from bidi.algorithm import get_display
-from collections import defaultdict
+from collections import defaultdict, deque
 import socket
-from collections import deque
 import re
 from scapy.layers import http, dns
+import newrelic.agent
+import logging
+import sys
+import signal
+
+# Global flag for graceful shutdown
+running = True
+
+# Suppress DeprecationWarnings from cryptography module
+warnings.filterwarnings("ignore", category=DeprecationWarning, module="cryptography")
+
+# Get New Relic config file path from environment variable
+new_relic_config = os.environ.get('NEW_RELIC_CONFIG_FILE')
+
+# Set up logging
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+if new_relic_config:
+    # Initialize New Relic
+    newrelic.agent.initialize(new_relic_config)
+
+    # Create a handler that sends logs to New Relic
+    class NewRelicLogHandler(logging.Handler):
+        def emit(self, record):
+            newrelic.agent.record_custom_event('Log', {
+                'level': record.levelname,
+                'message': record.getMessage(),
+                'filename': record.filename,
+                'lineno': record.lineno
+            })
+
+    # Add the New Relic handler to the logger
+    logger.addHandler(NewRelicLogHandler())
+
+    logger.info("New Relic initialized successfully")
+else:
+    logger.info("NEW_RELIC_CONFIG_FILE environment variable not set. New Relic will not be initialized.")
+
+# Add a stream handler to print logs to console
+console_handler = logging.StreamHandler(sys.stdout)
+console_handler.setLevel(logging.INFO)
+logger.addHandler(console_handler)
+
 # List of known malicious IP addresses (you should update this with real data)
 MALICIOUS_IPS = {'192.168.1.100', '10.0.0.50'}
 
@@ -20,32 +59,25 @@ MALICIOUS_IPS = {'192.168.1.100', '10.0.0.50'}
 MONITORED_EXTENSIONS = {'.exe', '.dll', '.bat', '.sh', '.py'}
 
 def is_interface_active(ip):
-    # Check if the IP is not a link-local address and not localhost
     return not ip.startswith('169.254.') and ip != '127.0.0.1'
 
 def get_interfaces():
     interfaces = []
-    # Iterate through network interfaces and their addresses
     for iface, addrs in psutil.net_if_addrs().items():
         for addr in addrs:
-            if addr.family == 2:  # IPv4
-                if is_interface_active(addr.address):
-                    interfaces.append((iface, addr.address))
-                    break  # We only need one IPv4 address per interface
+            if addr.family == 2 and is_interface_active(addr.address):
+                interfaces.append((iface, addr.address))
+                break
     return interfaces
 
 def choose_interface(interfaces):
     if not interfaces:
-        print("No active network interfaces found.")
+        logger.info("No active network interfaces found. Exiting.")
         return None
-    
-    print("Available active interfaces:")
-    # Display available interfaces
+    logger.info("Available active interfaces:")
     for i, (iface, ip) in enumerate(interfaces):
         iface_display = get_display(iface)
-        print(f"{i}: {iface_display} (IP: {ip})")
-    
-    # Allow user to choose an interface
+        logger.info(f"{i}: {iface_display} (IP: {ip})")
     while True:
         try:
             choice = int(input("Enter the number of the interface you want to use: "))
@@ -53,20 +85,17 @@ def choose_interface(interfaces):
                 return interfaces[choice][0]
         except ValueError:
             pass
-        print("Invalid choice. Please try again.")
+        logger.info("Invalid choice. Please try again.")
 
 def capture_packets(interface, count=1000):
-    print(f"Capturing {count} packets on {interface}...")
-    # Use scapy to capture packets on the specified interface
+    logger.info(f"Capturing {count} packets on {interface}...")
     return scapy.sniff(iface=interface, count=count)
 
 def resolve_ip(ip):
     try:
-        # Attempt to resolve IP to hostname
         return socket.gethostbyaddr(ip)[0]
     except (socket.herror, socket.timeout):
-        return ip  # Return the IP if resolution fails
-
+        return ip
 
 
 def analyze_traffic(packets):
@@ -165,59 +194,77 @@ def analyze_traffic(packets):
 
     return suspicious_activities
 
-
 def burn_in_log(log_file, data):
-    # Open the log file in append mode
     with open(log_file, 'a', encoding='utf-8') as f:
         timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-        # Write each suspicious activity to the log file
         for item in data:
-            f.write(f"{timestamp} - {': '.join(map(str, item))}\n")
-        f.flush()  # Ensure data is written to the file
-        os.fsync(f.fileno())  # Flush operating system buffers
+            log_message = f"{timestamp} - {': '.join(map(str, item))}"
+            f.write(log_message + "\n")
+            logger.warning(log_message)
+        f.flush()
+        os.fsync(f.fileno())
+
+
+
+def signal_handler(sig, frame):
+    global running
+    logger.info("\nReceived shutdown signal. Stopping packet capture...")
+    running = False
 
 def main():
-    # Get list of network interfaces
+    global running
     interfaces = get_interfaces()
     if not interfaces:
-        print("No active network interfaces found. Exiting.")
+        logger.info("No active network interfaces found. Exiting.")
         return
-
-    # Let user choose an interface
     interface = choose_interface(interfaces)
     if not interface:
-        print("No interface selected. Exiting.")
+        logger.info("No interface selected. Exiting.")
         return
-
-    print(f"Using network interface: {get_display(interface)}")
+    logger.info(f"Using network interface: {get_display(interface)}")
     log_file = 'security_log.txt'
 
-    # Main loop for continuous monitoring
-    try:
-        while True:
-            # Capture packets
-            packets = capture_packets(interface)
-            
-            # Analyze captured packets
-            suspicious_activities = analyze_traffic(packets)
-            
-            if suspicious_activities:
-                print("Suspicious activities detected!")
-                # Log suspicious activities
-                burn_in_log(log_file, suspicious_activities)
-                # Print suspicious activities to console
-                for activity in suspicious_activities:
-                    print(f"- {': '.join(map(str, activity))}")
-            else:
-                print("No suspicious activities detected in this batch.")
-            
-            time.sleep(60)  # Wait for 60 seconds before the next capture
+    # Set up signal handler
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
 
-    except KeyboardInterrupt:
-        print("\nStopping packet capture. Exiting.")
+    try:
+        while running:
+            packets = capture_packets(interface)
+            suspicious_activities = analyze_traffic(packets)
+            if suspicious_activities:
+                logger.info("Suspicious activities detected!")
+                burn_in_log(log_file, suspicious_activities)
+                for activity in suspicious_activities:
+                    logger.info(f"- {': '.join(map(str, activity))}")
+            else:
+                logger.info("No suspicious activities detected in this batch.")
+            
+            # Check if we should exit after each iteration
+            if not running:
+                break
+            
+            # Use a shorter sleep time and check running flag periodically
+            for _ in range(60):
+                if not running:
+                    break
+                time.sleep(1)
+
     except Exception as e:
-        print(f"An error occurred: {e}")
-        print(f"Error details: {type(e).__name__}, {str(e)}")
+        logger.error(f"An error occurred: {e}", exc_info=True)
+    finally:
+        logger.info("Shutting down...")
+        # Add any cleanup code here if needed
 
 if __name__ == "__main__":
-    main()
+    try:
+        if 'NEW_RELIC_CONFIG_FILE' in os.environ:
+            newrelic.agent.register_application(timeout=10.0)
+        main()
+    except KeyboardInterrupt:
+        logger.info("Interrupted by user. Exiting.")
+    finally:
+        # Ensure New Relic shuts down properly
+        if 'NEW_RELIC_CONFIG_FILE' in os.environ:
+            newrelic.agent.shutdown_agent()
+        sys.exit(0)
