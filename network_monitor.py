@@ -11,10 +11,6 @@ from scapy.layers import http, dns
 import newrelic.agent
 import logging
 import sys
-import signal
-
-# Global flag for graceful shutdown
-running = True
 
 # Suppress DeprecationWarnings from cryptography module
 warnings.filterwarnings("ignore", category=DeprecationWarning, module="cryptography")
@@ -204,15 +200,7 @@ def burn_in_log(log_file, data):
         f.flush()
         os.fsync(f.fileno())
 
-
-
-def signal_handler(sig, frame):
-    global running
-    logger.info("\nReceived shutdown signal. Stopping packet capture...")
-    running = False
-
 def main():
-    global running
     interfaces = get_interfaces()
     if not interfaces:
         logger.info("No active network interfaces found. Exiting.")
@@ -223,13 +211,8 @@ def main():
         return
     logger.info(f"Using network interface: {get_display(interface)}")
     log_file = 'security_log.txt'
-
-    # Set up signal handler
-    signal.signal(signal.SIGINT, signal_handler)
-    signal.signal(signal.SIGTERM, signal_handler)
-
     try:
-        while running:
+        while True:
             packets = capture_packets(interface)
             suspicious_activities = analyze_traffic(packets)
             if suspicious_activities:
@@ -239,32 +222,13 @@ def main():
                     logger.info(f"- {': '.join(map(str, activity))}")
             else:
                 logger.info("No suspicious activities detected in this batch.")
-            
-            # Check if we should exit after each iteration
-            if not running:
-                break
-            
-            # Use a shorter sleep time and check running flag periodically
-            for _ in range(60):
-                if not running:
-                    break
-                time.sleep(1)
-
+            time.sleep(60)
+    except KeyboardInterrupt:
+        logger.info("\nStopping packet capture. Exiting.")
     except Exception as e:
         logger.error(f"An error occurred: {e}", exc_info=True)
-    finally:
-        logger.info("Shutting down...")
-        # Add any cleanup code here if needed
 
 if __name__ == "__main__":
-    try:
-        if 'NEW_RELIC_CONFIG_FILE' in os.environ:
-            newrelic.agent.register_application(timeout=10.0)
-        main()
-    except KeyboardInterrupt:
-        logger.info("Interrupted by user. Exiting.")
-    finally:
-        # Ensure New Relic shuts down properly
-        if 'NEW_RELIC_CONFIG_FILE' in os.environ:
-            newrelic.agent.shutdown_agent()
-        sys.exit(0)
+    if 'NEW_RELIC_CONFIG_FILE' in os.environ:
+        newrelic.agent.register_application(timeout=10.0)
+    main()
