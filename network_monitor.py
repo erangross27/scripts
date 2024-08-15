@@ -60,26 +60,32 @@ MALICIOUS_IPS = {'192.168.1.100', '10.0.0.50'}
 # List of file extensions to monitor
 MONITORED_EXTENSIONS = {'.exe', '.dll', '.bat', '.sh', '.py'}
 
+# Function to check if an interface is active (not a link-local or loopback address)
 def is_interface_active(ip):
     return not ip.startswith('169.254.') and ip != '127.0.0.1'
 
+# Function to get a list of active network interfaces
 def get_interfaces():
     interfaces = []
     for iface, addrs in psutil.net_if_addrs().items():
         for addr in addrs:
+            # Only consider IPv4 addresses that are active
             if addr.family == 2 and is_interface_active(addr.address):
                 interfaces.append((iface, addr.address))
                 break
     return interfaces
 
+# Function to let the user choose a network interface
 def choose_interface(interfaces):
     if not interfaces:
         logger.info("No active network interfaces found. Exiting.")
         return None
     logger.info("Available active interfaces:")
+    # Display available interfaces
     for i, (iface, ip) in enumerate(interfaces):
         iface_display = get_display(iface)
         logger.info(f"{i}: {iface_display} (IP: {ip})")
+    # Loop until a valid choice is made
     while True:
         try:
             choice = int(input("Enter the number of the interface you want to use: "))
@@ -89,17 +95,19 @@ def choose_interface(interfaces):
             pass
         logger.info("Invalid choice. Please try again.")
 
+# Function to capture network packets on a specified interface
 def capture_packets(interface, count=1000):
     logger.info(f"Capturing {count} packets on {interface}...")
     return scapy.sniff(iface=interface, count=count)
 
+# Function to resolve an IP address to a hostname
 def resolve_ip(ip):
     try:
         return socket.gethostbyaddr(ip)[0]
     except (socket.herror, socket.timeout):
         return ip
 
-
+# Function to analyze captured network traffic for suspicious activities
 def analyze_traffic(packets):
     suspicious_activities = []
     inbound_connections = defaultdict(lambda: defaultdict(int))
@@ -197,44 +205,69 @@ def analyze_traffic(packets):
     return suspicious_activities
 
 def burn_in_log(log_file, data):
+    # Open the log file in append mode
     with open(log_file, 'a', encoding='utf-8') as f:
+        # Get the current timestamp
         timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+        # Iterate through each item in the data
         for item in data:
+            # Create a log message with timestamp and item details
             log_message = f"{timestamp} - {': '.join(map(str, item))}"
+            # Write the log message to the file
             f.write(log_message + "\n")
+            # Log the message as a warning
             logger.warning(log_message)
+        # Ensure the data is written to disk
         f.flush()
         os.fsync(f.fileno())
 
 def main():
+    # Get a list of active network interfaces
     interfaces = get_interfaces()
+    # Check if any interfaces were found
     if not interfaces:
         logger.info("No active network interfaces found. Exiting.")
         return
+    # Let the user choose an interface
     interface = choose_interface(interfaces)
+    # Check if an interface was selected
     if not interface:
         logger.info("No interface selected. Exiting.")
         return
+    # Log the selected interface
     logger.info(f"Using network interface: {get_display(interface)}")
+    # Set the log file name
     log_file = 'security_log.txt'
     try:
+        # Start the main loop
         while True:
+            # Capture packets on the selected interface
             packets = capture_packets(interface)
+            # Analyze the captured traffic
             suspicious_activities = analyze_traffic(packets)
+            # Check if any suspicious activities were detected
             if suspicious_activities:
                 logger.info("Suspicious activities detected!")
+                # Log the suspicious activities
                 burn_in_log(log_file, suspicious_activities)
+                # Print each suspicious activity
                 for activity in suspicious_activities:
                     logger.info(f"- {': '.join(map(str, activity))}")
             else:
                 logger.info("No suspicious activities detected in this batch.")
+            # Wait for 60 seconds before the next capture
             time.sleep(60)
     except KeyboardInterrupt:
+        # Handle user interruption (Ctrl+C)
         logger.info("\nStopping packet capture. Exiting.")
     except Exception as e:
+        # Log any unexpected errors
         logger.error(f"An error occurred: {e}", exc_info=True)
 
 if __name__ == "__main__":
+    # Check if New Relic configuration is set
     if 'NEW_RELIC_CONFIG_FILE' in os.environ:
+        # Register the application with New Relic
         newrelic.agent.register_application(timeout=10.0)
+    # Run the main function
     main()

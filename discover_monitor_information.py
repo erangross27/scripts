@@ -3,6 +3,12 @@ import sys
 import subprocess
 
 def get_monitor_info_wmi():
+    """
+    Retrieve monitor information using Windows Management Instrumentation (WMI).
+    
+    Returns:
+        list: A list of dictionaries containing monitor information.
+    """
     try:
         c = wmi.WMI(namespace="wmi")
         monitors = c.WmiMonitorID()
@@ -13,6 +19,7 @@ def get_monitor_info_wmi():
 
         monitor_info = []
         for monitor in monitors:
+            # Extract monitor information and convert byte arrays to strings
             info = {
                 "ManufacturerName": "".join([chr(x) for x in monitor.ManufacturerName if x > 0]),
                 "ProductCodeID": "".join([chr(x) for x in monitor.ProductCodeID if x > 0]),
@@ -30,7 +37,14 @@ def get_monitor_info_wmi():
         return []
 
 def get_monitor_info_powershell():
+    """
+    Retrieve monitor information using PowerShell as a fallback method.
+    
+    Returns:
+        list: A list of dictionaries containing monitor information.
+    """
     try:
+        # PowerShell command to retrieve monitor information
         command = "Get-WmiObject WmiMonitorID -Namespace root\\wmi | ForEach-Object { $m = $_; $info = @{}; 'ManufacturerName','ProductCodeID','SerialNumberID','UserFriendlyName' | ForEach-Object { $info[$_] = [System.Text.Encoding]::ASCII.GetString($m.$_).Trim(\"`0\") }; $info['YearOfManufacture'] = $m.YearOfManufacture; $info['WeekOfManufacture'] = $m.WeekOfManufacture; $info }"
         result = subprocess.run(["powershell", "-Command", command], capture_output=True, text=True)
         
@@ -38,6 +52,7 @@ def get_monitor_info_powershell():
             print(f"PowerShell command failed: {result.stderr}")
             return []
 
+        # Parse the PowerShell output
         lines = result.stdout.strip().split('\n')
         monitor_info = []
         current_monitor = {}
@@ -59,14 +74,20 @@ def get_monitor_info_powershell():
         return []
 
 def main():
+    """
+    Main function to retrieve and display monitor information.
+    """
     print("Fetching monitor information...")
     
+    # Try to get monitor info using WMI first
     monitor_info = get_monitor_info_wmi()
     
+    # If WMI fails, try using PowerShell
     if not monitor_info:
         print("Attempting to fetch information using PowerShell...")
         monitor_info = get_monitor_info_powershell()
     
+    # Display the retrieved monitor information
     if monitor_info:
         print("\nDetected Monitors:")
         for i, info in enumerate(monitor_info, 1):

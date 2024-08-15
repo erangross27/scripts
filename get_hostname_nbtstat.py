@@ -4,7 +4,9 @@ import winreg
 import re
 import uuid
 
+# Function to get the local IP address and network information
 def get_local_ip_and_network():
+    # Create a socket to determine the local IP
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
         s.connect(('8.8.8.8', 80))
@@ -13,6 +15,7 @@ def get_local_ip_and_network():
         s.close()
     
     try:
+        # Access Windows registry to get network interface information
         key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r'SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces')
         for i in range(winreg.QueryInfoKey(key)[0]):
             try:
@@ -20,6 +23,7 @@ def get_local_ip_and_network():
                 ip_address = winreg.QueryValueEx(interface_key, 'IPAddress')[0][0]
                 subnet_mask = winreg.QueryValueEx(interface_key, 'SubnetMask')[0]
                 
+                # If the IP matches the local IP, calculate network address and CIDR
                 if ip_address == local_ip:
                     ip_int = int.from_bytes(socket.inet_aton(local_ip), 'big')
                     mask_int = int.from_bytes(socket.inet_aton(subnet_mask), 'big')
@@ -32,8 +36,10 @@ def get_local_ip_and_network():
     except WindowsError:
         pass
 
+    # If unable to determine network, return a default subnet
     return local_ip, f"{local_ip.rsplit('.', 1)[0]}.0/24"
 
+# Function to get the ARP table
 def get_arp_table():
     arp_output = subprocess.check_output("arp -a", shell=True).decode()
     ips = []
@@ -43,6 +49,7 @@ def get_arp_table():
             ips.append(ip)
     return ips
 
+# Function to get NetBIOS name for an IP
 def get_netbios_name(ip):
     try:
         output = subprocess.check_output(f'nbtstat -A {ip}', shell=True, stderr=subprocess.DEVNULL, timeout=2).decode('ascii', errors='ignore')
@@ -55,9 +62,11 @@ def get_netbios_name(ip):
         pass
     return None
 
+# Function to get the local MAC address
 def get_local_mac():
     return ':'.join(['{:02x}'.format((uuid.getnode() >> elements) & 0xff) for elements in range(0,8*6,8)][::-1])
 
+# Function to get MAC address for an IP
 def get_mac_address(ip, local_ip):
     if ip == local_ip:
         return get_local_mac()
@@ -70,6 +79,7 @@ def get_mac_address(ip, local_ip):
                 return mac.group()
     return "Unknown"
 
+# Function to determine device type based on MAC address prefix
 def get_device_type(mac):
     mac_prefix = mac[:8].upper()
     prefixes = {
@@ -87,6 +97,7 @@ def get_device_type(mac):
     }
     return prefixes.get(mac_prefix, "Unknown")
 
+# Function to get hostname for an IP
 def get_hostname(ip, local_ip):
     if ip == local_ip:
         return socket.gethostname()
@@ -96,7 +107,10 @@ def get_hostname(ip, local_ip):
         return netbios_name
     
     return f"Unknown-{ip}"
+
+# Main function
 def main():
+    # Get local IP and network information
     local_ip, network = get_local_ip_and_network()
     print(f"Local IP: {local_ip}")
     print(f"Network: {network}")
@@ -104,11 +118,13 @@ def main():
     print("Discovering active IPs using ARP...")
     active_ips = get_arp_table()
     
+    # Add local IP to active IPs if not already present
     if local_ip not in active_ips:
         active_ips.append(local_ip)
     
     print(f"Found {len(active_ips)} active IPs (including local IP)")
     
+    # Gather information for each active IP
     results = []
     for ip in active_ips:
         hostname = get_hostname(ip, local_ip)
@@ -117,10 +133,12 @@ def main():
         results.append((ip, hostname, mac, device_type))
         print(f"IP: {ip}, Hostname: {hostname}, MAC: {mac}, Type: {device_type}")
     
+    # Write results to a file
     with open('network_scan_results.txt', 'w') as f:
         f.write("IP,Hostname,MAC,DeviceType\n")
         for ip, hostname, mac, device_type in results:
             f.write(f"{ip},{hostname},{mac},{device_type}\n")
 
+# Entry point of the script
 if __name__ == "__main__":
     main()

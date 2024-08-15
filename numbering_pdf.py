@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox,
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap, QImage, QColor, QPainter, QFont, QPen
 
+# Custom widget to display the selected color
 class ColorIndicator(QFrame):
     def __init__(self, color=Qt.black):
         super().__init__()
@@ -18,6 +19,7 @@ class ColorIndicator(QFrame):
         painter = QPainter(self)
         painter.fillRect(self.rect(), self.color)
 
+# Main application window
 class PDFNumberer(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -32,20 +34,21 @@ class PDFNumberer(QMainWindow):
         self.showMaximized()
 
     def initUI(self):
+        # Set up the main window and layout
         self.setWindowTitle('PDF Page Numberer')
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         main_layout = QHBoxLayout()
         central_widget.setLayout(main_layout)
 
-        # Left sidebar for buttons and controls
+        # Create left sidebar for buttons and controls
         sidebar_layout = QVBoxLayout()
         sidebar_widget = QWidget()
         sidebar_widget.setLayout(sidebar_layout)
         sidebar_widget.setFixedWidth(250)  # Set a fixed width for the sidebar
         main_layout.addWidget(sidebar_widget)
 
-        # Buttons
+        # Add buttons to sidebar
         open_button = QPushButton('Open PDF')
         open_button.clicked.connect(self.open_pdf)
         sidebar_layout.addWidget(open_button)
@@ -56,18 +59,18 @@ class PDFNumberer(QMainWindow):
 
         sidebar_layout.addSpacing(20)  # Add some space between buttons and controls
 
-        # Controls
+        # Add controls to sidebar
         controls_layout = QFormLayout()  # Use QFormLayout for label-widget pairs
         sidebar_layout.addLayout(controls_layout)
 
-        # Number position
+        # Number position dropdown
         self.position_combo = QComboBox()
         self.position_combo.addItems(['Left', 'Center', 'Right'])
         self.position_combo.setCurrentText('Right')
         self.position_combo.currentTextChanged.connect(self.update_preview)
         controls_layout.addRow("Number Position:", self.position_combo)
 
-        # Color selection
+        # Color selection button and indicator
         color_layout = QHBoxLayout()
         color_button = QPushButton('Color')
         color_button.clicked.connect(self.select_color)
@@ -77,35 +80,35 @@ class PDFNumberer(QMainWindow):
         color_layout.addWidget(self.color_indicator)
         controls_layout.addRow("Number Color:", color_layout)
 
-        # Footer offset
+        # Footer offset control
         self.footer_offset_spin = QSpinBox()
         self.footer_offset_spin.setRange(0, 100)
         self.footer_offset_spin.setValue(20)
         self.footer_offset_spin.valueChanged.connect(self.update_preview)
         controls_layout.addRow("Footer Offset:", self.footer_offset_spin)
 
-        # Start number
+        # Start number control
         self.start_number_spin = QSpinBox()
         self.start_number_spin.setRange(1, 9999)
         self.start_number_spin.setValue(1)
         self.start_number_spin.valueChanged.connect(self.update_preview)
         controls_layout.addRow("Start Number:", self.start_number_spin)
 
-        # Font size
+        # Font size control
         self.font_size_spin = QSpinBox()
         self.font_size_spin.setRange(6, 72)
         self.font_size_spin.setValue(12)
         self.font_size_spin.valueChanged.connect(self.update_preview)
         controls_layout.addRow("Font Size:", self.font_size_spin)
 
-        # Horizontal offset
+        # Horizontal offset control
         self.horizontal_offset_spin = QSpinBox()
         self.horizontal_offset_spin.setRange(-500, 500)
         self.horizontal_offset_spin.setValue(50)
         self.horizontal_offset_spin.valueChanged.connect(self.update_preview)
         controls_layout.addRow("Horizontal Offset:", self.horizontal_offset_spin)
 
-        # Vertical offset
+        # Vertical offset control
         self.vertical_offset_spin = QSpinBox()
         self.vertical_offset_spin.setRange(-500, 500)
         self.vertical_offset_spin.setValue(20)
@@ -114,7 +117,7 @@ class PDFNumberer(QMainWindow):
 
         sidebar_layout.addStretch()  # Push everything to the top
 
-        # Scroll area for the PDF content
+        # Create scroll area for PDF content
         self.scroll_area = QScrollArea()
         main_layout.addWidget(self.scroll_area)
         self.scroll_area.setWidgetResizable(True)
@@ -128,6 +131,7 @@ class PDFNumberer(QMainWindow):
         self.placeholder_label.setAlignment(Qt.AlignCenter)
         self.content_layout.addWidget(self.placeholder_label)
 
+    # Method to handle color selection
     def select_color(self):
         color = QColorDialog.getColor()
         if color.isValid():
@@ -135,6 +139,7 @@ class PDFNumberer(QMainWindow):
             self.color_indicator.setColor(color)
             self.update_preview()
 
+    # Method to open a PDF file
     def open_pdf(self):
         file_name, _ = QFileDialog.getOpenFileName(self, 'Open PDF File', '', 'PDF Files (*.pdf)')
         if file_name:
@@ -142,6 +147,7 @@ class PDFNumberer(QMainWindow):
             self.is_preview_mode = True
             self.update_preview()
 
+    # Method to update the preview of the PDF with page numbers
     def update_preview(self):
         if not self.pdf_document:
             return
@@ -152,6 +158,7 @@ class PDFNumberer(QMainWindow):
             if item.widget():
                 item.widget().deleteLater()
 
+        # Loop through each page of the PDF
         for page_num in range(len(self.pdf_document)):
             page = self.pdf_document[page_num]
             pix = page.get_pixmap(matrix=fitz.Matrix(2, 2))  # Increase resolution
@@ -173,6 +180,7 @@ class PDFNumberer(QMainWindow):
                 number = self.start_number_spin.value() + page_num
                 text = f"{number}"
 
+                # Calculate position based on selected alignment
                 if self.position_combo.currentText() == 'Left':
                     x = self.horizontal_offset_spin.value()
                 elif self.position_combo.currentText() == 'Center':
@@ -187,6 +195,7 @@ class PDFNumberer(QMainWindow):
             else:
                 preview_pixmap = pixmap
 
+            # Create and add image label to the layout
             image_label = QLabel()
             image_label.setPixmap(preview_pixmap)
             image_label.setAlignment(Qt.AlignCenter)
@@ -198,6 +207,7 @@ class PDFNumberer(QMainWindow):
             self.content_layout.addWidget(page_label)
             self.content_layout.addWidget(image_label)
 
+    # Method to process the PDF and add page numbers
     def process_pdf(self):
         if not self.pdf_document:
             QMessageBox.warning(self, 'Warning', 'Please open a PDF file first.')
@@ -207,12 +217,14 @@ class PDFNumberer(QMainWindow):
         temp_pdf = fitz.open()
         temp_pdf.insert_pdf(self.pdf_document)
 
+        # Loop through each page and add page numbers
         for page_num in range(len(temp_pdf)):
             page = temp_pdf[page_num]
             number = self.start_number_spin.value() + page_num
             text = f"{number}"
 
             rect = page.rect
+            # Calculate position based on selected alignment
             if self.position_combo.currentText() == 'Left':
                 point = fitz.Point(self.horizontal_offset_spin.value(), rect.height - self.vertical_offset_spin.value())
             elif self.position_combo.currentText() == 'Center':
@@ -241,6 +253,8 @@ class PDFNumberer(QMainWindow):
         else:
             # If user cancels save, discard changes
             temp_pdf.close()
+
+# Main entry point of the application
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     window = PDFNumberer()
