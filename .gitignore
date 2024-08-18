@@ -6,3 +6,4 @@ config.yaml
 security_log.txt
 .vscode/launch.json
 .gitignore
+config.json
