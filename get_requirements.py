@@ -5,6 +5,7 @@ import platform
 import pkgutil
 from collections import defaultdict
 
+# Function to extract import statements from a Python file
 def get_imports(file_path):
     with open(file_path, 'r', encoding='utf-8') as file:
         try:
@@ -24,6 +25,7 @@ def get_imports(file_path):
     
     return imports
 
+# Function to normalize package names (e.g., 'PIL' to 'Pillow')
 def normalize_package_name(package):
     package_mappings = {
         'PIL': 'Pillow',
@@ -33,11 +35,13 @@ def normalize_package_name(package):
     }
     return package_mappings.get(package, package)
 
+# Function to get a list of standard library modules
 def get_stdlib_modules():
     stdlib_modules = set(sys.builtin_module_names)
     stdlib_modules.update([m.name for m in pkgutil.iter_modules()])
     return stdlib_modules
 
+# Function to check if a package is Windows-specific
 def is_windows_specific(package):
     windows_specific_modules = {
         'win32', 'winreg', '_win', 'msvcrt', 'nt', 'winsound', 'win32com', 'win32api',
@@ -46,31 +50,36 @@ def is_windows_specific(package):
     }
     return package.lower() in windows_specific_modules or any(package.startswith(prefix) for prefix in windows_specific_modules)
 
-
+# Main function to generate requirements file
 def get_all_requirements(output_file):
     current_dir = os.getcwd()
     all_imports = defaultdict(set)
     is_windows = platform.system() == "Windows"
     stdlib_modules = get_stdlib_modules()
 
+    # Iterate through all Python files in the current directory
     for filename in os.listdir(current_dir):
         if filename.endswith(".py"):
             file_path = os.path.join(current_dir, filename)
             imports = get_imports(file_path)
             for imp in imports:
+                # Filter out standard library modules and Windows-specific modules on non-Windows systems
                 if imp.lower() not in stdlib_modules and (is_windows or not is_windows_specific(imp)):
                     normalized_imp = normalize_package_name(imp)
                     all_imports[normalized_imp].add(filename)
 
+    # Write the requirements to the output file
     with open(output_file, 'w') as f:
         for imp, files in sorted(all_imports.items()):
             f.write(f"{imp} # Used in: {', '.join(sorted(files))}\n")
 
     print(f"Requirements have been saved to {output_file}")
 
+# Main entry point of the script
 def main():
     output_file = "requirements.txt"
     get_all_requirements(output_file)
 
+# Execute the main function if the script is run directly
 if __name__ == "__main__":
     main()

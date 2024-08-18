@@ -14,19 +14,23 @@ logger = logging.getLogger(__name__)
 
 class WatermarkDetectionApp:
     def __init__(self, master):
+        # Initialize the main application window
         self.master = master
         self.master.title("Watermark Detection")
         self.master.geometry("900x800")
 
+        # Initialize variables for file paths and model
         self.model_path = tk.StringVar()
         self.input_path = tk.StringVar()
         self.output_path = tk.StringVar()
         self.model = None
         self.processing = False
 
+        # Create GUI widgets
         self.create_widgets()
 
     def create_widgets(self):
+        # Create and arrange GUI elements
         # Model selection
         tk.Label(self.master, text="YOLOv5 Model:").grid(row=0, column=0, padx=5, pady=5, sticky="e")
         tk.Entry(self.master, textvariable=self.model_path, width=50).grid(row=0, column=1, padx=5, pady=5)
@@ -58,6 +62,7 @@ class WatermarkDetectionApp:
         self.master.grid_columnconfigure(1, weight=1)
         self.master.grid_rowconfigure(5, weight=1)
     def browse_model(self):
+        # Open file dialog to select YOLOv5 model
         filename = filedialog.askopenfilename(filetypes=[("PyTorch Model", "*.pt")])
         if filename:
             self.model_path.set(filename)
@@ -65,6 +70,7 @@ class WatermarkDetectionApp:
             self.load_model()
 
     def load_model(self):
+        # Load the selected YOLOv5 model
         try:
             self.model = torch.hub.load('ultralytics/yolov5', 'custom', path=self.model_path.get())
             logger.info("Model loaded successfully")
@@ -75,24 +81,28 @@ class WatermarkDetectionApp:
             self.model = None
 
     def browse_input(self):
+        # Open file dialog to select input file (video or image)
         filename = filedialog.askopenfilename(filetypes=[("Video files", "*.mp4"), ("Image files", "*.jpg *.jpeg *.png *.bmp *.gif")])
         if filename:
             self.input_path.set(filename)
             logger.info(f"Input file selected: {filename}")
 
     def browse_output(self):
+        # Open file dialog to select output file location
         filename = filedialog.asksaveasfilename(defaultextension=".mp4", filetypes=[("MP4 files", "*.mp4"), ("JPEG files", "*.jpg")])
         if filename:
             self.output_path.set(filename)
             logger.info(f"Output path selected: {filename}")
 
     def start_processing(self):
+        # Start processing in a separate thread
         if not self.processing:
             self.processing = True
             self.process_button.config(state=tk.DISABLED)
             threading.Thread(target=self.process_file, daemon=True).start()
 
     def process_file(self):
+        # Main processing function for both images and videos
         if self.model is None:
             messagebox.showerror("Error", "Please load a model first.")
             logger.error("No model loaded")
@@ -124,6 +134,7 @@ class WatermarkDetectionApp:
             self.progress_var.set(0)
 
     def process_image(self, input_path, output_path):
+        # Process a single image
         img = cv2.imread(input_path)
         logger.info(f"Image read successfully: {input_path}")
 
@@ -135,6 +146,7 @@ class WatermarkDetectionApp:
         messagebox.showinfo("Success", "Image processing completed successfully!")
 
     def process_video(self, input_path, output_path):
+        # Process a video file
         cap = cv2.VideoCapture(input_path)
         if not cap.isOpened():
             raise ValueError("Error opening video file")
@@ -168,6 +180,7 @@ class WatermarkDetectionApp:
         messagebox.showinfo("Success", "Video processing completed successfully!")
 
     def detect_watermark(self, img):
+        # Detect watermarks in an image using the YOLOv5 model
         results = self.model(img)
 
         if len(results.xyxy[0]) > 0:
@@ -181,10 +194,12 @@ class WatermarkDetectionApp:
 
         return img
     def update_log(self, message):
+        # Update the log display in the GUI
         self.log_text.insert(tk.END, message + '\n')
         self.log_text.see(tk.END)
 
 class GUILogHandler(logging.Handler):
+    # Custom logging handler to update GUI log display
     def __init__(self, callback):
         super().__init__()
         self.callback = callback
@@ -194,6 +209,7 @@ class GUILogHandler(logging.Handler):
         self.callback(log_entry)
 
 if __name__ == "__main__":
+    # Create and run the main application
     root = tk.Tk()
     app = WatermarkDetectionApp(root)
     gui_handler = GUILogHandler(app.update_log)

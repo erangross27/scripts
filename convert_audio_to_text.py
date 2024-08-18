@@ -6,23 +6,28 @@ import wave
 import audioop
 from pydub import AudioSegment
 
+# Set the Google Cloud credentials
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "./vitalsignai-394916-29773eaa9905.json"
 
 def browse_audio_file(label):
+    # Open a file dialog to select an audio file and update the label
     filename = filedialog.askopenfilename(filetypes=(("Audio Files", "*.m4a"), ("All Files", "*.*")))
     label.config(text=filename)
     return filename
 
 def browse_save_location(label):
+    # Open a directory dialog to select a save location and update the label
     foldername = filedialog.askdirectory()
     label.config(text=foldername)
     return foldername
 
 def convert_m4a_to_wav(audio_file_path):
+    # Convert m4a audio file to wav format
     audio = AudioSegment.from_file(audio_file_path, format="m4a")
     audio.export("temp.wav", format="wav")
 
 def convert_stereo_to_mono(audio_file_path):
+    # Convert stereo audio to mono
     with wave.open(audio_file_path, 'rb') as sound_file:
         params = sound_file.getparams()
         frames = sound_file.readframes(params.nframes)
@@ -34,6 +39,7 @@ def convert_stereo_to_mono(audio_file_path):
         mono_sound_file.writeframes(mono_frames)
 
 def convert_audio_to_text(audio_file_path, save_location, filename):
+    # Convert audio to text using Google Cloud Speech-to-Text API
     convert_m4a_to_wav(audio_file_path)
     convert_stereo_to_mono("temp.wav")
     
@@ -42,6 +48,7 @@ def convert_audio_to_text(audio_file_path, save_location, filename):
     with open("temp_mono.wav", "rb") as audio_file:
         audio = speech.RecognitionAudio(content=audio_file.read())
 
+    # Configure the recognition settings
     config = speech.RecognitionConfig(
         encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
         sample_rate_hertz=32000,
@@ -52,25 +59,30 @@ def convert_audio_to_text(audio_file_path, save_location, filename):
         profanity_filter=True,
     )
     
-
+    # Perform the speech recognition
     response = client.recognize(config=config, audio=audio)
 
+    # Print the transcript
     for result in response.results:
         print("Transcript: {}".format(result.alternatives[0].transcript))
 
+    # Combine all results into a single text
     text = ""
     for result in response.results:
         text += result.alternatives[0].transcript
 
+    # Save the transcribed text to a file
     with open(f"{save_location}/{filename}.txt", "w") as file:
         file.write(text)
 
 def main():
+    # Create the main window
     window = tk.Tk()
     window.title("Audio to Text Converter")
     window.geometry('800x600')
     window.configure(bg='white')
 
+    # Create and pack UI elements
     audio_file_label = tk.Label(window, text="", bg='white')
     audio_file_label.pack(pady=10)
 
@@ -89,6 +101,7 @@ def main():
     convert_button = tk.Button(window, text="Convert", command=lambda: convert_audio_to_text(audio_file_label.cget("text"), save_location_label.cget("text"), filename_entry.get()))
     convert_button.pack(pady=10)
 
+    # Start the main event loop
     window.mainloop()
 
 if __name__ == "__main__":

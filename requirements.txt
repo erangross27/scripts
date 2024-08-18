@@ -1,19 +1,4 @@
 Pillow # Used in: anthropic_claude_chat.py, anthropic_claude_chat_for_linux.py, compress_image_to_small_size.py, inpainting.py, watermar_detection.py
 PyQt5 # Used in: anthropic_claude_chat.py, anthropic_claude_chat_for_linux.py, compress_image_to_small_size.py, convert_svg_to_diffrent_images_format.py, extract_frames_from_video.py, numbering_pdf.py
-cryptography # Used in: disk-space-alert-service.py, network_monitor.py
 diffusers # Used in: inpainting.py
-docx # Used in: convert_image_to_doc.py
 google # Used in: convert_audio_to_text.py, convert_image_to_doc.py, extract_text_from_image_regular.py, extract_text_from_image_tables.py
-matplotlib # Used in: deutsch_jozsa_algorithm.py, quantum_key_cracking.py
-moviepy # Used in: convert_youtube_to_download_multiple_movies_and_music.py, create_movie_clip_from_images_and_sound.py, get_clip_resolution.py
-newrelic # Used in: network_monitor.py
-numpy # Used in: inpainting.py, watermar_detection.py
-opencv-python # Used in: captureImage.py, create_movie_clip_from_images_and_sound.py, extract_frames_from_video.py, inpainting.py, watermar_detection.py
-psutil # Used in: disk-space-alert-service.py, disksizeinfo.py, network_monitor.py, system_discovery.py
-pydub # Used in: convert_audio_to_text.py
-python-bidi # Used in: network_monitor.py
-pytube # Used in: convert_youtube_to_download_multiple_movies_and_music.py
-qiskit # Used in: deutsch_jozsa_algorithm.py, quantum_key_cracking.py, quantum_rng.py
-qiskit_ibm_runtime # Used in: deutsch_jozsa_algorithm.py, quantum_key_cracking.py, quantum_rng.py
-scapy # Used in: network_monitor.py
-torch # Used in: inpainting.py, watermar_detection.py

@@ -6,28 +6,35 @@ from moviepy.editor import *
 import threading
 import queue
 
+# Function to open a file dialog and set the chosen directory as the save location
 def browse_location():
     directory = filedialog.askdirectory()
     location_entry.delete(0, tk.END)
     location_entry.insert(tk.END, directory)
 
+# Function to add a new URL entry field to the GUI
 def add_url_entry():
     url_entry = tk.Entry(url_frame, width=50)
     url_entry.pack(side=tk.TOP, padx=5, pady=5, before=add_url_button)
     url_entries.append(url_entry)
 
+# Function to initiate the video conversion process
 def convert_videos():
+    # Get all non-empty URLs from the entry fields
     urls = [entry.get().strip() for entry in url_entries if entry.get().strip()]
     format = format_var.get()
     save_location = location_entry.get()
 
+    # Create a queue for download tasks
     download_queue = queue.Queue()
     for url in urls:
         download_queue.put((url, format, save_location))
 
+    # Start a new thread to process downloads
     thread = threading.Thread(target=process_downloads, args=(download_queue,))
     thread.start()
 
+# Function to process downloads from the queue
 def process_downloads(download_queue):
     while not download_queue.empty():
         url, format, save_location = download_queue.get()
@@ -39,12 +46,13 @@ def process_downloads(download_queue):
 
     status_label.config(text="All conversions complete!")
 
+# Function to download and convert a single video
 def download_and_convert(url, format, save_location):
     try:
         # Create a YouTube object
         yt = YouTube(url)
 
-        # Get the video stream
+        # Get the video stream based on the chosen format
         if format == 'mp3':
             stream = yt.streams.filter(only_audio=True).first()
         elif format == 'mp4':
@@ -52,7 +60,7 @@ def download_and_convert(url, format, save_location):
         else:
             raise ValueError("Invalid format. Please choose 'mp3' or 'mp4'.")
 
-        # Create a popup window for the video
+        # Create a popup window to show conversion progress
         popup_window = tk.Toplevel(window)
         popup_window.title(f"Converting: {yt.title}")
         popup_label = tk.Label(popup_window, text=f"Converting: {yt.title}", font=("Arial", 12))
@@ -85,6 +93,7 @@ def download_and_convert(url, format, save_location):
     except Exception as e:
         status_label.config(text=f"Error: {str(e)}")
 
+# Function to center a window on the screen
 def center_window(window):
     window.update_idletasks()
     width = window.winfo_width()

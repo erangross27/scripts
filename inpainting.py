@@ -16,30 +16,32 @@ logger = logging.getLogger(__name__)
 
 class WatermarkDetectionApp:
     def __init__(self, master):
+        # Initialize the main application window
         self.master = master
         self.master.title("Watermark Detection and Inpainting")
         self.master.geometry("900x800")
         
+        # Initialize variables for file paths
         self.model_path = tk.StringVar()
         self.input_path = tk.StringVar()
         self.output_path = tk.StringVar()
         
+        # Initialize model variables
         self.watermark_model = None
         self.inpainting_pipeline = None
         self.processing = False
         
-        # Add a variable to store the device (CPU/GPU)
+        # Set the device (CPU/GPU) based on availability
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         
-        # Add a variable to store the inpainting model type
+        # Set the default inpainting model type
         self.inpainting_model_type = "SDXL"
         
+        # Create the GUI elements
         self.create_widgets()
         
-
-
-
     def create_widgets(self):
+        # Create and arrange GUI elements
         # Model selection
         tk.Label(self.master, text="YOLOv5 Model:").grid(row=0, column=0, padx=5, pady=5, sticky="e")
         tk.Entry(self.master, textvariable=self.model_path, width=50).grid(row=0, column=1, padx=5, pady=5)
@@ -72,8 +74,8 @@ class WatermarkDetectionApp:
         self.master.grid_columnconfigure(1, weight=1)
         self.master.grid_rowconfigure(5, weight=1)
 
-
     def download_and_load_inpainting_model(self):
+        # Download and load the SDXL inpainting model
         model_id = "stabilityai/stable-diffusion-xl-base-1.0"
         try:
             self.inpainting_pipeline = AutoPipelineForInpainting.from_pretrained(
@@ -97,8 +99,8 @@ class WatermarkDetectionApp:
             logger.error(f"Error loading SDXL inpainting model: {str(e)}")
             messagebox.showerror("Error", f"Failed to load SDXL inpainting model: {str(e)}")
 
-
     def browse_model(self):
+        # Open file dialog to select the YOLOv5 model
         filename = filedialog.askopenfilename(filetypes=[("PyTorch Model", "*.pt")])
         if filename:
             self.model_path.set(filename)
@@ -106,6 +108,7 @@ class WatermarkDetectionApp:
             self.load_watermark_model()
 
     def load_watermark_model(self):
+        # Load the selected YOLOv5 model for watermark detection
         try:
             self.watermark_model = torch.hub.load('ultralytics/yolov5', 'custom', path=self.model_path.get(), force_reload=True)
             self.watermark_model.to('cpu')
@@ -120,18 +123,21 @@ class WatermarkDetectionApp:
             self.watermark_model = None
 
     def browse_input(self):
+        # Open file dialog to select input file (video or image)
         filename = filedialog.askopenfilename(filetypes=[("Video files", "*.mp4"), ("Image files", "*.jpg *.jpeg *.png *.bmp *.gif")])
         if filename:
             self.input_path.set(filename)
             logger.info(f"Input file selected: {filename}")
 
     def browse_output(self):
+        # Open file dialog to select output file location
         filename = filedialog.asksaveasfilename(defaultextension=".mp4", filetypes=[("MP4 files", "*.mp4"), ("JPEG files", "*.jpg")])
         if filename:
             self.output_path.set(filename)
             logger.info(f"Output path selected: {filename}")
 
     def start_processing(self):
+        # Start the processing of the input file
         if not self.processing:
             self.processing = True
             self.process_button.config(state=tk.DISABLED)
@@ -148,8 +154,8 @@ class WatermarkDetectionApp:
                 self.process_button.config(state=tk.NORMAL)
                 messagebox.showerror("Error", "Failed to load the inpainting model. Cannot process file.")
 
-
     def process_file(self):
+        # Process the input file (either image or video)
         if self.watermark_model is None:
             messagebox.showerror("Error", "Please load a watermark detection model first.")
             logger.error("No watermark detection model loaded")
@@ -181,6 +187,7 @@ class WatermarkDetectionApp:
             self.progress_var.set(0)
 
     def process_image(self, input_path, output_path):
+        # Process a single image
         img = cv2.imread(input_path)
         logger.info(f"Image read successfully: {input_path}")
 
@@ -193,8 +200,8 @@ class WatermarkDetectionApp:
         self.progress_var.set(100)
         messagebox.showinfo("Success", "Image processing completed successfully!")
        
-
     def save_intermediate_frame(self, frame, frame_number):
+        # Save intermediate frames during video processing
         output_dir = os.path.join(os.path.dirname(self.output_path.get()), "intermediate_frames")
         os.makedirs(output_dir, exist_ok=True)
         output_path = os.path.join(output_dir, f"frame_{frame_number:04d}.jpg")
@@ -202,6 +209,7 @@ class WatermarkDetectionApp:
         logger.info(f"Saved intermediate frame: {output_path}")
 
     def process_video(self, input_path, output_path):
+        # Process a video file
         cap = cv2.VideoCapture(input_path)
         if not cap.isOpened():
             raise ValueError("Error opening video file")
