@@ -11,15 +11,29 @@ from collections import defaultdict, deque
 from bidi.algorithm import get_display
 from scapy.layers import http, dns
 import scapy.all as scapy
-import newrelic.agent
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ProcessPoolExecutor
+from multiprocessing import Queue
+from logging.handlers import QueueHandler, QueueListener
 
-warnings.filterwarnings("ignore", category=DeprecationWarning, module="cryptography")
+def setup_environment():
+    warnings.filterwarnings("ignore", category=DeprecationWarning, module="cryptography")
+    warnings.filterwarnings("ignore", category=UserWarning, module="scapy")
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-logger.addHandler(logging.StreamHandler(sys.stdout))
-def load_config(file_path):
+def setup_logger():
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
+    return logger
+
+def setup_logging_queue():
+    queue = Queue(-1)
+    queue_handler = QueueHandler(queue)
+    logger = setup_logger()
+    logger.addHandler(queue_handler)
+    stream_handler = logging.StreamHandler(sys.stdout)
+    listener = QueueListener(queue, stream_handler)
+    return logger, listener
+
+def load_config(file_path, logger):
     try:
         with open(file_path, 'r') as file:
             return json.load(file)
@@ -27,36 +41,11 @@ def load_config(file_path):
         logger.error(f"Failed to load configuration: {e}")
         return {}
 
-config = load_config('config.json')
-
-if 'NEW_RELIC_CONFIG_FILE' in os.environ:
-    newrelic.agent.initialize(os.environ['NEW_RELIC_CONFIG_FILE'])
-    class NewRelicLogHandler(logging.Handler):
-        def emit(self, record):
-            newrelic.agent.record_custom_event('Log', {
-                'level': record.levelname,
-                'message': record.getMessage(),
-                'filename': record.filename,
-                'lineno': record.lineno
-            })
-    
-    if not any(isinstance(h, NewRelicLogHandler) for h in logger.handlers):
-        logger.addHandler(NewRelicLogHandler())
-    
-    logger.info("New Relic initialized successfully")
-else:
-    logger.info("NEW_RELIC_CONFIG_FILE not set. New Relic will not be initialized.")
-
-MALICIOUS_IPS = set(config.get('malicious_ips', []))
-MONITORED_EXTENSIONS = set(config.get('monitored_extensions', []))
-PORT_SCAN_THRESHOLD = config.get('port_scan_threshold', 10)
-DNS_QUERY_THRESHOLD = config.get('dns_query_threshold', 50)
-
 def get_interfaces():
-    return [(iface, addr.address) for iface, addrs in psutil.net_if_addrs().items() 
+    return [(iface, addr.address) for iface, addrs in psutil.net_if_addrs().items()
             for addr in addrs if addr.family == socket.AF_INET and not addr.address.startswith('169.254.') and addr.address != '127.0.0.1']
 
-def choose_interface(interfaces):
+def choose_interface(interfaces, logger):
     if not interfaces:
         logger.info("No active network interfaces found. Exiting.")
         return None
@@ -70,7 +59,7 @@ def choose_interface(interfaces):
         except ValueError:
             logger.info("Invalid choice. Please try again.")
 
-def capture_packets(interface, count=1000):
+def capture_packets(interface, count, logger):
     logger.info(f"Capturing {count} packets on {interface}...")
     try:
         return scapy.sniff(iface=interface, count=count)
@@ -101,35 +90,53 @@ def analyze_packet(packet, local_ip, current_time, password_regex, credit_card_r
             return ('DNS query', src_ip, packet[dns.DNSQR].qname.decode('utf-8'))
     return None
 
-def analyze_traffic(packets):
+def process_packet_batch(packet_batch, local_ip, current_time, password_regex, credit_card_regex):
+    batch_results = []
+    for packet in packet_batch:
+        result = analyze_packet(packet, local_ip, current_time, password_regex, credit_card_regex)
+        if result:
+            batch_results.append(result)
+    return batch_results
+
+def analyze_traffic(packets, logger, port_scan_threshold, dns_query_threshold):
     suspicious_activities = []
     inbound_connections = defaultdict(lambda: defaultdict(int))
     outbound_connections = deque(maxlen=10000)
     dns_queries = defaultdict(set)
     port_scans = defaultdict(set)
     current_time = time.time()
-
     local_ip = packets[0][scapy.IP].src if packets and packets[0].haslayer(scapy.IP) else None
     password_regex = re.compile(r'password=\S+', re.IGNORECASE)
     credit_card_regex = re.compile(r'\b(?:\d{4}[-\s]?){3}\d{4}\b')
 
-    with ThreadPoolExecutor(max_workers=16) as executor:
-        results = list(executor.map(lambda pkt: analyze_packet(pkt, local_ip, current_time, password_regex, credit_card_regex), packets))
+    batch_size = 100
+    packet_batches = [packets[i:i+batch_size] for i in range(0, len(packets), batch_size)]
+
+    with ProcessPoolExecutor(max_workers=8) as executor:
+        results = list(executor.map(
+            process_packet_batch,
+            packet_batches,
+            [local_ip] * len(packet_batches),
+            [current_time] * len(packet_batches),
+            [password_regex] * len(packet_batches),
+            [credit_card_regex] * len(packet_batches)
+        ))
+
+    results = [item for sublist in results for item in sublist]
 
     for result in results:
-        if result:
-            activity_type = result[0]
-            if activity_type in ['Potential password transmission', 'Potential credit card transmission']:
-                suspicious_activities.append(result)
-            elif activity_type == 'Outbound connection':
-                outbound_connections.append(result[1:])
-            elif activity_type == 'Inbound connection':
-                dst_port, src_ip = result[1:]
-                inbound_connections[dst_port][src_ip] += 1
-                port_scans[src_ip].add(dst_port)
-            elif activity_type == 'DNS query':
-                src_ip, query = result[1:]
-                dns_queries[src_ip].add(query)
+        activity_type = result[0]
+        if activity_type in ['Potential password transmission', 'Potential credit card transmission']:
+            suspicious_activities.append(result)
+        elif activity_type == 'Outbound connection':
+            outbound_connections.append(result[1:])
+        elif activity_type == 'Inbound connection':
+            dst_port, src_ip = result[1:]
+            inbound_connections[dst_port][src_ip] += 1
+            port_scans[src_ip].add(dst_port)
+        elif activity_type == 'DNS query':
+            src_ip, query = result[1:]
+            dns_queries[src_ip].add(query)
 
     outbound_connections = deque((conn for conn in outbound_connections if current_time - conn[3] < 60), maxlen=10000)
 
@@ -139,16 +146,16 @@ def analyze_traffic(packets):
             suspicious_activities.append(('Unsolicited inbound connection attempt', port, total_attempts, f"Sources: {', '.join(map(resolve_ip, connections.keys()))}"))
 
     for src_ip, ports in port_scans.items():
-        if len(ports) > PORT_SCAN_THRESHOLD:
+        if len(ports) > port_scan_threshold:
             suspicious_activities.append(('Potential port scan (lateral movement attempt)', src_ip, f"Scanned ports: {', '.join(map(str, ports))}"))
 
     for ip, queries in dns_queries.items():
-        if len(queries) > DNS_QUERY_THRESHOLD:
+        if len(queries) > dns_query_threshold:
             suspicious_activities.append(('Excessive DNS queries (potential discovery activity)', ip, f"Number of unique queries: {len(queries)}"))
 
     return suspicious_activities
 
-def log_suspicious_activities(log_file, data):
+def log_suspicious_activities(log_file, data, logger):
     timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
     with open(log_file, 'a', encoding='utf-8') as f:
         for item in data:
@@ -157,41 +164,54 @@ def log_suspicious_activities(log_file, data):
             logger.warning(log_message)
         f.flush()
         os.fsync(f.fileno())
-def main():
-    interfaces = get_interfaces()
-    if not interfaces:
-        logger.info("No active network interfaces found. Exiting.")
-        return
 
-    interface = choose_interface(interfaces)
-    if not interface:
-        logger.info("No interface selected. Exiting.")
-        return
-    
-    logger.info(f"Using network interface: {get_display(interface)}")
-    log_file = 'security_log.txt'
-    
+def main():
+    setup_environment()
+    logger, log_listener = setup_logging_queue()
+    log_listener.start()
+
     try:
+        config = load_config('config.json', logger)
+        
+        global MALICIOUS_IPS, MONITORED_EXTENSIONS, PORT_SCAN_THRESHOLD, DNS_QUERY_THRESHOLD
+        MALICIOUS_IPS = set(config.get('malicious_ips', []))
+        MONITORED_EXTENSIONS = set(config.get('monitored_extensions', []))
+        PORT_SCAN_THRESHOLD = config.get('port_scan_threshold', 10)
+        DNS_QUERY_THRESHOLD = config.get('dns_query_threshold', 50)
+
+        count = config.get('packet_capture_count', 1000)
+
+        interfaces = get_interfaces()
+        if not interfaces:
+            logger.info("No active network interfaces found. Exiting.")
+            return
+
+        interface = choose_interface(interfaces, logger)
+        if not interface:
+            logger.info("No interface selected. Exiting.")
+            return
+
+        logger.info(f"Using network interface: {get_display(interface)}")
+        log_file = 'security_log.txt'
+
         while True:
-            packets = capture_packets(interface)
-            suspicious_activities = analyze_traffic(packets)
-            
+            packets = capture_packets(interface, count, logger)
+            suspicious_activities = analyze_traffic(packets, logger, PORT_SCAN_THRESHOLD, DNS_QUERY_THRESHOLD)
             if suspicious_activities:
                 logger.info("Suspicious activities detected!")
-                log_suspicious_activities(log_file, suspicious_activities)
+                log_suspicious_activities(log_file, suspicious_activities, logger)
                 for activity in suspicious_activities:
                     logger.info(f"- {': '.join(map(str, activity))}")
             else:
                 logger.info("No suspicious activities detected in this batch.")
-            
             time.sleep(60)
-    
+
     except KeyboardInterrupt:
         logger.info("\nStopping packet capture. Exiting.")
     except Exception as e:
         logger.error(f"An error occurred: {e}", exc_info=True)
+    finally:
+        log_listener.stop()
 
 if __name__ == "__main__":
-    if 'NEW_RELIC_CONFIG_FILE' in os.environ:
-        newrelic.agent.register_application(timeout=10.0)
     main()
