@@ -1,38 +1,46 @@
-# Import CryptographyDeprecationWarning
-from cryptography.utils import CryptographyDeprecationWarning
 import warnings
 import os
-# Suppress DeprecationWarnings from cryptography module
-warnings.filterwarnings("ignore", category=DeprecationWarning, module="cryptography")
-warnings.filterwarnings("ignore", category=CryptographyDeprecationWarning)
-
-# Suppress DeprecationWarnings from cryptography module
-os.environ['SCAPY_MANUF'] = ''
-
 import time
 import psutil
-from bidi.algorithm import get_display
-from collections import defaultdict, deque
 import socket
 import re
-from scapy.layers import http, dns
-import newrelic.agent
 import logging
 import sys
+import json
+from collections import defaultdict, deque
+from bidi.algorithm import get_display
+from scapy.layers import http, dns
 import scapy.all as scapy
+import newrelic.agent
+from concurrent.futures import ThreadPoolExecutor
 
-# Get New Relic config file path from environment variable
-new_relic_config = os.environ.get('NEW_RELIC_CONFIG_FILE')
+# Suppress DeprecationWarnings from cryptography module
+warnings.filterwarnings("ignore", category=DeprecationWarning, module="cryptography")
 
 # Set up logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-if new_relic_config:
-    # Initialize New Relic
-    newrelic.agent.initialize(new_relic_config)
+# Add a stream handler to print logs to console
+console_handler = logging.StreamHandler(sys.stdout)
+console_handler.setLevel(logging.INFO)
+logger.addHandler(console_handler)
 
-    # Create a handler that sends logs to New Relic
+# Load configuration from a JSON file
+def load_config(file_path):
+    try:
+        with open(file_path, 'r') as file:
+            return json.load(file)
+    except Exception as e:
+        logger.error(f"Failed to load configuration: {e}")
+        return {}
+
+config = load_config('config.json')
+
+# Initialize New Relic if config file is provided
+new_relic_config = os.environ.get('NEW_RELIC_CONFIG_FILE')
+if new_relic_config:
+    newrelic.agent.initialize(new_relic_config)
     class NewRelicLogHandler(logging.Handler):
         def emit(self, record):
             newrelic.agent.record_custom_event('Log', {
@@ -41,37 +49,30 @@ if new_relic_config:
                 'filename': record.filename,
                 'lineno': record.lineno
             })
-
-    # Add the New Relic handler to the logger
     logger.addHandler(NewRelicLogHandler())
-
     logger.info("New Relic initialized successfully")
 else:
     logger.info("NEW_RELIC_CONFIG_FILE environment variable not set. New Relic will not be initialized.")
 
-# Add a stream handler to print logs to console
-console_handler = logging.StreamHandler(sys.stdout)
-console_handler.setLevel(logging.INFO)
-logger.addHandler(console_handler)
+# Configuration settings
+MALICIOUS_IPS = set(config.get('malicious_ips', []))
+MONITORED_EXTENSIONS = set(config.get('monitored_extensions', []))
 
-# List of known malicious IP addresses (you should update this with real data)
-MALICIOUS_IPS = {'192.168.1.100', '10.0.0.50'}
-
-# List of file extensions to monitor
-MONITORED_EXTENSIONS = {'.exe', '.dll', '.bat', '.sh', '.py'}
-
+# Function to check if an interface is active
 def is_interface_active(ip):
     return not ip.startswith('169.254.') and ip != '127.0.0.1'
 
+# Function to get all active network interfaces
 def get_interfaces():
     interfaces = []
     for iface, addrs in psutil.net_if_addrs().items():
         for addr in addrs:
-            if addr.family == 2 and is_interface_active(addr.address):
+            if addr.family == socket.AF_INET and is_interface_active(addr.address):
                 interfaces.append((iface, addr.address))
                 break
     return interfaces
 
+# Function to let the user choose a network interface
 def choose_interface(interfaces):
     if not interfaces:
         logger.info("No active network interfaces found. Exiting.")
@@ -89,22 +90,58 @@ def choose_interface(interfaces):
             pass
         logger.info("Invalid choice. Please try again.")
 
+# Function to capture network packets
 def capture_packets(interface, count=1000):
     logger.info(f"Capturing {count} packets on {interface}...")
-    return scapy.sniff(iface=interface, count=count)
+    try:
+        return scapy.sniff(iface=interface, count=count)
+    except Exception as e:
+        logger.error(f"Error capturing packets: {e}")
+        return []
 
+# Function to resolve IP address to hostname
 def resolve_ip(ip):
     try:
         return socket.gethostbyaddr(ip)[0]
-    except (socket.herror, socket.timeout):
+    except (socket.herror, socket.timeout) as e:
+        logger.warning(f"Error resolving IP {ip}: {e}")
         return ip
 
+# Function to analyze a single packet
+def analyze_packet(packet, local_ip, current_time, password_regex, credit_card_regex):
+    if packet.haslayer(scapy.IP):
+        src_ip = packet[scapy.IP].src
+        dst_ip = packet[scapy.IP].dst
+        data_transfer = len(packet)
 
+        if packet.haslayer(scapy.TCP):
+            src_port = packet[scapy.TCP].sport
+            dst_port = packet[scapy.TCP].dport
+
+            if packet.haslayer(http.HTTPRequest):
+                payload = str(packet[http.HTTPRequest].fields)
+                password_match = password_regex.search(payload)
+                credit_card_match = credit_card_regex.search(payload)
+                return ('Potential password transmission', src_ip, dst_ip) if password_match else \
+                       ('Potential credit card transmission', src_ip, dst_ip) if credit_card_match else None
+
+            if src_ip == local_ip and packet[scapy.TCP].flags & 0x02:
+                return ('Outbound connection', dst_ip, dst_port, src_port, current_time)
+
+            elif dst_ip == local_ip and packet[scapy.TCP].flags & 0x02:
+                return ('Inbound connection', dst_port, src_ip)
+
+        if packet.haslayer(dns.DNSQR):
+            query = packet[dns.DNSQR].qname.decode('utf-8')
+            return ('DNS query', src_ip, query)
+
+    return None
+
+# Function to analyze network traffic
 def analyze_traffic(packets):
     suspicious_activities = []
     inbound_connections = defaultdict(lambda: defaultdict(int))
     outbound_connections = deque(maxlen=10000)
-    data_transfer = defaultdict(int)
     dns_queries = defaultdict(set)
     port_scans = defaultdict(set)
     current_time = time.time()
@@ -114,49 +151,26 @@ def analyze_traffic(packets):
     password_regex = re.compile(r'password=\S+', re.IGNORECASE)
     credit_card_regex = re.compile(r'\b(?:\d{4}[-\s]?){3}\d{4}\b')
 
-    for packet in packets:
-        if packet.haslayer(scapy.IP):
-            src_ip = packet[scapy.IP].src
-            dst_ip = packet[scapy.IP].dst
+    with ThreadPoolExecutor(max_workers=16) as executor:
+        results = list(executor.map(analyze_packet, packets, [local_ip] * len(packets), [current_time] * len(packets), [password_regex] * len(packets), [credit_card_regex] * len(packets)))
 
-            # Determine local IP if not yet set
-            if local_ip is None and packet.sniffed_on:
-                local_ip = next((addr.address for addr in psutil.net_if_addrs()[packet.sniffed_on] 
-                                 if addr.family == socket.AF_INET), None)
-
-            # Track data transfer
-            data_transfer[src_ip] += len(packet)
-
-            if packet.haslayer(scapy.TCP):
-                src_port = packet[scapy.TCP].sport
-                dst_port = packet[scapy.TCP].dport
-
-                # Credential theft detection
-                if packet.haslayer(http.HTTPRequest):
-                    payload = str(packet[http.HTTPRequest].fields)  # Changed from .Fields to .fields
-                    if password_regex.search(payload):
-                        suspicious_activities.append(('Potential password transmission', src_ip, dst_ip))
-                    if credit_card_regex.search(payload):
-                        suspicious_activities.append(('Potential credit card transmission', src_ip, dst_ip))
-
-                # Track outbound connections
-                if src_ip == local_ip and packet[scapy.TCP].flags & 0x02:
-                    outbound_connections.append((dst_ip, dst_port, src_port, current_time))
-
-                # Track inbound connections and potential port scans
-                elif dst_ip == local_ip and packet[scapy.TCP].flags & 0x02:
-                    inbound_connections[dst_port][src_ip] += 1
-                    port_scans[src_ip].add(dst_port)
-
-            # DNS query monitoring (part of discovery phase)
-            if packet.haslayer(dns.DNSQR):
-                query = packet[dns.DNSQR].qname.decode('utf-8')
+    for result in results:
+        if result:
+            activity_type = result[0]
+            if activity_type in ['Potential password transmission', 'Potential credit card transmission']:
+                suspicious_activities.append(result)
+            elif activity_type == 'Outbound connection':
+                outbound_connections.append(result[1:])
+            elif activity_type == 'Inbound connection':
+                dst_port, src_ip = result[1:]
+                inbound_connections[dst_port][src_ip] += 1
+                port_scans[src_ip].add(dst_port)
+            elif activity_type == 'DNS query':
+                src_ip, query = result[1:]
                 dns_queries[src_ip].add(query)
 
-    # Clear old outbound connections
     outbound_connections = deque((conn for conn in outbound_connections if current_time - conn[3] < 60), maxlen=10000)
 
-    # Analyze inbound connections for potential threats
     for port, connections in inbound_connections.items():
         total_attempts = sum(connections.values())
         if total_attempts > 0 and port < 1024:
@@ -167,27 +181,16 @@ def analyze_traffic(packets):
                 f"Sources: {', '.join(map(resolve_ip, connections.keys()))}"
             ))
 
-    # Detect potential lateral movement
     for src_ip, ports in port_scans.items():
-        if len(ports) > 10:  # Adjust threshold as needed
+        if len(ports) > 10:
             suspicious_activities.append((
                 'Potential port scan (lateral movement attempt)',
                 src_ip,
                 f"Scanned ports: {', '.join(map(str, ports))}"
             ))
 
-    # Detect unusual data collection or exfiltration
-    for ip, amount in data_transfer.items():
-        if amount > 10000000:  # 10 MB, adjust as needed
-            suspicious_activities.append((
-                'Large data transfer (potential exfiltration)',
-                ip,
-                f"{amount/1000000:.2f} MB"
-            ))
-
-    # Detect excessive DNS queries (potential discovery phase activity)
     for ip, queries in dns_queries.items():
-        if len(queries) > 50:  # Adjust threshold as needed
+        if len(queries) > 50:
             suspicious_activities.append((
                 'Excessive DNS queries (potential discovery activity)',
                 ip,
@@ -196,7 +199,8 @@ def analyze_traffic(packets):
 
     return suspicious_activities
 
-def burn_in_log(log_file, data):
+# Function to log suspicious activities
+def log_suspicious_activities(log_file, data):
     with open(log_file, 'a', encoding='utf-8') as f:
         timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
         for item in data:
@@ -206,6 +210,7 @@ def burn_in_log(log_file, data):
         f.flush()
         os.fsync(f.fileno())
 
+# Main function to run the network traffic analyzer
 def main():
     interfaces = get_interfaces()
     if not interfaces:
@@ -223,7 +228,7 @@ def main():
             suspicious_activities = analyze_traffic(packets)
             if suspicious_activities:
                 logger.info("Suspicious activities detected!")
-                burn_in_log(log_file, suspicious_activities)
+                log_suspicious_activities(log_file, suspicious_activities)
                 for activity in suspicious_activities:
                     logger.info(f"- {': '.join(map(str, activity))}")
             else:
