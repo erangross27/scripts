@@ -80,10 +80,11 @@ def choose_interface(interfaces, logger):
 def capture_packets(interface, count, logger):
     logger.info(f"Capturing {count} packets on {interface}...")
     try:
-        return scapy.sniff(iface=interface, count=count)
+        return scapy.sniff(iface=interface, count=count, filter="ip")
     except Exception as e:
         logger.error(f"Error capturing packets: {e}")
         return []
+
 
 def resolve_ip(ip):
     try:
@@ -144,11 +145,21 @@ def analyze_traffic(packets, logger, port_scan_threshold, dns_query_threshold):
     inbound_connections = defaultdict(lambda: defaultdict(int))
     dns_queries = defaultdict(set)
     port_scans = defaultdict(set)
-    local_ip = packets[0][scapy.IP].dst if packets and packets[0].haslayer(scapy.IP) else None
+
+    # Find the first packet with an IP layer
+    local_ip = None
+    for packet in packets:
+        if packet.haslayer(scapy.IP):
+            local_ip = packet[scapy.IP].dst
+            break
+
     if not local_ip:
         logger.warning("Unable to determine local IP. Analysis may be inaccurate.")
         return suspicious_activities
+
     local_network = '.'.join(local_ip.split('.')[:3]) + '.'
+    logger.info(f"Local IP determined: {local_ip}")
+    logger.info(f"Local network: {local_network}")
     password_regex_pattern = r'password=\S+'
     credit_card_regex_pattern = r'\b(?:\d{4}[-\s]?){3}\d{4}\b'
     batch_size = 100
