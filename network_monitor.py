@@ -14,8 +14,8 @@ import socket
 import re
 import logging
 import sys
-import pcap
 import multiprocessing
+import platform
 from scapy.all import IP, TCP, UDP, DNS, DNSQR, Raw, scapy
 from scapy.layers import http, dns
 from concurrent.futures import ProcessPoolExecutor
@@ -24,7 +24,6 @@ from multiprocessing import Queue
 from tqdm import tqdm
 from bidi.algorithm import get_display
 from logging.handlers import QueueHandler, QueueListener
-
 
 def setup_logger():
     logger = logging.getLogger(__name__)
@@ -65,24 +64,48 @@ def choose_interface(interfaces, logger):
 
 def capture_packets_worker(interface, count, result_queue, logger):
     try:
-        cap = pcap.pcap(name=interface, promisc=True, immediate=True, timeout_ms=100)
-        logger.info(f"Pcap object created on interface {interface}")
-        
-        packets = []
-        start_time = time.time()
-        
-        for timestamp, packet in cap:
-            packets.append((timestamp, packet))
-            
-            if len(packets) >= count:
-                break
-            
-            # Check for timeout
-            if time.time() - start_time > 300:  # 5 minutes timeout
-                logger.warning(f"Timeout reached. Captured {len(packets)} packets in 5 minutes.")
-                break
-        
-        result_queue.put(packets)
+        if platform.system() == "Windows":
+            from scapy.all import sniff
+
+            logger.info(f"Starting packet capture on interface {interface} using scapy")
+            packets = []
+
+            # Define packet handler for scapy
+            def packet_handler(pkt):
+                packets.append(pkt)
+                if len(packets) >= count:
+                    raise Exception("Capture complete")
+
+            start_time = time.time()
+            try:
+                sniff(iface=interface, prn=packet_handler, store=False, timeout=300)
+            except Exception as e:
+                if "Capture complete" not in str(e):
+                    raise e
+
+            logger.info(f"Captured {len(packets)} packets")
+            packet_data = [(pkt.time, bytes(pkt)) for pkt in packets]
+
+        elif platform.system() == "Linux":
+            import pcap
+
+            cap = pcap.pcap(name=interface, promisc=True, immediate=True, timeout_ms=100)
+            logger.info(f"Pcap object created on interface {interface}")
+            packets = []
+            start_time = time.time()
+
+            for timestamp, packet in cap:
+                packets.append((timestamp, packet))
+                if len(packets) >= count:
+                    break
+                # Check for timeout
+                if time.time() - start_time > 300:  # 5 minutes timeout
+                    logger.warning(f"Timeout reached. Captured {len(packets)} packets in 5 minutes.")
+                    break
+
+            packet_data = packets
+
+        result_queue.put(packet_data)
     except Exception as e:
         logger.error(f"Error in capture_packets_worker: {e}", exc_info=True)
         result_queue.put([])
