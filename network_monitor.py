@@ -2,25 +2,11 @@ from cryptography.utils import CryptographyDeprecationWarning
 import warnings
 
 def setup_environment():
-    ignored_warnings = [
-        (DeprecationWarning, "cryptography", None),
-        (UserWarning, "scapy", None),
-        (CryptographyDeprecationWarning, None, None),
-        (UserWarning, None, "Wireshark is installed, but cannot read manuf !"),
-    ]
-    for warning in ignored_warnings:
-        category, module, message = warning
-        kwargs = {"category": category}
-        if module is not None:
-            kwargs["module"] = module
-        if message is not None:
-            kwargs["message"] = message
-        warnings.filterwarnings("ignore", **kwargs)
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore", category=CryptographyDeprecationWarning)
-
-# Call this function at the start of your script
+    # Ignore CryptographyDeprecationWarning
+    warnings.filterwarnings("ignore", category=CryptographyDeprecationWarning)
+#Calling it at the beginging of the script to suppress warnings during the execution of the script.
 setup_environment()
+
 
 
 import os
