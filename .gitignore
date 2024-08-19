@@ -3,3 +3,4 @@ antropic_logs/info.log
 antropic_logs/warning.log
 Anthropic_logo.png
 requirements.txt
+conversation_history.db
