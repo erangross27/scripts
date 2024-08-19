@@ -87,7 +87,7 @@ def capture_packets_worker(interface, count, result_queue, logger):
             packet_data = [(pkt.time, bytes(pkt)) for pkt in packets]
 
         elif platform.system() == "Linux":
-            import pcap
+            import pcap # type: ignore
 
             cap = pcap.pcap(name=interface, promisc=True, immediate=True, timeout_ms=100)
             logger.info(f"Pcap object created on interface {interface}")
