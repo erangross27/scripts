@@ -4,3 +4,8 @@ antropic_logs/warning.log
 Anthropic_logo.png
 requirements.txt
 conversation_history.db
+config.yaml
+security_log.txt
+.vscode/launch.json
+.gitignore
+config.json

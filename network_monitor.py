@@ -1,273 +1,246 @@
-# Import CryptographyDeprecationWarning
 from cryptography.utils import CryptographyDeprecationWarning
 import warnings
+
+def setup_environment():
+    ignored_warnings = [
+        (DeprecationWarning, "cryptography", None),
+        (UserWarning, "scapy", None),
+        (CryptographyDeprecationWarning, None, None),
+        (UserWarning, None, "Wireshark is installed, but cannot read manuf !"),
+    ]
+    for warning in ignored_warnings:
+        category, module, message = warning
+        kwargs = {"category": category}
+        if module is not None:
+            kwargs["module"] = module
+        if message is not None:
+            kwargs["message"] = message
+        warnings.filterwarnings("ignore", **kwargs)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=CryptographyDeprecationWarning)
+
+# Call this function at the start of your script
+setup_environment()
+
+
 import os
-# Suppress DeprecationWarnings from cryptography module
-warnings.filterwarnings("ignore", category=DeprecationWarning, module="cryptography")
-warnings.filterwarnings("ignore", category=CryptographyDeprecationWarning)
-
-# Suppress DeprecationWarnings from cryptography module
-os.environ['SCAPY_MANUF'] = ''
-
 import time
 import psutil
-from bidi.algorithm import get_display
-from collections import defaultdict, deque
 import socket
 import re
-from scapy.layers import http, dns
-import newrelic.agent
 import logging
 import sys
+from collections import defaultdict, deque
+from bidi.algorithm import get_display
+from scapy.layers import http, dns
 import scapy.all as scapy
+from concurrent.futures import ProcessPoolExecutor
+from multiprocessing import Queue
+from logging.handlers import QueueHandler, QueueListener
 
-# Get New Relic config file path from environment variable
-new_relic_config = os.environ.get('NEW_RELIC_CONFIG_FILE')
 
-# Set up logging
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+def setup_logger():
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
+    return logger
 
-if new_relic_config:
-    # Initialize New Relic
-    newrelic.agent.initialize(new_relic_config)
+def setup_logging_queue():
+    queue = Queue(-1)
+    queue_handler = QueueHandler(queue)
+    logger = setup_logger()
+    logger.addHandler(queue_handler)
+    stream_handler = logging.StreamHandler(sys.stdout)
+    listener = QueueListener(queue, stream_handler)
+    return logger, listener
 
-    # Create a handler that sends logs to New Relic
-    class NewRelicLogHandler(logging.Handler):
-        def emit(self, record):
-            newrelic.agent.record_custom_event('Log', {
-                'level': record.levelname,
-                'message': record.getMessage(),
-                'filename': record.filename,
-                'lineno': record.lineno
-            })
-
-    # Add the New Relic handler to the logger
-    logger.addHandler(NewRelicLogHandler())
-
-    logger.info("New Relic initialized successfully")
-else:
-    logger.info("NEW_RELIC_CONFIG_FILE environment variable not set. New Relic will not be initialized.")
-
-# Add a stream handler to print logs to console
-console_handler = logging.StreamHandler(sys.stdout)
-console_handler.setLevel(logging.INFO)
-logger.addHandler(console_handler)
-
-# List of known malicious IP addresses (you should update this with real data)
-MALICIOUS_IPS = {'192.168.1.100', '10.0.0.50'}
-
-# List of file extensions to monitor
-MONITORED_EXTENSIONS = {'.exe', '.dll', '.bat', '.sh', '.py'}
-
-# Function to check if an interface is active (not a link-local or loopback address)
-def is_interface_active(ip):
-    return not ip.startswith('169.254.') and ip != '127.0.0.1'
-
-# Function to get a list of active network interfaces
 def get_interfaces():
-    interfaces = []
-    for iface, addrs in psutil.net_if_addrs().items():
-        for addr in addrs:
-            # Only consider IPv4 addresses that are active
-            if addr.family == 2 and is_interface_active(addr.address):
-                interfaces.append((iface, addr.address))
-                break
-    return interfaces
+    return [(iface, addr.address) for iface, addrs in psutil.net_if_addrs().items()
+            for addr in addrs if addr.family == socket.AF_INET and not addr.address.startswith('169.254.') and addr.address != '127.0.0.1']
 
-# Function to let the user choose a network interface
-def choose_interface(interfaces):
+def choose_interface(interfaces, logger):
     if not interfaces:
         logger.info("No active network interfaces found. Exiting.")
         return None
     logger.info("Available active interfaces:")
-    # Display available interfaces
+    logger.info("")  # Add an empty line before listing interfaces
     for i, (iface, ip) in enumerate(interfaces):
-        iface_display = get_display(iface)
-        logger.info(f"{i}: {iface_display} (IP: {ip})")
-    # Loop until a valid choice is made
+        logger.info(f"{i}: {get_display(iface)} (IP: {ip})")
+    logger.info("")  # Add an empty line after listing interfaces
     while True:
         try:
-            choice = int(input("Enter the number of the interface you want to use: "))
+            choice = int(input("Enter the number of the interface to use: "))
             if 0 <= choice < len(interfaces):
                 return interfaces[choice][0]
+            else:
+                logger.info("Invalid choice. Please try again.")
         except ValueError:
-            pass
-        logger.info("Invalid choice. Please try again.")
+            logger.info("Invalid input. Please enter a number.")
 
-# Function to capture network packets on a specified interface
-def capture_packets(interface, count=1000):
+
+def capture_packets(interface, count, logger):
     logger.info(f"Capturing {count} packets on {interface}...")
-    return scapy.sniff(iface=interface, count=count)
+    try:
+        return scapy.sniff(iface=interface, count=count, filter="ip")
+    except Exception as e:
+        logger.error(f"Error capturing packets: {e}")
+        return []
 
-# Function to resolve an IP address to a hostname
+
 def resolve_ip(ip):
     try:
         return socket.gethostbyaddr(ip)[0]
     except (socket.herror, socket.timeout):
         return ip
 
-# Function to analyze captured network traffic for suspicious activities
-def analyze_traffic(packets):
-    suspicious_activities = []
-    inbound_connections = defaultdict(lambda: defaultdict(int))
-    outbound_connections = deque(maxlen=10000)
-    data_transfer = defaultdict(int)
-    dns_queries = defaultdict(set)
-    port_scans = defaultdict(set)
-    current_time = time.time()
-    local_ip = None
+def analyze_packet(packet, local_ip, current_time, password_regex, credit_card_regex):
+    if packet.haslayer(scapy.IP):
+        src_ip, dst_ip = packet[scapy.IP].src, packet[scapy.IP].dst
+        if packet.haslayer(scapy.TCP):
+            src_port, dst_port = packet[scapy.TCP].sport, packet[scapy.TCP].dport
+            if packet.haslayer(http.HTTPRequest):
+                payload = str(packet[http.HTTPRequest].fields)
+                if password_regex.search(payload):
+                    return ('Potential password transmission', src_ip, dst_ip)
+                if credit_card_regex.search(payload):
+                    return ('Potential credit card transmission', src_ip, dst_ip)
+            if packet[scapy.TCP].flags & 0x02:
+                return ('Outbound connection', dst_ip, dst_port, src_port, current_time) if src_ip == local_ip else ('Inbound connection', dst_port, src_ip)
+        if packet.haslayer(dns.DNSQR):
+            return ('DNS query', src_ip, packet[dns.DNSQR].qname.decode('utf-8'))
+    return None
 
-    # Regular expressions for sensitive information
-    password_regex = re.compile(r'password=\S+', re.IGNORECASE)
-    credit_card_regex = re.compile(r'\b(?:\d{4}[-\s]?){3}\d{4}\b')
+def is_inbound(packet, local_network):
+    return packet.haslayer(scapy.IP) and packet[scapy.IP].dst.startswith(local_network) and not packet[scapy.IP].src.startswith(local_network)
 
-    for packet in packets:
-        if packet.haslayer(scapy.IP):
+def process_packet_batch(packet_batch, local_network, password_regex_pattern, credit_card_regex_pattern):
+    password_regex = re.compile(password_regex_pattern, re.IGNORECASE)
+    credit_card_regex = re.compile(credit_card_regex_pattern)
+    batch_results = {
+        'suspicious_activities': [],
+        'inbound_connections': defaultdict(lambda: defaultdict(int)),
+        'dns_queries': defaultdict(set),
+        'port_scans': defaultdict(set)
+    }
+    for packet in packet_batch:
+        if is_inbound(packet, local_network):
             src_ip = packet[scapy.IP].src
             dst_ip = packet[scapy.IP].dst
-
-            # Determine local IP if not yet set
-            if local_ip is None and packet.sniffed_on:
-                local_ip = next((addr.address for addr in psutil.net_if_addrs()[packet.sniffed_on] 
-                                 if addr.family == socket.AF_INET), None)
-
-            # Track data transfer
-            data_transfer[src_ip] += len(packet)
-
             if packet.haslayer(scapy.TCP):
-                src_port = packet[scapy.TCP].sport
                 dst_port = packet[scapy.TCP].dport
-
-                # Credential theft detection
-                if packet.haslayer(http.HTTPRequest):
-                    payload = str(packet[http.HTTPRequest].fields)  # Changed from .Fields to .fields
-                    if password_regex.search(payload):
-                        suspicious_activities.append(('Potential password transmission', src_ip, dst_ip))
-                    if credit_card_regex.search(payload):
-                        suspicious_activities.append(('Potential credit card transmission', src_ip, dst_ip))
-
-                # Track outbound connections
-                if src_ip == local_ip and packet[scapy.TCP].flags & 0x02:
-                    outbound_connections.append((dst_ip, dst_port, src_port, current_time))
-
-                # Track inbound connections and potential port scans
-                elif dst_ip == local_ip and packet[scapy.TCP].flags & 0x02:
-                    inbound_connections[dst_port][src_ip] += 1
-                    port_scans[src_ip].add(dst_port)
-
-            # DNS query monitoring (part of discovery phase)
-            if packet.haslayer(dns.DNSQR):
+                batch_results['inbound_connections'][dst_port][src_ip] += 1
+                batch_results['port_scans'][src_ip].add(dst_port)
+            if packet.haslayer(http.HTTPRequest):
+                payload = str(packet[http.HTTPRequest].fields)
+                if password_regex.search(payload):
+                    batch_results['suspicious_activities'].append(('Potential password transmission', src_ip, dst_ip))
+                if credit_card_regex.search(payload):
+                    batch_results['suspicious_activities'].append(('Potential credit card transmission', src_ip, dst_ip))
+            elif packet.haslayer(dns.DNSQR):
                 query = packet[dns.DNSQR].qname.decode('utf-8')
-                dns_queries[src_ip].add(query)
+                batch_results['dns_queries'][src_ip].add(query)
+    return {k: dict(v) if isinstance(v, defaultdict) else v for k, v in batch_results.items()}
 
-    # Clear old outbound connections
-    outbound_connections = deque((conn for conn in outbound_connections if current_time - conn[3] < 60), maxlen=10000)
+def analyze_traffic(packets, logger, port_scan_threshold, dns_query_threshold):
+    suspicious_activities = []
+    inbound_connections = defaultdict(lambda: defaultdict(int))
+    dns_queries = defaultdict(set)
+    port_scans = defaultdict(set)
 
-    # Analyze inbound connections for potential threats
+    # Find the first packet with an IP layer
+    local_ip = None
+    for packet in packets:
+        if packet.haslayer(scapy.IP):
+            local_ip = packet[scapy.IP].dst
+            break
+
+    if not local_ip:
+        logger.warning("Unable to determine local IP. Analysis may be inaccurate.")
+        return suspicious_activities
+
+    local_network = '.'.join(local_ip.split('.')[:3]) + '.'
+    logger.info(f"Local IP determined: {local_ip}")
+    logger.info(f"Local network: {local_network}")
+    password_regex_pattern = r'password=\S+'
+    credit_card_regex_pattern = r'\b(?:\d{4}[-\s]?){3}\d{4}\b'
+    batch_size = 100
+    packet_batches = [packets[i:i+batch_size] for i in range(0, len(packets), batch_size)]
+    with ProcessPoolExecutor(max_workers=8) as executor:
+        results = list(executor.map(
+            process_packet_batch,
+            packet_batches,
+            [local_network] * len(packet_batches),
+            [password_regex_pattern] * len(packet_batches),
+            [credit_card_regex_pattern] * len(packet_batches)
+        ))
+    for result in results:
+        suspicious_activities.extend(result['suspicious_activities'])
+        for port, connections in result['inbound_connections'].items():
+            inbound_connections[port].update(connections)
+        for src_ip, queries in result['dns_queries'].items():
+            dns_queries[src_ip].update(queries)
+        for src_ip, ports in result['port_scans'].items():
+            port_scans[src_ip].update(ports)
     for port, connections in inbound_connections.items():
         total_attempts = sum(connections.values())
         if total_attempts > 0 and port < 1024:
-            suspicious_activities.append((
-                'Unsolicited inbound connection attempt',
-                port,
-                total_attempts,
-                f"Sources: {', '.join(map(resolve_ip, connections.keys()))}"
-            ))
-
-    # Detect potential lateral movement
+            suspicious_activities.append(('Unsolicited inbound connection attempt', port, total_attempts, f"Sources: {', '.join(map(resolve_ip, connections.keys()))}"))
     for src_ip, ports in port_scans.items():
-        if len(ports) > 10:  # Adjust threshold as needed
-            suspicious_activities.append((
-                'Potential port scan (lateral movement attempt)',
-                src_ip,
-                f"Scanned ports: {', '.join(map(str, ports))}"
-            ))
-
-    # Detect unusual data collection or exfiltration
-    for ip, amount in data_transfer.items():
-        if amount > 10000000:  # 10 MB, adjust as needed
-            suspicious_activities.append((
-                'Large data transfer (potential exfiltration)',
-                ip,
-                f"{amount/1000000:.2f} MB"
-            ))
-
-    # Detect excessive DNS queries (potential discovery phase activity)
+        if len(ports) > port_scan_threshold:
+            suspicious_activities.append(('Potential port scan attempt', src_ip, f"Scanned ports: {', '.join(map(str, ports))}"))
     for ip, queries in dns_queries.items():
-        if len(queries) > 50:  # Adjust threshold as needed
-            suspicious_activities.append((
-                'Excessive DNS queries (potential discovery activity)',
-                ip,
-                f"Number of unique queries: {len(queries)}"
-            ))
-
+        if len(queries) > dns_query_threshold:
+            suspicious_activities.append(('Excessive inbound DNS queries', ip, f"Number of unique queries: {len(queries)}"))
     return suspicious_activities
 
-def burn_in_log(log_file, data):
-    # Open the log file in append mode
+def log_suspicious_activities(log_file, data, logger):
+    timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
     with open(log_file, 'a', encoding='utf-8') as f:
-        # Get the current timestamp
-        timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-        # Iterate through each item in the data
         for item in data:
-            # Create a log message with timestamp and item details
             log_message = f"{timestamp} - {': '.join(map(str, item))}"
-            # Write the log message to the file
             f.write(log_message + "\n")
-            # Log the message as a warning
             logger.warning(log_message)
-        # Ensure the data is written to disk
         f.flush()
         os.fsync(f.fileno())
 
 def main():
-    # Get a list of active network interfaces
-    interfaces = get_interfaces()
-    # Check if any interfaces were found
-    if not interfaces:
-        logger.info("No active network interfaces found. Exiting.")
-        return
-    # Let the user choose an interface
-    interface = choose_interface(interfaces)
-    # Check if an interface was selected
-    if not interface:
-        logger.info("No interface selected. Exiting.")
-        return
-    # Log the selected interface
-    logger.info(f"Using network interface: {get_display(interface)}")
-    # Set the log file name
-    log_file = 'security_log.txt'
+    logger, log_listener = setup_logging_queue()
+    log_listener.start()
     try:
-        # Start the main loop
+        # Define parameters directly in the script
+        MALICIOUS_IPS = set()  # Add any known malicious IPs here
+        MONITORED_EXTENSIONS = set(['.exe', '.dll', '.bat'])  # Add file extensions to monitor
+        PORT_SCAN_THRESHOLD = 10
+        DNS_QUERY_THRESHOLD = 50
+        count = 1000  # Number of packets to capture in each iteration
+
+        interfaces = get_interfaces()
+        if not interfaces:
+            logger.info("No active network interfaces found. Exiting.")
+            return
+        interface = choose_interface(interfaces, logger)
+        if not interface:
+            logger.info("No interface selected. Exiting.")
+            return
+        logger.info(f"Using network interface: {get_display(interface)}")
+        log_file = 'security_log.txt'
+
         while True:
-            # Capture packets on the selected interface
-            packets = capture_packets(interface)
-            # Analyze the captured traffic
-            suspicious_activities = analyze_traffic(packets)
-            # Check if any suspicious activities were detected
+            packets = capture_packets(interface, count, logger)
+            suspicious_activities = analyze_traffic(packets, logger, PORT_SCAN_THRESHOLD, DNS_QUERY_THRESHOLD)
             if suspicious_activities:
                 logger.info("Suspicious activities detected!")
-                # Log the suspicious activities
-                burn_in_log(log_file, suspicious_activities)
-                # Print each suspicious activity
+                log_suspicious_activities(log_file, suspicious_activities, logger)
                 for activity in suspicious_activities:
                     logger.info(f"- {': '.join(map(str, activity))}")
             else:
                 logger.info("No suspicious activities detected in this batch.")
-            # Wait for 60 seconds before the next capture
             time.sleep(60)
     except KeyboardInterrupt:
-        # Handle user interruption (Ctrl+C)
         logger.info("\nStopping packet capture. Exiting.")
     except Exception as e:
-        # Log any unexpected errors
         logger.error(f"An error occurred: {e}", exc_info=True)
+    finally:
+        log_listener.stop()
 
 if __name__ == "__main__":
-    # Check if New Relic configuration is set
-    if 'NEW_RELIC_CONFIG_FILE' in os.environ:
-        # Register the application with New Relic
-        newrelic.agent.register_application(timeout=10.0)
-    # Run the main function
     main()
