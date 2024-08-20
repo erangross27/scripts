@@ -26,288 +26,386 @@ from bidi.algorithm import get_display
 from logging.handlers import QueueHandler, QueueListener
 
 def setup_logger():
+    # Create a logger for the current module
     logger = logging.getLogger(__name__)
+    # Set the logging level to INFO, which means it will capture messages at this level and above
     logger.setLevel(logging.INFO)
     return logger
 
 def setup_logging_queue():
+    # Create a Queue for logging, with no limit on its size
     queue = Queue(-1)
+    # Create a QueueHandler that will send log messages to the Queue
     queue_handler = QueueHandler(queue)
+    # Set up a logger using the setup_logger function
     logger = setup_logger()
+    # Add the QueueHandler to the logger to enable it to log messages to the queue
     logger.addHandler(queue_handler)
+    # Create a StreamHandler to print log messages to the standard output (console)
     stream_handler = logging.StreamHandler(sys.stdout)
+    # Create a QueueListener to listen for messages from the queue and send them to the stream handler
     listener = QueueListener(queue, stream_handler)
-    return logger, listener
+    return logger, listener  # Return both the logger and the listener for further use
 
 def get_interfaces():
+    # Retrieve a list of active network interfaces along with their IP addresses
+    # Filter out link-local addresses (starting with '169.254.') and the localhost address ('127.0.0.1')
     return [(iface, addr.address) for iface, addrs in psutil.net_if_addrs().items()
             for addr in addrs if addr.family == socket.AF_INET and not addr.address.startswith('169.254.') and addr.address != '127.0.0.1']
 
 def choose_interface(interfaces, logger):
+    # Check if there are any available interfaces
     if not interfaces:
         logger.info("No active network interfaces found. Exiting.")
-        return None, None
+        return None, None  # Return None values if no interfaces are available
+    # Log the available active interfaces
     logger.info("Available active interfaces:")
     logger.info("")  # Add an empty line before listing interfaces
+    
+    # Enumerate and log each interface with its corresponding IP address
     for i, (iface, ip) in enumerate(interfaces):
         logger.info(f"{i}: {get_display(iface)} (IP: {ip})")
+    
     logger.info("")  # Add an empty line after listing interfaces
+    
+    # Prompt the user to choose an interface until a valid choice is made
     while True:
         try:
-            choice = int(input("Enter the number of the interface to use: "))
-            if 0 <= choice < len(interfaces):
-                return interfaces[choice]
+            choice = int(input("Enter the number of the interface to use: "))  # Get the user's choice
+            if 0 <= choice < len(interfaces):  # Check if the choice is within the valid range
+                return interfaces[choice]  # Return the selected interface and its IP address
             else:
-                logger.info("Invalid choice. Please try again.")
+                logger.info("Invalid choice. Please try again.")  # Log if the choice is invalid
         except ValueError:
-            logger.info("Invalid input. Please enter a number.")
+            logger.info("Invalid input. Please enter a number.")  # Log if the input is not a number
 
 def capture_packets_worker(interface, count, result_queue, logger):
+    # This function captures packets on the specified network interface using Scapy or pcap based on the platform
     try:
+        # Check the operating system to choose the appropriate capturing method
         if platform.system() == "Windows":
-            from scapy.all import sniff
+            from scapy.all import sniff  # Import the sniff function from Scapy for packet capture
+            logger.info(f"Starting packet capture on interface {interface} using scapy")  # Log the start of the capture
+            packets = []  # Initialize a list to store captured packets
 
-            logger.info(f"Starting packet capture on interface {interface} using scapy")
-            packets = []
-
-            # Define packet handler for scapy
+            # Define a packet handler function for Scapy to call on each packet captured
             def packet_handler(pkt):
-                packets.append(pkt)
+                packets.append(pkt)  # Append the captured packet to the packets list
+                # Check if the number of captured packets has reached the specified count
                 if len(packets) >= count:
-                    raise Exception("Capture complete")
+                    raise Exception("Capture complete")  # Raise an exception to indicate capture is complete
 
-            start_time = time.time()
+            start_time = time.time()  # Record the start time of the packet capture
             try:
+                # Start sniffing the packets on the specified interface, calling packet_handler for each captured packet
                 sniff(iface=interface, prn=packet_handler, store=False, timeout=300)
             except Exception as e:
+                # If the exception raised was not "Capture complete", re-raise it
                 if "Capture complete" not in str(e):
                     raise e
 
-            logger.info(f"Captured {len(packets)} packets")
+            logger.info(f"Captured {len(packets)} packets")  # Log the total number of packets captured
+            # Prepare the packet data as a list of tuples containing time and byte representation of each packet
             packet_data = [(pkt.time, bytes(pkt)) for pkt in packets]
 
         elif platform.system() == "Linux":
             import pcap # type: ignore
 
+            # Create a pcap object for the specified interface with promiscuous mode and immediate mode
             cap = pcap.pcap(name=interface, promisc=True, immediate=True, timeout_ms=100)
-            logger.info(f"Pcap object created on interface {interface}")
-            packets = []
-            start_time = time.time()
+            logger.info(f"Pcap object created on interface {interface}")  # Log the creation of the pcap object
+            packets = []  # Initialize a list to store captured packets
+            start_time = time.time()  # Record the start time of the packet capture
 
+            # Loop over packets captured by the pcap object
             for timestamp, packet in cap:
-                packets.append((timestamp, packet))
+                packets.append((timestamp, packet))  # Append the captured packet and its timestamp to the packets list
+                # Check if the number of captured packets has reached the specified count
                 if len(packets) >= count:
-                    break
-                # Check for timeout
-                if time.time() - start_time > 300:  # 5 minutes timeout
-                    logger.warning(f"Timeout reached. Captured {len(packets)} packets in 5 minutes.")
-                    break
+                    break  # Exit the loop if the desired number of packets have been captured
+                # Check for a timeout condition to limit the capture duration
+                if time.time() - start_time > 300:  # If 5 minutes has passed
+                    logger.warning(f"Timeout reached. Captured {len(packets)} packets in 5 minutes.")  # Log a timeout warning
+                    break  # Exit the loop on timeout
 
-            packet_data = packets
+            packet_data = packets  # Assign packets to packet_data for later use
 
-        result_queue.put(packet_data)
+        result_queue.put(packet_data)  # Put the captured packet data into the result queue for further processing
     except Exception as e:
-        logger.error(f"Error in capture_packets_worker: {e}", exc_info=True)
-        result_queue.put([])
+        logger.error(f"Error in capture_packets_worker: {e}", exc_info=True)  # Log any errors that occur during capture
+        result_queue.put([])  # Put an empty list into the result queue to indicate failure
 
 def capture_packets(interface, total_count, logger):
+    # Log the start of packet capture including the total number of packets and interface being used
     logger.info(f"Capturing {total_count} packets on {interface} using 8 cores...")
     
+    # Determine how many packets each worker process will capture
     packets_per_worker = total_count // 8
-    result_queue = multiprocessing.Queue()
-    processes = []
+    result_queue = multiprocessing.Queue()  # Create a queue to collect results from worker processes
+    processes = []  # List to keep track of the spawned processes
     
-    start_time = time.time()  # Define start_time here
+    start_time = time.time()  # Record the start time of the packet capture
     
+    # Start 8 worker processes to capture packets
     for _ in range(8):
         p = multiprocessing.Process(target=capture_packets_worker, args=(interface, packets_per_worker, result_queue, logger))
-        processes.append(p)
-        p.start()
+        processes.append(p)  # Add each process to the list
+        p.start()  # Start the packet capture process
     
-    all_packets = []
+    all_packets = []  # List to store all captured packets
+    # Use a progress bar to visualize the progress of packet capture
     with tqdm(total=total_count, unit='packet', mininterval=0.1) as progress_bar:
         for _ in range(8):
-            packets = result_queue.get()
-            all_packets.extend(packets)
-            progress_bar.update(len(packets))
+            packets = result_queue.get()  # Retrieve packets captured by the worker processes
+            all_packets.extend(packets)  # Add the captured packets to the all_packets list
+            progress_bar.update(len(packets))  # Update the progress bar with number of packets captured
     
+    # Wait for all processes to finish their execution
     for p in processes:
         p.join()
     
+    # Calculate duration of the capture and packets per second
     duration = time.time() - start_time
     packets_per_second = len(all_packets) / duration if duration > 0 else 0
+    # Log the total number of packets captured, duration, and rate of packets captured per second
     logger.info(f"Captured {len(all_packets)} packets in {duration:.2f} seconds ({packets_per_second:.2f} packets/second)")
     
-    return all_packets
-
+    return all_packets  # Return the complete list of captured packets
 
 def analyze_packet(packet, local_ip, current_time, password_regex, credit_card_regex):
+    # Check if the packet contains an IP layer
     if packet.haslayer(scapy.IP):
+        # Extract source and destination IP addresses from the IP layer
         src_ip, dst_ip = packet[scapy.IP].src, packet[scapy.IP].dst
+        
+        # Check if the packet contains a TCP layer
         if packet.haslayer(scapy.TCP):
+            # Extract source and destination ports from the TCP layer
             src_port, dst_port = packet[scapy.TCP].sport, packet[scapy.TCP].dport
+            
+            # Check if the packet contains an HTTP request layer
             if packet.haslayer(http.HTTPRequest):
+                # Convert the HTTP request fields to a string for inspection
                 payload = str(packet[http.HTTPRequest].fields)
+                # Search for potential password transmission in the payload
                 if password_regex.search(payload):
                     return ('Potential password transmission', src_ip, dst_ip)
+                # Search for potential credit card transmission in the payload
                 if credit_card_regex.search(payload):
                     return ('Potential credit card transmission', src_ip, dst_ip)
+            
+            # Check if the TCP flags indicate a SYN packet, which signifies a connection request
             if packet[scapy.TCP].flags & 0x02:
+                # Return a tuple indicating an outbound connection if the source IP matches the local IP
                 return ('Outbound connection', dst_ip, dst_port, src_port, current_time) if src_ip == local_ip else ('Inbound connection', dst_port, src_ip)
+        
+        # Check if the packet contains a DNS query layer
         if packet.haslayer(dns.DNSQR):
+            # Return a tuple indicating a DNS query along with the source IP and the queried domain name
             return ('DNS query', src_ip, packet[dns.DNSQR].qname.decode('utf-8'))
+    
+    # Return None if no relevant information is found in the packet
     return None
 
 
-
 def is_inbound(packet, local_network):
+    # Check if the packet's destination IP belongs to the local network
+    # and if the source IP does not belong to the local network
     return packet[IP].dst.startswith(local_network) and not packet[IP].src.startswith(local_network)
 
 def process_packet_batch(raw_packet_batch, local_network, password_regex_pattern, credit_card_regex_pattern):
+    # Compile regex patterns for password and credit card detection
     password_regex = re.compile(password_regex_pattern, re.IGNORECASE)
     credit_card_regex = re.compile(credit_card_regex_pattern)
+    
+    # Initialize a dictionary to store results for the current batch
     batch_results = {
-        'suspicious_activities': [],
-        'inbound_connections': defaultdict(lambda: defaultdict(int)),
-        'dns_queries': defaultdict(set),
-        'port_scans': defaultdict(set)
+        'suspicious_activities': [],  # List to hold suspicious activities detected
+        'inbound_connections': defaultdict(lambda: defaultdict(int)),  # Track inbound connections by port
+        'dns_queries': defaultdict(set),  # Store unique DNS queries by source IP
+        'port_scans': defaultdict(set)  # Record ports scanned by source IPs
     }
 
+    # Iterate over each packet in the raw packet batch
     for _, packet_data in raw_packet_batch:
         try:
+            # Parse the packet data as an IP packet
             packet = IP(packet_data)
         except:
-            continue  # Skip packets that can't be parsed as IP
+            # Skip any packets that cannot be parsed as valid IP packets
+            continue  
 
+        # Check if the packet is inbound using the local network check
         if is_inbound(packet, local_network):
-            src_ip = packet[IP].src
-            dst_ip = packet[IP].dst
-            if TCP in packet:
-                dst_port = packet[TCP].dport
+            src_ip = packet[IP].src  # Extract the source IP address
+            dst_ip = packet[IP].dst  # Extract the destination IP address
+            
+            if TCP in packet:  # Check if the packet contains a TCP layer
+                dst_port = packet[TCP].dport  # Extract the destination port
+                # Increment the count of inbound connections for this port and source IP
                 batch_results['inbound_connections'][dst_port][src_ip] += 1
+                # Record the destination port for possible port scan detection
                 batch_results['port_scans'][src_ip].add(dst_port)
 
-            if Raw in packet:
-                payload = str(packet[Raw].load)
+            if Raw in packet:  # Check if the packet contains a raw payload
+                payload = str(packet[Raw].load)  # Convert the payload to a string for inspection
+                # Search for potential password transmission in the payload
                 if password_regex.search(payload):
                     batch_results['suspicious_activities'].append(('Potential password transmission', src_ip, dst_ip))
+                # Search for potential credit card transmission in the payload
                 if credit_card_regex.search(payload):
                     batch_results['suspicious_activities'].append(('Potential credit card transmission', src_ip, dst_ip))
-            elif DNS in packet and DNSQR in packet:
-                query = packet[DNSQR].qname.decode('utf-8')
+            elif DNS in packet and DNSQR in packet:  # Check if the packet is a DNS query
+                query = packet[DNSQR].qname.decode('utf-8')  # Decode the queried domain name
+                # Add the unique query to the set of DNS queries for the source IP
                 batch_results['dns_queries'][src_ip].add(query)
 
+    # Convert any defaultdicts in the results to regular dictionaries for easier serialization
     return {k: dict(v) if isinstance(v, defaultdict) else v for k, v in batch_results.items()}
 
 def analyze_traffic(raw_packets, logger, port_scan_threshold, dns_query_threshold, local_ip):
+    # Initialize a list to store suspicious activities detected during analysis
     suspicious_activities = []
+    # Use defaultdict to track inbound connection attempts by port
     inbound_connections = defaultdict(lambda: defaultdict(int))
+    # Use defaultdict to track unique DNS queries by source IP
     dns_queries = defaultdict(set)
+    # Use defaultdict to track ports scanned by source IPs
     port_scans = defaultdict(set)
+
+    # Check if the local IP is provided; log a warning if it's not
     if not local_ip:
         logger.warning("Unable to determine local IP. Analysis may be inaccurate.")
-        return suspicious_activities
-    # Correct the network calculation
-    local_network = '.'.join(local_ip.split('.')[:3]) + '.0'
-    logger.info(f"Local IP: {local_ip}")
-    logger.info(f"Local network: {local_network}")
-    password_regex_pattern = r'password=\S+'
-    credit_card_regex_pattern = r'\b(?:\d{4}[-\s]?){3}\d{4}\b'
+        return suspicious_activities  # Return empty list if local IP is unavailable
 
+    # Calculate the local network address based on the local IP
+    local_network = '.'.join(local_ip.split('.')[:3]) + '.0'
+    logger.info(f"Local IP: {local_ip}")  # Log the local IP address
+    logger.info(f"Local network: {local_network}")  # Log the local network address
+
+    # Define regex patterns for detecting potential passwords and credit card information
+    password_regex_pattern = r'password=\S+'  # Pattern to detect password transmissions
+    credit_card_regex_pattern = r'\b(?:\d{4}[-\s]?){3}\d{4}\b'  # Pattern to detect credit card numbers
+
+    # Set the batch size for processing packets
     batch_size = 100
+    # Split the raw packets into smaller batches for parallel processing
     packet_batches = [raw_packets[i:i+batch_size] for i in range(0, len(raw_packets), batch_size)]
 
+    # Use ProcessPoolExecutor to process each batch of packets in parallel
     with ProcessPoolExecutor(max_workers=8) as executor:
+        # Map the process_packet_batch function to each batch, along with necessary parameters
         results = list(executor.map(
             process_packet_batch,
             packet_batches,
-            [local_network] * len(packet_batches),
-            [password_regex_pattern] * len(packet_batches),
-            [credit_card_regex_pattern] * len(packet_batches)
+            [local_network] * len(packet_batches),  # Pass the same local network for all batches
+            [password_regex_pattern] * len(packet_batches),  # Pass the password regex pattern for all batches
+            [credit_card_regex_pattern] * len(packet_batches)  # Pass the credit card regex pattern for all batches
         ))
 
+    # Iterate over the results from each batch and aggregate suspicious activities and connection statistics
     for result in results:
-        suspicious_activities.extend(result['suspicious_activities'])
+        suspicious_activities.extend(result['suspicious_activities'])  # Extend the main list with activities found in the batch
         for port, connections in result['inbound_connections'].items():
-            inbound_connections[port].update(connections)
+            inbound_connections[port].update(connections)  # Update inbound connection counts by port
         for src_ip, queries in result['dns_queries'].items():
-            dns_queries[src_ip].update(queries)
+            dns_queries[src_ip].update(queries)  # Update DNS queries by source IP
         for src_ip, ports in result['port_scans'].items():
-            port_scans[src_ip].update(ports)
+            port_scans[src_ip].update(ports)  # Update port scans by source IP
 
+    # Analyze inbound connection attempts and log any suspicious ones
     for port, connections in inbound_connections.items():
-        total_attempts = sum(connections.values())
+        total_attempts = sum(connections.values())  # Calculate total attempts for the port
+        # Log unsolicited connection attempts to privileged ports (below 1024)
         if total_attempts > 0 and port < 1024:
             suspicious_activities.append(('Unsolicited inbound connection attempt', port, total_attempts, f"Sources: {', '.join(map(resolve_ip, connections.keys()))}"))
 
+    # Check for potential port scan attempts based on the threshold set
     for src_ip, ports in port_scans.items():
         if len(ports) > port_scan_threshold:
             suspicious_activities.append(('Potential port scan attempt', src_ip, f"Scanned ports: {', '.join(map(str, ports))}"))
 
+    # Analyze DNS queries and log excessive ones
     for ip, queries in dns_queries.items():
         if len(queries) > dns_query_threshold:
             suspicious_activities.append(('Excessive inbound DNS queries', ip, f"Number of unique queries: {len(queries)}"))
 
+    # Return the list of suspicious activities found during the analysis
     return suspicious_activities
 
-# Make sure to define or import the resolve_ip function
 def resolve_ip(ip):
+    # Attempt to resolve the given IP address to a hostname
     try:
+        # Use gethostbyaddr to get the hostname associated with the provided IP
         return socket.gethostbyaddr(ip)[0]
     except (socket.herror, socket.timeout):
+        # If there is a socket error or timeout, return the IP as is
         return ip
 
 
 def log_suspicious_activities(log_file, data, logger):
+    # Get the current timestamp for logging
     timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+    # Open the log file in append mode with UTF-8 encoding
     with open(log_file, 'a', encoding='utf-8') as f:
+        # Iterate over the list of suspicious activity data
         for item in data:
+            # Create a log message by combining the timestamp and the string representation of each item
             log_message = f"{timestamp} - {': '.join(map(str, item))}"
+            # Write the log message to the log file
             f.write(log_message + "\n")
+            # Log the message as a warning
             logger.warning(log_message)
-        f.flush()
+        f.flush()  # Ensure all data is flushed to the file
+        # Synchronize the file's contents with the storage device
         os.fsync(f.fileno())
 
 def main():
+    # Setup the logger and log listener to handle logging messages in a queue
     logger, log_listener = setup_logging_queue()
-    log_listener.start()
+    log_listener.start()  # Start the log listener to listen for log messages
     try:
-        # Define parameters directly in the script
-        MALICIOUS_IPS = set()  # Add any known malicious IPs here
-        MONITORED_EXTENSIONS = set(['.exe', '.dll', '.bat'])  # Add file extensions to monitor
-        PORT_SCAN_THRESHOLD = 10
-        DNS_QUERY_THRESHOLD = 50
+        # Define parameters directly in the script for monitoring
+        MALICIOUS_IPS = set()  # Initialize a set for known malicious IP addresses (if any)
+        MONITORED_EXTENSIONS = set(['.exe', '.dll', '.bat'])  # Set of file extensions to monitor for suspicious activity
+        PORT_SCAN_THRESHOLD = 10  # Define the threshold for detecting port scans
+        DNS_QUERY_THRESHOLD = 50  # Define the threshold for excessive DNS queries
         count = 1000  # Total number of packets to capture in each iteration
         
-        interfaces = get_interfaces()
-        if not interfaces:
+        interfaces = get_interfaces()  # Retrieve active network interfaces
+        if not interfaces:  # Check if no interfaces were found
             logger.info("No active network interfaces found. Exiting.")
-            return
+            return  # Exit if no valid interfaces are available
+        
+        # Prompt user to choose a network interface for packet capture
         interface, local_ip = choose_interface(interfaces, logger)
-        if not interface:
+        if not interface:  # Check if no interface was selected
             logger.info("No interface selected. Exiting.")
-            return
-        logger.info(f"Using network interface: {get_display(interface)} with IP: {local_ip}")
+            return  # Exit if no interface is chosen
+        logger.info(f"Using network interface: {get_display(interface)} with IP: {local_ip}")  # Log the chosen interface information
         
-        log_file = 'security_log.txt'
+        log_file = 'security_log.txt'  # Define the log file for suspicious activity logs
         
-        while True:
-            packets = capture_packets(interface, count, logger)
-            suspicious_activities = analyze_traffic(packets, logger, PORT_SCAN_THRESHOLD, DNS_QUERY_THRESHOLD, local_ip)
-            if suspicious_activities:
-                logger.info("Suspicious activities detected!")
-                log_suspicious_activities(log_file, suspicious_activities, logger)
-                for activity in suspicious_activities:
-                    logger.info(f"- {': '.join(map(str, activity))}")
+        while True:  # Continuous loop to capture packets and analyze
+            packets = capture_packets(interface, count, logger)  # Capture packets on the selected interface
+            suspicious_activities = analyze_traffic(packets, logger, PORT_SCAN_THRESHOLD, DNS_QUERY_THRESHOLD, local_ip)  # Analyze the captured packets
+            
+            if suspicious_activities:  # Check if any suspicious activities were detected
+                logger.info("Suspicious activities detected!")  # Log that suspicious activities were found
+                log_suspicious_activities(log_file, suspicious_activities, logger)  # Log the suspicious activities to the file
+                for activity in suspicious_activities:  # Iterate through the suspicious activities
+                    logger.info(f"- {': '.join(map(str, activity))}")  # Log each activity in detail
             else:
-                logger.info("No suspicious activities detected in this batch.")
-            time.sleep(60)
-    except KeyboardInterrupt:
-        logger.info("\nStopping packet capture. Exiting.")
-    except Exception as e:
-        logger.error(f"An error occurred: {e}", exc_info=True)
+                logger.info("No suspicious activities detected in this batch.")  # Log that there were no suspicious activities
+            
+            time.sleep(60)  # Wait for 60 seconds before the next iteration
+    except KeyboardInterrupt:  # Handle keyboard interrupt to stop the loop gracefully
+        logger.info("\nStopping packet capture. Exiting.")  # Log the stopping of packet capture
+    except Exception as e:  # Catch any other exceptions that occur
+        logger.error(f"An error occurred: {e}", exc_info=True)  # Log the error with traceback information
     finally:
-        log_listener.stop()
+        log_listener.stop()  # Stop the log listener when done
 
+# Entry point of the script
 if __name__ == "__main__":
-    main()
+    main()  # Call the main function to start execution
