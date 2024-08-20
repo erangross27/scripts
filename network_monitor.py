@@ -16,7 +16,12 @@ import logging
 import sys
 import multiprocessing
 import platform
-from scapy.all import IP, TCP, UDP, DNS, DNSQR, Raw, scapy
+import ipaddress
+import netifaces
+from collections import defaultdict
+from concurrent.futures import ProcessPoolExecutor
+from typing import List, Dict, Any, Tuple
+from scapy.all import IP, TCP, UDP, DNS, DNSQR, Raw, scapy, Ether
 from scapy.layers import http, dns
 from concurrent.futures import ProcessPoolExecutor
 from collections import defaultdict
@@ -24,6 +29,7 @@ from multiprocessing import Queue
 from tqdm import tqdm
 from bidi.algorithm import get_display
 from logging.handlers import QueueHandler, QueueListener
+from collections import defaultdict
 
 def setup_logger():
     # Create a logger for the current module
@@ -53,31 +59,46 @@ def get_interfaces():
     return [(iface, addr.address) for iface, addrs in psutil.net_if_addrs().items()
             for addr in addrs if addr.family == socket.AF_INET and not addr.address.startswith('169.254.') and addr.address != '127.0.0.1']
 
+
 def choose_interface(interfaces, logger):
-    # Check if there are any available interfaces
     if not interfaces:
         logger.info("No active network interfaces found. Exiting.")
-        return None, None  # Return None values if no interfaces are available
-    # Log the available active interfaces
+        return None, None, None
+
     logger.info("Available active interfaces:")
-    logger.info("")  # Add an empty line before listing interfaces
-    
-    # Enumerate and log each interface with its corresponding IP address
+    logger.info("")
+
     for i, (iface, ip) in enumerate(interfaces):
         logger.info(f"{i}: {get_display(iface)} (IP: {ip})")
-    
-    logger.info("")  # Add an empty line after listing interfaces
-    
-    # Prompt the user to choose an interface until a valid choice is made
+
+    logger.info("")
+
     while True:
+        choice = input("Enter the number of the interface to use: ").strip()
         try:
-            choice = int(input("Enter the number of the interface to use: "))  # Get the user's choice
-            if 0 <= choice < len(interfaces):  # Check if the choice is within the valid range
-                return interfaces[choice]  # Return the selected interface and its IP address
+            choice = int(choice)
+            if 0 <= choice < len(interfaces):
+                chosen_interface, chosen_ip = interfaces[choice]
+                
+                # Find the matching interface in netifaces
+                for ifname in netifaces.interfaces():
+                    addrs = netifaces.ifaddresses(ifname)
+                    if netifaces.AF_INET in addrs:
+                        for addr in addrs[netifaces.AF_INET]:
+                            if addr['addr'] == chosen_ip:
+                                subnet_mask = addr['netmask']
+                                logger.info(f"Selected interface: {chosen_interface} (IP: {chosen_ip}, Subnet: {subnet_mask})")
+                                return chosen_interface, chosen_ip, subnet_mask
+                
+                logger.warning(f"Could not determine subnet mask for {chosen_interface}. Using default 255.255.255.0")
+                return chosen_interface, chosen_ip, "255.255.255.0"
             else:
-                logger.info("Invalid choice. Please try again.")  # Log if the choice is invalid
+                logger.info("Invalid choice. Please enter a number within the range of available interfaces.")
         except ValueError:
-            logger.info("Invalid input. Please enter a number.")  # Log if the input is not a number
+            logger.info("Invalid input. Please enter a number.")
+
+
+
 
 def capture_packets_worker(interface, count, result_queue, logger):
     # This function captures packets on the specified network interface using Scapy or pcap based on the platform
@@ -213,125 +234,130 @@ def is_inbound(packet, local_network):
     # and if the source IP does not belong to the local network
     return packet[IP].dst.startswith(local_network) and not packet[IP].src.startswith(local_network)
 
-def process_packet_batch(raw_packet_batch, local_network, password_regex_pattern, credit_card_regex_pattern):
-    # Compile regex patterns for password and credit card detection
-    password_regex = re.compile(password_regex_pattern, re.IGNORECASE)
-    credit_card_regex = re.compile(credit_card_regex_pattern)
-    
-    # Initialize a dictionary to store results for the current batch
-    batch_results = {
-        'suspicious_activities': [],  # List to hold suspicious activities detected
-        'inbound_connections': defaultdict(lambda: defaultdict(int)),  # Track inbound connections by port
-        'dns_queries': defaultdict(set),  # Store unique DNS queries by source IP
-        'port_scans': defaultdict(set)  # Record ports scanned by source IPs
+def default_dict():
+    return defaultdict(int)
+
+def process_packet_batch(batch, local_network, password_regex_pattern, credit_card_regex_pattern, command_regex_pattern, malware_signatures_pattern, known_exploits_pattern):
+    result = {
+        'suspicious_activities': [],
+        'inbound_connections': defaultdict(default_dict),
+        'dns_queries': defaultdict(set),
+        'port_scans': defaultdict(set)
     }
-
-    # Iterate over each packet in the raw packet batch
-    for _, packet_data in raw_packet_batch:
+    local_net = ipaddress.ip_network(local_network)
+    
+    for packet_data in batch:
         try:
-            # Parse the packet data as an IP packet
-            packet = IP(packet_data)
-        except:
-            # Skip any packets that cannot be parsed as valid IP packets
-            continue  
-
-        # Check if the packet is inbound using the local network check
-        if is_inbound(packet, local_network):
-            src_ip = packet[IP].src  # Extract the source IP address
-            dst_ip = packet[IP].dst  # Extract the destination IP address
+            # Check if packet_data is a tuple and extract the bytes
+            if isinstance(packet_data, tuple):
+                packet_data = packet_data[1]  # Assuming the bytes are in the second element of the tuple
             
-            if TCP in packet:  # Check if the packet contains a TCP layer
-                dst_port = packet[TCP].dport  # Extract the destination port
-                # Increment the count of inbound connections for this port and source IP
-                batch_results['inbound_connections'][dst_port][src_ip] += 1
-                # Record the destination port for possible port scan detection
-                batch_results['port_scans'][src_ip].add(dst_port)
+            packet = Ether(packet_data)
+            if IP in packet:
+                src_ip = packet[IP].src
+                dst_ip = packet[IP].dst
+                
+                if ipaddress.ip_address(dst_ip) in local_net and ipaddress.ip_address(src_ip) not in local_net:
+                    if TCP in packet:
+                        dst_port = packet[TCP].dport
+                        result['inbound_connections'][dst_port][src_ip] += 1
+                        result['port_scans'][src_ip].add(dst_port)
+                    elif UDP in packet:
+                        dst_port = packet[UDP].dport
+                        result['inbound_connections'][dst_port][src_ip] += 1
+                        result['port_scans'][src_ip].add(dst_port)
+                
+                if DNS in packet and packet.haslayer(DNSQR):
+                    query = packet[DNSQR].qname.decode('utf-8')
+                    result['dns_queries'][src_ip].add(query)
+                
+                if Raw in packet:
+                    payload = packet[Raw].load.decode('utf-8', errors='ignore')
+                    if re.search(password_regex_pattern, payload):
+                        result['suspicious_activities'].append(('Potential password in clear text', src_ip, dst_ip))
+                    if re.search(credit_card_regex_pattern, payload):
+                        result['suspicious_activities'].append(('Potential credit card number in clear text', src_ip, dst_ip))
+                    if re.search(command_regex_pattern, payload):
+                        result['suspicious_activities'].append(('Potential command execution', src_ip, dst_ip))
+                    if re.search(malware_signatures_pattern, payload):
+                        result['suspicious_activities'].append(('Potential malware signature', src_ip, dst_ip))
+                    if re.search(known_exploits_pattern, payload):
+                        result['suspicious_activities'].append(('Potential known exploit', src_ip, dst_ip))
+        except Exception as e:
+            # Log the error or handle it as appropriate for your use case
+            pass
+    
+    return result
 
-            if Raw in packet:  # Check if the packet contains a raw payload
-                payload = str(packet[Raw].load)  # Convert the payload to a string for inspection
-                # Search for potential password transmission in the payload
-                if password_regex.search(payload):
-                    batch_results['suspicious_activities'].append(('Potential password transmission', src_ip, dst_ip))
-                # Search for potential credit card transmission in the payload
-                if credit_card_regex.search(payload):
-                    batch_results['suspicious_activities'].append(('Potential credit card transmission', src_ip, dst_ip))
-            elif DNS in packet and DNSQR in packet:  # Check if the packet is a DNS query
-                query = packet[DNSQR].qname.decode('utf-8')  # Decode the queried domain name
-                # Add the unique query to the set of DNS queries for the source IP
-                batch_results['dns_queries'][src_ip].add(query)
-
-    # Convert any defaultdicts in the results to regular dictionaries for easier serialization
-    return {k: dict(v) if isinstance(v, defaultdict) else v for k, v in batch_results.items()}
-
-def analyze_traffic(raw_packets, logger, port_scan_threshold, dns_query_threshold, local_ip):
-    # Initialize a list to store suspicious activities detected during analysis
+def analyze_traffic(raw_packets: List[Tuple[Any, bytes]], logger: Any, port_scan_threshold: int, dns_query_threshold: int, local_ip: str, subnet_mask: str) -> List[Tuple]:
     suspicious_activities = []
-    # Use defaultdict to track inbound connection attempts by port
-    inbound_connections = defaultdict(lambda: defaultdict(int))
-    # Use defaultdict to track unique DNS queries by source IP
+    inbound_connections = defaultdict(default_dict)
     dns_queries = defaultdict(set)
-    # Use defaultdict to track ports scanned by source IPs
     port_scans = defaultdict(set)
 
-    # Check if the local IP is provided; log a warning if it's not
-    if not local_ip:
-        logger.warning("Unable to determine local IP. Analysis may be inaccurate.")
-        return suspicious_activities  # Return empty list if local IP is unavailable
+    if not local_ip or not subnet_mask:
+        logger.warning("Unable to determine local IP or subnet mask. Analysis may be inaccurate.")
+        return suspicious_activities
 
-    # Calculate the local network address based on the local IP
-    local_network = '.'.join(local_ip.split('.')[:3]) + '.0'
-    logger.info(f"Local IP: {local_ip}")  # Log the local IP address
-    logger.info(f"Local network: {local_network}")  # Log the local network address
+    try:
+        # Create local_network using the provided local_ip and subnet_mask
+        local_network = ipaddress.ip_network(f"{local_ip}/{subnet_mask}", strict=False)
+        logger.info(f"Local IP: {local_ip}")
+        logger.info(f"Subnet Mask: {subnet_mask}")
+        logger.info(f"Local network: {local_network}")
 
-    # Define regex patterns for detecting potential passwords and credit card information
-    password_regex_pattern = r'password=\S+'  # Pattern to detect password transmissions
-    credit_card_regex_pattern = r'\b(?:\d{4}[-\s]?){3}\d{4}\b'  # Pattern to detect credit card numbers
+        password_regex_pattern = r'password=\S+'
+        credit_card_regex_pattern = r'\b(?:\d{4}[-\s]?){3}\d{4}\b'
+        command_regex_pattern = r'\b(curl|wget|bash|sh|python|php|ruby|perl|nc)\b'
+        malware_signatures_pattern = r'\b(eval\(|base64_decode|exec|system|shell_exec|cmd\.exe|powershell\.exe)\b'
+        known_exploits_pattern = r'(/etc/passwd|/bin/bash|/bin/sh|\.\.\/\.\./|\.php\?id=)'
 
-    # Set the batch size for processing packets
-    batch_size = 100
-    # Split the raw packets into smaller batches for parallel processing
-    packet_batches = [raw_packets[i:i+batch_size] for i in range(0, len(raw_packets), batch_size)]
+        batch_size = 100
+        packet_batches = [raw_packets[i:i + batch_size] for i in range(0, len(raw_packets), batch_size)]
 
-    # Use ProcessPoolExecutor to process each batch of packets in parallel
-    with ProcessPoolExecutor(max_workers=8) as executor:
-        # Map the process_packet_batch function to each batch, along with necessary parameters
-        results = list(executor.map(
-            process_packet_batch,
-            packet_batches,
-            [local_network] * len(packet_batches),  # Pass the same local network for all batches
-            [password_regex_pattern] * len(packet_batches),  # Pass the password regex pattern for all batches
-            [credit_card_regex_pattern] * len(packet_batches)  # Pass the credit card regex pattern for all batches
-        ))
+        with ProcessPoolExecutor(max_workers=8) as executor:
+            results = list(executor.map(
+                process_packet_batch,
+                packet_batches,
+                [str(local_network)] * len(packet_batches),
+                [password_regex_pattern] * len(packet_batches),
+                [credit_card_regex_pattern] * len(packet_batches),
+                [command_regex_pattern] * len(packet_batches),
+                [malware_signatures_pattern] * len(packet_batches),
+                [known_exploits_pattern] * len(packet_batches)
+            ))
 
-    # Iterate over the results from each batch and aggregate suspicious activities and connection statistics
-    for result in results:
-        suspicious_activities.extend(result['suspicious_activities'])  # Extend the main list with activities found in the batch
-        for port, connections in result['inbound_connections'].items():
-            inbound_connections[port].update(connections)  # Update inbound connection counts by port
-        for src_ip, queries in result['dns_queries'].items():
-            dns_queries[src_ip].update(queries)  # Update DNS queries by source IP
-        for src_ip, ports in result['port_scans'].items():
-            port_scans[src_ip].update(ports)  # Update port scans by source IP
+        # The rest of the function remains the same
+        for result in results:
+            suspicious_activities.extend(result['suspicious_activities'])
+            for port, connections in result['inbound_connections'].items():
+                inbound_connections[port].update(connections)
+            for src_ip, queries in result['dns_queries'].items():
+                dns_queries[src_ip].update(queries)
+            for src_ip, ports in result['port_scans'].items():
+                port_scans[src_ip].update(ports)
 
-    # Analyze inbound connection attempts and log any suspicious ones
-    for port, connections in inbound_connections.items():
-        total_attempts = sum(connections.values())  # Calculate total attempts for the port
-        # Log unsolicited connection attempts to privileged ports (below 1024)
-        if total_attempts > 0 and port < 1024:
-            suspicious_activities.append(('Unsolicited inbound connection attempt', port, total_attempts, f"Sources: {', '.join(map(resolve_ip, connections.keys()))}"))
+        for port, connections in inbound_connections.items():
+            total_attempts = sum(connections.values())
+            if total_attempts > 10 and port < 1024:
+                suspicious_activities.append(('High volume of inbound connections to privileged port', port, total_attempts, f"Top source: {max(connections, key=connections.get)}"))
 
-    # Check for potential port scan attempts based on the threshold set
-    for src_ip, ports in port_scans.items():
-        if len(ports) > port_scan_threshold:
-            suspicious_activities.append(('Potential port scan attempt', src_ip, f"Scanned ports: {', '.join(map(str, ports))}"))
+        for src_ip, ports in port_scans.items():
+            if len(ports) > port_scan_threshold:
+                suspicious_activities.append(('Potential port scan attempt', src_ip, f"Ports scanned: {len(ports)}"))
 
-    # Analyze DNS queries and log excessive ones
-    for ip, queries in dns_queries.items():
-        if len(queries) > dns_query_threshold:
-            suspicious_activities.append(('Excessive inbound DNS queries', ip, f"Number of unique queries: {len(queries)}"))
+        for ip, queries in dns_queries.items():
+            if len(queries) > dns_query_threshold:
+                suspicious_activities.append(('High volume of unique DNS queries', ip, f"Unique queries: {len(queries)}"))
 
-    # Return the list of suspicious activities found during the analysis
-    return suspicious_activities
+        # Remove duplicates
+        unique_suspicious_activities = list(set(suspicious_activities))
+
+    except Exception as e:
+        logger.error(f"Error during traffic analysis: {str(e)}")
+        unique_suspicious_activities = []
+
+    return unique_suspicious_activities
 
 def resolve_ip(ip):
     # Attempt to resolve the given IP address to a hostname
@@ -378,7 +404,7 @@ def main():
             return  # Exit if no valid interfaces are available
         
         # Prompt user to choose a network interface for packet capture
-        interface, local_ip = choose_interface(interfaces, logger)
+        interface, local_ip, subnet_mask = choose_interface(interfaces, logger)
         if not interface:  # Check if no interface was selected
             logger.info("No interface selected. Exiting.")
             return  # Exit if no interface is chosen
@@ -388,8 +414,7 @@ def main():
         
         while True:  # Continuous loop to capture packets and analyze
             packets = capture_packets(interface, count, logger)  # Capture packets on the selected interface
-            suspicious_activities = analyze_traffic(packets, logger, PORT_SCAN_THRESHOLD, DNS_QUERY_THRESHOLD, local_ip)  # Analyze the captured packets
-            
+            suspicious_activities = analyze_traffic(packets, logger, PORT_SCAN_THRESHOLD, DNS_QUERY_THRESHOLD, local_ip, subnet_mask)# Analyze the captured packets
             if suspicious_activities:  # Check if any suspicious activities were detected
                 logger.info("Suspicious activities detected!")  # Log that suspicious activities were found
                 log_suspicious_activities(log_file, suspicious_activities, logger)  # Log the suspicious activities to the file
