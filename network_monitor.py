@@ -228,12 +228,6 @@ def analyze_packet(packet, local_ip, current_time, password_regex, credit_card_r
     # Return None if no relevant information is found in the packet
     return None
 
-
-def is_inbound(packet, local_network):
-    # Check if the packet's destination IP belongs to the local network
-    # and if the source IP does not belong to the local network
-    return packet[IP].dst.startswith(local_network) and not packet[IP].src.startswith(local_network)
-
 def default_dict():
     return defaultdict(int)
 
@@ -245,6 +239,13 @@ def resolve_ip(ip):
     except (socket.herror, socket.timeout):
         # If there is a socket error or timeout, return the IP as is
         return ip
+    
+
+def is_inbound(packet, local_network):
+    # Check if the packet's destination IP belongs to the local network
+    # and if the source IP does not belong to the local network
+    return ipaddress.ip_address(packet[IP].dst) in local_network and ipaddress.ip_address(packet[IP].src) not in local_network
+
 def process_packet_batch(batch, local_network, password_regex_pattern, credit_card_regex_pattern, command_regex_pattern, malware_signatures_pattern, known_exploits_pattern):
     result = {
         'suspicious_activities': [],
@@ -253,19 +254,16 @@ def process_packet_batch(batch, local_network, password_regex_pattern, credit_ca
         'port_scans': defaultdict(set)
     }
     local_net = ipaddress.ip_network(local_network)
-    
     for packet_data in batch:
         try:
             # Check if packet_data is a tuple and extract the bytes
             if isinstance(packet_data, tuple):
                 packet_data = packet_data[1]  # Assuming the bytes are in the second element of the tuple
-            
             packet = Ether(packet_data)
             if IP in packet:
                 src_ip = packet[IP].src
                 dst_ip = packet[IP].dst
-                
-                if ipaddress.ip_address(dst_ip) in local_net and ipaddress.ip_address(src_ip) not in local_net:
+                if is_inbound(packet, local_net):
                     if TCP in packet:
                         dst_port = packet[TCP].dport
                         result['inbound_connections'][dst_port][src_ip] += 1
@@ -274,27 +272,24 @@ def process_packet_batch(batch, local_network, password_regex_pattern, credit_ca
                         dst_port = packet[UDP].dport
                         result['inbound_connections'][dst_port][src_ip] += 1
                         result['port_scans'][src_ip].add(dst_port)
-                
-                if DNS in packet and packet.haslayer(DNSQR):
-                    query = packet[DNSQR].qname.decode('utf-8')
-                    result['dns_queries'][src_ip].add(query)
-                
-                if Raw in packet:
-                    payload = packet[Raw].load.decode('utf-8', errors='ignore')
-                    if re.search(password_regex_pattern, payload):
-                        result['suspicious_activities'].append(('Potential password in clear text', src_ip, dst_ip))
-                    if re.search(credit_card_regex_pattern, payload):
-                        result['suspicious_activities'].append(('Potential credit card number in clear text', src_ip, dst_ip))
-                    if re.search(command_regex_pattern, payload):
-                        result['suspicious_activities'].append(('Potential command execution', src_ip, dst_ip))
-                    if re.search(malware_signatures_pattern, payload):
-                        result['suspicious_activities'].append(('Potential malware signature', src_ip, dst_ip))
-                    if re.search(known_exploits_pattern, payload):
-                        result['suspicious_activities'].append(('Potential known exploit', src_ip, dst_ip))
+                    if DNS in packet and packet.haslayer(DNSQR):
+                        query = packet[DNSQR].qname.decode('utf-8')
+                        result['dns_queries'][src_ip].add(query)
+                    if Raw in packet:
+                        payload = packet[Raw].load.decode('utf-8', errors='ignore')
+                        if re.search(password_regex_pattern, payload):
+                            result['suspicious_activities'].append(('Potential password in clear text', src_ip, dst_ip))
+                        if re.search(credit_card_regex_pattern, payload):
+                            result['suspicious_activities'].append(('Potential credit card number in clear text', src_ip, dst_ip))
+                        if re.search(command_regex_pattern, payload):
+                            result['suspicious_activities'].append(('Potential command execution', src_ip, dst_ip))
+                        if re.search(malware_signatures_pattern, payload):
+                            result['suspicious_activities'].append(('Potential malware signature', src_ip, dst_ip))
+                        if re.search(known_exploits_pattern, payload):
+                            result['suspicious_activities'].append(('Potential known exploit', src_ip, dst_ip))
         except Exception as e:
             # Log the error or handle it as appropriate for your use case
             pass
-    
     return result
 
 def analyze_traffic(raw_packets: List[Tuple[Any, bytes]], logger: Any, port_scan_threshold: int, dns_query_threshold: int, local_ip: str, subnet_mask: str) -> List[Tuple]:
@@ -342,8 +337,10 @@ def analyze_traffic(raw_packets: List[Tuple[Any, bytes]], logger: Any, port_scan
 
             for port, connections in result['inbound_connections'].items():
                 inbound_connections[port].update(connections)
+
             for src_ip, queries in result['dns_queries'].items():
                 dns_queries[src_ip].update(queries)
+
             for src_ip, ports in result['port_scans'].items():
                 port_scans[src_ip].update(ports)
 
@@ -367,8 +364,9 @@ def analyze_traffic(raw_packets: List[Tuple[Any, bytes]], logger: Any, port_scan
     except Exception as e:
         logger.error(f"Error during traffic analysis: {str(e)}")
         unique_suspicious_activities = []
-        
+
     return unique_suspicious_activities
+
 
 
 def log_suspicious_activities(log_file, data, logger):
