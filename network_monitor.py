@@ -31,7 +31,7 @@ def setup_logger():
     # Set the logging level to INFO, which means it will capture messages at this level and above
     logger.setLevel(logging.INFO)
     return logger
-
+## Start the QueueListener to begin listening for log messages
 def setup_logging_queue():
     # Create a Queue for logging, with no limit on its size
     queue = Queue(-1)
@@ -46,7 +46,7 @@ def setup_logging_queue():
     # Create a QueueListener to listen for messages from the queue and send them to the stream handler
     listener = QueueListener(queue, stream_handler)
     return logger, listener  # Return both the logger and the listener for further use
-
+#
 def get_interfaces():
     # Retrieve a list of active network interfaces along with their IP addresses
     # Filter out link-local addresses (starting with '169.254.') and the localhost address ('127.0.0.1')
