@@ -237,6 +237,14 @@ def is_inbound(packet, local_network):
 def default_dict():
     return defaultdict(int)
 
+def resolve_ip(ip):
+    # Attempt to resolve the given IP address to a hostname
+    try:
+        # Use gethostbyaddr to get the hostname associated with the provided IP
+        return socket.gethostbyaddr(ip)[0]
+    except (socket.herror, socket.timeout):
+        # If there is a socket error or timeout, return the IP as is
+        return ip
 def process_packet_batch(batch, local_network, password_regex_pattern, credit_card_regex_pattern, command_regex_pattern, malware_signatures_pattern, known_exploits_pattern):
     result = {
         'suspicious_activities': [],
@@ -291,7 +299,7 @@ def process_packet_batch(batch, local_network, password_regex_pattern, credit_ca
 
 def analyze_traffic(raw_packets: List[Tuple[Any, bytes]], logger: Any, port_scan_threshold: int, dns_query_threshold: int, local_ip: str, subnet_mask: str) -> List[Tuple]:
     suspicious_activities = []
-    inbound_connections = defaultdict(default_dict)
+    inbound_connections = defaultdict(lambda: defaultdict(int))
     dns_queries = defaultdict(set)
     port_scans = defaultdict(set)
 
@@ -327,9 +335,11 @@ def analyze_traffic(raw_packets: List[Tuple[Any, bytes]], logger: Any, port_scan
                 [known_exploits_pattern] * len(packet_batches)
             ))
 
-        # The rest of the function remains the same
         for result in results:
-            suspicious_activities.extend(result['suspicious_activities'])
+            for activity_type, *params in result['suspicious_activities']:
+                resolved_params = [resolve_ip(param) if isinstance(param, str) and re.match(r'\d+\.\d+\.\d+\.\d+', param) else param for param in params]
+                suspicious_activities.append((activity_type, *resolved_params))
+
             for port, connections in result['inbound_connections'].items():
                 inbound_connections[port].update(connections)
             for src_ip, queries in result['dns_queries'].items():
@@ -340,15 +350,16 @@ def analyze_traffic(raw_packets: List[Tuple[Any, bytes]], logger: Any, port_scan
         for port, connections in inbound_connections.items():
             total_attempts = sum(connections.values())
             if total_attempts > 10 and port < 1024:
-                suspicious_activities.append(('High volume of inbound connections to privileged port', port, total_attempts, f"Top source: {max(connections, key=connections.get)}"))
+                top_source = max(connections, key=connections.get)
+                suspicious_activities.append(('High volume of inbound connections to privileged port', port, total_attempts, f"Top source: {resolve_ip(top_source)}"))
 
         for src_ip, ports in port_scans.items():
             if len(ports) > port_scan_threshold:
-                suspicious_activities.append(('Potential port scan attempt', src_ip, f"Ports scanned: {len(ports)}"))
+                suspicious_activities.append(('Potential port scan attempt', resolve_ip(src_ip), f"Ports scanned: {len(ports)}"))
 
         for ip, queries in dns_queries.items():
             if len(queries) > dns_query_threshold:
-                suspicious_activities.append(('High volume of unique DNS queries', ip, f"Unique queries: {len(queries)}"))
+                suspicious_activities.append(('High volume of unique DNS queries', resolve_ip(ip), f"Unique queries: {len(queries)}"))
 
         # Remove duplicates
         unique_suspicious_activities = list(set(suspicious_activities))
@@ -356,17 +367,8 @@ def analyze_traffic(raw_packets: List[Tuple[Any, bytes]], logger: Any, port_scan
     except Exception as e:
         logger.error(f"Error during traffic analysis: {str(e)}")
         unique_suspicious_activities = []
-
+        
     return unique_suspicious_activities
-
-def resolve_ip(ip):
-    # Attempt to resolve the given IP address to a hostname
-    try:
-        # Use gethostbyaddr to get the hostname associated with the provided IP
-        return socket.gethostbyaddr(ip)[0]
-    except (socket.herror, socket.timeout):
-        # If there is a socket error or timeout, return the IP as is
-        return ip
 
 
 def log_suspicious_activities(log_file, data, logger):
