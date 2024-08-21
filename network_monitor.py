@@ -311,7 +311,7 @@ def analyze_traffic(raw_packets: List[Tuple[Any, bytes]], logger: Any, port_scan
 
         password_regex_pattern = r'password=\S+'
         credit_card_regex_pattern = r'\b(?:\d{4}[-\s]?){3}\d{4}\b'
-        command_regex_pattern = r'\b(curl|wget|bash|sh|python|php|ruby|perl|nc)\b'
+        command_regex_pattern = r'\b(curl|wget|bash|sh|php|ruby|perl|nc)\b'
         malware_signatures_pattern = r'\b(eval\(|base64_decode|exec|system|shell_exec|cmd\.exe|powershell\.exe)\b'
         known_exploits_pattern = r'(/etc/passwd|/bin/bash|/bin/sh|\.\.\/\.\./|\.php\?id=)'
 
@@ -394,7 +394,7 @@ def main():
         # Define parameters directly in the script for monitoring
         MALICIOUS_IPS = set()  # Initialize a set for known malicious IP addresses (if any)
         MONITORED_EXTENSIONS = set(['.exe', '.dll', '.bat'])  # Set of file extensions to monitor for suspicious activity
-        PORT_SCAN_THRESHOLD = 10  # Define the threshold for detecting port scans
+        PORT_SCAN_THRESHOLD = 20  # Define the threshold for detecting port scans
         DNS_QUERY_THRESHOLD = 50  # Define the threshold for excessive DNS queries
         count = 1000  # Total number of packets to capture in each iteration
         
