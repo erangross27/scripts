@@ -1,4 +1,23 @@
-Pillow # Used in: anthropic_claude_chat.py, anthropic_claude_chat_for_linux.py, compress_image_to_small_size.py, inpainting.py, watermar_detection.py
-PyQt5 # Used in: anthropic_claude_chat.py, anthropic_claude_chat_for_linux.py, compress_image_to_small_size.py, convert_svg_to_diffrent_images_format.py, extract_frames_from_video.py, numbering_pdf.py
-diffusers # Used in: inpainting.py
-google # Used in: convert_audio_to_text.py, convert_image_to_doc.py, extract_text_from_image_regular.py, extract_text_from_image_tables.py
+Pillow
+PyQt5
+diffusers
+google
+anthropic
+PyMuPDF
+httpx
+pywin32
+opencv-python
+pydub
+python-docx
+pytube
+moviepy
+qiskit
+qiskit-ibm-runtime
+matplotlib
+wmi
+psutil
+google-cloud-vision
+msgraph-sdk
+azure-identity
+torch
+numpy
