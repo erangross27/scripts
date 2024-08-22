@@ -15,10 +15,8 @@ import re
 import logging
 import sys
 import multiprocessing
-import platform
 import ipaddress
 import netifaces
-from collections import defaultdict
 from concurrent.futures import ProcessPoolExecutor
 from typing import List, Dict, Any, Tuple
 from scapy.all import IP, TCP, UDP, DNS, DNSQR, Raw, scapy, Ether
@@ -29,7 +27,6 @@ from multiprocessing import Queue
 from tqdm import tqdm
 from bidi.algorithm import get_display
 from logging.handlers import QueueHandler, QueueListener
-from collections import defaultdict
 
 def setup_logger():
     # Create a logger for the current module
@@ -101,7 +98,7 @@ def choose_interface(interfaces, logger):
 
 
 def capture_packets_worker(interface, count, result_queue, logger):
-    # This function captures packets on the specified network interface using Scapy or pcap based on the platform
+    # This function captures packets on the specified network interface using Scapy.
     try:
         from scapy.all import sniff  # Import the sniff function from Scapy for packet capture
         logger.info(f"Starting packet capture on interface {interface} using scapy")  # Log the start of the capture
