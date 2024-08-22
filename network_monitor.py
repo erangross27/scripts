@@ -103,54 +103,29 @@ def choose_interface(interfaces, logger):
 def capture_packets_worker(interface, count, result_queue, logger):
     # This function captures packets on the specified network interface using Scapy or pcap based on the platform
     try:
-        # Check the operating system to choose the appropriate capturing method
-        if platform.system() == "Windows":
-            from scapy.all import sniff  # Import the sniff function from Scapy for packet capture
-            logger.info(f"Starting packet capture on interface {interface} using scapy")  # Log the start of the capture
-            packets = []  # Initialize a list to store captured packets
+        from scapy.all import sniff  # Import the sniff function from Scapy for packet capture
+        logger.info(f"Starting packet capture on interface {interface} using scapy")  # Log the start of the capture
+        packets = []  # Initialize a list to store captured packets
 
-            # Define a packet handler function for Scapy to call on each packet captured
-            def packet_handler(pkt):
-                packets.append(pkt)  # Append the captured packet to the packets list
-                # Check if the number of captured packets has reached the specified count
-                if len(packets) >= count:
-                    raise Exception("Capture complete")  # Raise an exception to indicate capture is complete
+        # Define a packet handler function for Scapy to call on each packet captured
+        def packet_handler(pkt):
+            packets.append(pkt)  # Append the captured packet to the packets list
+            # Check if the number of captured packets has reached the specified count
+            if len(packets) >= count:
+                raise Exception("Capture complete")  # Raise an exception to indicate capture is complete
 
-            start_time = time.time()  # Record the start time of the packet capture
-            try:
-                # Start sniffing the packets on the specified interface, calling packet_handler for each captured packet
-                sniff(iface=interface, prn=packet_handler, store=False, timeout=300)
-            except Exception as e:
-                # If the exception raised was not "Capture complete", re-raise it
-                if "Capture complete" not in str(e):
-                    raise e
+        start_time = time.time()  # Record the start time of the packet capture
+        try:
+            # Start sniffing the packets on the specified interface, calling packet_handler for each captured packet
+            sniff(iface=interface, prn=packet_handler, store=False, timeout=300)
+        except Exception as e:
+            # If the exception raised was not "Capture complete", re-raise it
+            if "Capture complete" not in str(e):
+                raise e
 
-            logger.info(f"Captured {len(packets)} packets")  # Log the total number of packets captured
-            # Prepare the packet data as a list of tuples containing time and byte representation of each packet
-            packet_data = [(pkt.time, bytes(pkt)) for pkt in packets]
-
-        elif platform.system() == "Linux":
-            import pcap # type: ignore
-
-            # Create a pcap object for the specified interface with promiscuous mode and immediate mode
-            cap = pcap.pcap(name=interface, promisc=True, immediate=True, timeout_ms=100)
-            logger.info(f"Pcap object created on interface {interface}")  # Log the creation of the pcap object
-            packets = []  # Initialize a list to store captured packets
-            start_time = time.time()  # Record the start time of the packet capture
-
-            # Loop over packets captured by the pcap object
-            for timestamp, packet in cap:
-                packets.append((timestamp, packet))  # Append the captured packet and its timestamp to the packets list
-                # Check if the number of captured packets has reached the specified count
-                if len(packets) >= count:
-                    break  # Exit the loop if the desired number of packets have been captured
-                # Check for a timeout condition to limit the capture duration
-                if time.time() - start_time > 300:  # If 5 minutes has passed
-                    logger.warning(f"Timeout reached. Captured {len(packets)} packets in 5 minutes.")  # Log a timeout warning
-                    break  # Exit the loop on timeout
-
-            packet_data = packets  # Assign packets to packet_data for later use
-
+        logger.info(f"Captured {len(packets)} packets")  # Log the total number of packets captured
+        # Prepare the packet data as a list of tuples containing time and byte representation of each packet
+        packet_data = [(pkt.time, bytes(pkt)) for pkt in packets]
         result_queue.put(packet_data)  # Put the captured packet data into the result queue for further processing
     except Exception as e:
         logger.error(f"Error in capture_packets_worker: {e}", exc_info=True)  # Log any errors that occur during capture
