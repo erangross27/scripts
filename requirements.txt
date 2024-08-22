@@ -20,4 +20,7 @@ google-cloud-vision
 msgraph-sdk
 azure-identity
 torch
-numpy
+netifaces
+scapy
+python-bidi
+
