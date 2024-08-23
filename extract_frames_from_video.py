@@ -6,61 +6,60 @@ from PyQt5.QtCore import Qt, QThread, pyqtSignal
 
 # FrameExtractor class for extracting frames from videos
 class FrameExtractor(QThread):
-    # Signal definitions for progress updates and completion
     progress_update = pyqtSignal(int)
     file_progress = pyqtSignal(str)
     finished = pyqtSignal()
+
     def __init__(self, video_paths, output_folder, extraction_mode, extraction_value, max_frames):
         super().__init__()
-        # Initialize attributes with input parameters
         self.video_paths = video_paths
         self.output_folder = output_folder
         self.extraction_mode = extraction_mode
         self.extraction_value = extraction_value
         self.max_frames = max_frames
+
     def run(self):
-        # Process each video in the list
+        total_saved_count = 0
+        total_frames_to_extract = sum(min(self.get_frame_count(video_path), self.max_frames) for video_path in self.video_paths)
+
+        if not os.path.exists(self.output_folder):
+            os.makedirs(self.output_folder)
+
         for video_path in self.video_paths:
             self.file_progress.emit(f"Processing: {os.path.basename(video_path)}")
-            if not os.path.exists(self.output_folder):
-                os.makedirs(self.output_folder)
-    
+            
             video = cv2.VideoCapture(video_path)
             total_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
 
-            # Create output folder for each video
-            video_name = os.path.splitext(os.path.basename(video_path))[0]
-            video_output_folder = os.path.join(self.output_folder, video_name)
-            if not os.path.exists(video_output_folder):
-                os.makedirs(video_output_folder)
-
-            # Determine frame indices based on extraction mode
             if self.extraction_mode == "interval":
                 frame_indices = range(0, total_frames, self.extraction_value)
             else:  # "total_frames" mode
                 frame_indices = [int(i * total_frames / self.extraction_value) for i in range(self.extraction_value)]
 
-            # Limit the number of frames to extract
             frame_indices = frame_indices[:min(len(frame_indices), self.max_frames)]
-            
-            saved_count = 0
-            # Extract and save frames
+
             for frame_index in frame_indices:
                 video.set(cv2.CAP_PROP_POS_FRAMES, frame_index)
                 ret, frame = video.read()
                 if not ret:
                     break
-        
-                output_path = os.path.join(video_output_folder, f"frame_{saved_count:04d}.jpg")
+
+                video_name = os.path.splitext(os.path.basename(video_path))[0]
+                output_path = os.path.join(self.output_folder, f"{video_name}_frame_{total_saved_count:04d}.jpg")
                 cv2.imwrite(output_path, frame)
-                saved_count += 1
-        
-                # Update progress
-                self.progress_update.emit(int(saved_count / len(frame_indices) * 100))
-    
+                total_saved_count += 1
+
+                self.progress_update.emit(int(total_saved_count / total_frames_to_extract * 100))
+
             video.release()
-        # Emit finished signal when all videos are processed
+
         self.finished.emit()
+
+    def get_frame_count(self, video_path):
+        video = cv2.VideoCapture(video_path)
+        total_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
+        video.release()
+        return total_frames
 
 # Main application class
 class App(QWidget):
