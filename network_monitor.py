@@ -129,40 +129,44 @@ def capture_packets_worker(interface, count, result_queue, logger):
         result_queue.put([])  # Put an empty list into the result queue to indicate failure
 
 def capture_packets(interface, total_count, logger):
+    # Get the number of available CPU cores
+    num_cores = multiprocessing.cpu_count()
+
     # Log the start of packet capture including the total number of packets and interface being used
-    logger.info(f"Capturing {total_count} packets on {interface} using 8 cores...")
-    
+    logger.info(f"Capturing {total_count} packets on {interface} using {num_cores} cores...")
+
     # Determine how many packets each worker process will capture
-    packets_per_worker = total_count // 8
+    packets_per_worker = total_count // num_cores
     result_queue = multiprocessing.Queue()  # Create a queue to collect results from worker processes
     processes = []  # List to keep track of the spawned processes
-    
     start_time = time.time()  # Record the start time of the packet capture
-    
-    # Start 8 worker processes to capture packets
-    for _ in range(8):
+
+    # Start worker processes to capture packets
+    for _ in range(num_cores):
         p = multiprocessing.Process(target=capture_packets_worker, args=(interface, packets_per_worker, result_queue, logger))
         processes.append(p)  # Add each process to the list
         p.start()  # Start the packet capture process
-    
+
     all_packets = []  # List to store all captured packets
+
     # Use a progress bar to visualize the progress of packet capture
     with tqdm(total=total_count, unit='packet', mininterval=0.1) as progress_bar:
-        for _ in range(8):
+        for _ in range(num_cores):
             packets = result_queue.get()  # Retrieve packets captured by the worker processes
             all_packets.extend(packets)  # Add the captured packets to the all_packets list
             progress_bar.update(len(packets))  # Update the progress bar with number of packets captured
-    
+
     # Wait for all processes to finish their execution
     for p in processes:
         p.join()
-    
+
     # Calculate duration of the capture and packets per second
     duration = time.time() - start_time
     packets_per_second = len(all_packets) / duration if duration > 0 else 0
+
     # Log the total number of packets captured, duration, and rate of packets captured per second
     logger.info(f"Captured {len(all_packets)} packets in {duration:.2f} seconds ({packets_per_second:.2f} packets/second)")
-    
+
     return all_packets  # Return the complete list of captured packets
 
 def analyze_packet(packet, local_ip, current_time, password_regex, credit_card_regex):
@@ -364,8 +368,6 @@ def main():
     log_listener.start()  # Start the log listener to listen for log messages
     try:
         # Define parameters directly in the script for monitoring
-        MALICIOUS_IPS = set()  # Initialize a set for known malicious IP addresses (if any)
-        MONITORED_EXTENSIONS = set(['.exe', '.dll', '.bat'])  # Set of file extensions to monitor for suspicious activity
         PORT_SCAN_THRESHOLD = 20  # Define the threshold for detecting port scans
         DNS_QUERY_THRESHOLD = 50  # Define the threshold for excessive DNS queries
         count = 1000  # Total number of packets to capture in each iteration
