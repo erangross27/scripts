@@ -5,10 +5,11 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, scrolledtext, ttk
 import logging
 import threading
-from diffusers import StableDiffusionInpaintPipeline,AutoPipelineForInpainting
+from diffusers import StableDiffusionInpaintPipeline
 import os
 from datetime import datetime
 from PIL import Image, ImageOps
+
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -74,30 +75,86 @@ class WatermarkDetectionApp:
         self.master.grid_columnconfigure(1, weight=1)
         self.master.grid_rowconfigure(5, weight=1)
 
+
     def download_and_load_inpainting_model(self):
-        # Download and load the SDXL inpainting model
-        model_id = "stabilityai/stable-diffusion-xl-base-1.0"
+        model_id = "runwayml/stable-diffusion-inpainting"
+        
         try:
-            self.inpainting_pipeline = AutoPipelineForInpainting.from_pretrained(
-                model_id,
-                torch_dtype=torch.float16,
-                variant="fp16",
-                use_safetensors=True
-            )
-          
-            # Check if CUDA is available and use it, otherwise fall back to CPU
+            # Determine the device
             device = "cuda" if torch.cuda.is_available() else "cpu"
-            if device == "cpu":
-                # If using CPU, change to float32 for better compatibility
-                self.inpainting_pipeline.to(torch.float32)
+            logger.info(f"Attempting to use device: {device}")
             
-            self.inpainting_pipeline.to(device)
+            if device == "cuda":
+                logger.info(f"CUDA is available. GPU: {torch.cuda.get_device_name(0)}")
+                logger.info(f"CUDA version: {torch.version.cuda}")
+            else:
+                logger.info("CUDA is not available. Using CPU.")
             
-            logger.info(f"SDXL Inpainting model loaded successfully on {device} with safety checker disabled")
-            messagebox.showinfo("Success", f"SDXL Inpainting model loaded successfully on {device} with safety checker disabled")
+            # Load the model
+            logger.info(f"Loading model from {model_id}")
+            self.inpainting_pipeline = StableDiffusionInpaintPipeline.from_pretrained(
+                model_id,
+                torch_dtype=torch.float16 if device == "cuda" else torch.float32,
+                use_safetensors=False,
+                low_cpu_mem_usage=True,
+                revision="fp16" if device == "cuda" else "main",
+                allow_pickle=True
+            )
+            logger.info("Model loaded successfully")
+            
+            # Move to appropriate device
+            logger.info(f"Moving model to {device}")
+            self.inpainting_pipeline = self.inpainting_pipeline.to(device)
+            logger.info(f"Model moved to {device}")
+            
+            # Enable memory optimizations
+            logger.info("Enabling attention slicing")
+            self.inpainting_pipeline.enable_attention_slicing()
+            if device == "cuda":
+                logger.info("Enabling VAE slicing for CUDA")
+                self.inpainting_pipeline.enable_vae_slicing()
+            
+            # Disable safety checker to save memory
+            logger.info("Disabling safety checker to save memory")
+            self.inpainting_pipeline.safety_checker = None
+            
+            # Log model components
+            logger.info("Model components:")
+            for name, module in self.inpainting_pipeline.components.items():
+                logger.info(f"  {name}: {type(module).__name__}")
+            
+            # Check if model is on correct device
+            logger.info(f"Model device: {self.inpainting_pipeline.device}")
+            
+            success_message = f"Inpainting model loaded successfully on {device} with memory optimizations"
+            logger.info(success_message)
+            messagebox.showinfo("Success", success_message)
         except Exception as e:
-            logger.error(f"Error loading SDXL inpainting model: {str(e)}")
-            messagebox.showerror("Error", f"Failed to load SDXL inpainting model: {str(e)}")
+            error_message = f"Error loading inpainting model: {str(e)}"
+            logger.error(error_message, exc_info=True)
+            messagebox.showerror("Error", error_message)
+
+    # Ensure logging is set up
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+    def inpaint(self, prompt, image, mask_image):
+        try:
+            with torch.no_grad():
+                result = self.inpainting_pipeline(
+                    prompt=prompt,
+                    image=image,
+                    mask_image=mask_image,
+                    num_inference_steps=20,
+                    guidance_scale=7.5,
+                ).images[0]
+            return result
+        except Exception as e:
+            logger.error(f"Error during inpainting: {str(e)}")
+            messagebox.showerror("Error", f"Inpainting failed: {str(e)}")
+            return None
+
+
+
 
     def browse_model(self):
         # Open file dialog to select the YOLOv5 model
@@ -259,7 +316,7 @@ class WatermarkDetectionApp:
             cv2.imwrite(mask_vis_path, mask_vis)
             
             inpainting_successful = False
-            for attempt in range(3):  # Run inpainting three times
+            for attempt in range(1):  # Run inpainting three times
                 try:
                     inpainted_frame, inpaint_vis = self.inpaint_image(
                         inpainted_frame if attempt > 0 else frame,
