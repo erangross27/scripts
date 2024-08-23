@@ -1,3 +1,13 @@
+from cryptography.utils import CryptographyDeprecationWarning
+import warnings
+
+def setup_environment():
+    # Ignore CryptographyDeprecationWarning
+    warnings.filterwarnings("ignore", category=CryptographyDeprecationWarning)
+#Calling it at the beginging of the script to suppress warnings during the execution of the script.
+setup_environment()
+
+
 import sys
 import os
 import time
