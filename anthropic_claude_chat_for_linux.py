@@ -22,6 +22,8 @@ from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QTe
 from PyQt5.QtWidgets import QFileDialog, QProgressDialog, QListWidget, QListWidgetItem, QComboBox,QGroupBox
 import os
 import logging
+import subprocess
+import platform
 
 if sys.stdout is not None:
     sys.stdout.reconfigure(encoding='utf-8')
@@ -532,39 +534,59 @@ class APIKeyDialog(QDialog):
         return self.api_key_input.text()
 
 class ClaudeChat(QWidget):
+
     def __init__(self):
         # Call the parent class's constructor
         super().__init__()
+
         # Get the Anthropic API key from the environment variables
         self.api_key = os.getenv('ANTHROPIC_API_KEY')
+
         # If the API key was not found in the environment variables, prompt the user to enter it
         if not self.api_key:
             api_key_dialog = APIKeyDialog(self)
             if api_key_dialog.exec_() == QDialog.Accepted:
                 self.api_key = api_key_dialog.get_api_key()
                 os.environ['ANTHROPIC_API_KEY'] = self.api_key
-                self.set_linux_env_variable('ANTHROPIC_API_KEY', self.api_key)
+                
+                # Determine the operating system and call the appropriate function
+                system = platform.system()
+                if system == "Linux":
+                    self.set_linux_env_variable('ANTHROPIC_API_KEY', self.api_key)
+                elif system == "Darwin":  # macOS
+                    self.set_macos_env_variable('ANTHROPIC_API_KEY', self.api_key)
+                elif system == "Windows":
+                    # Assuming you have a method for Windows, if not, you should implement it
+                    self.set_windows_env_variable('ANTHROPIC_API_KEY', self.api_key)
+                else:
+                    logging.warning(f"Unsupported operating system: {system}")
             else:
                 QMessageBox.critical(self, "Error", "API key is required to run the application.")
                 sys.exit(1)
 
         # Create an Anthropic client using the API key
         self.client = anthropic.Anthropic(api_key=self.api_key)
+
         # Initialize the conversation history, chat history, and code blocks as empty lists or dictionaries
         self.conversation_history = []
         self.chat_history = []
         self.code_blocks = {}
+
         # Create a ConversationHistory object for storing the conversation history in a database
         self.conversation_history_db = ConversationHistory("conversation_history.db")
+
         # Initialize the user interface
         self.init_ui()
+
         # Update the sidebar
-        self.update_sidebar()  # Add this line
+        self.update_sidebar()
+
         # Log the initialization of the ClaudeChat, the API key, the conversation history, and the chat history
         logging.info("ClaudeChat initialized")
         logging.info(f"API key: {self.api_key}")
         logging.info(f"Conversation history: {self.conversation_history}")
         logging.info(f"Chat history: {self.chat_history}")
+
 
    
 
@@ -603,6 +625,65 @@ class ClaudeChat(QWidget):
 
             # Note: Changes won't be reflected system-wide until the user logs out and back in
             # or sources the .profile file
+
+        except Exception as e:
+            logging.error(f"Failed to set environment variable '{name}': {str(e)}")
+            raise
+
+        # Return the current value for verification
+        return os.environ.get(name)
+
+
+    def set_macos_env_variable(self, name, value):
+        try:
+            # Update for the current process
+            os.environ[name] = value
+
+            # Determine the correct profile file
+            shell = os.environ.get('SHELL', '').lower()
+            if 'zsh' in shell:
+                profile_path = os.path.expanduser('~/.zshrc')
+            else:
+                profile_path = os.path.expanduser('~/.bash_profile')
+
+            # Check if the file exists, if not create it
+            if not os.path.exists(profile_path):
+                with open(profile_path, 'w') as file:
+                    file.write(f'\nexport {name}="{value}"\n')
+                logging.info(f"Created {profile_path} and added environment variable '{name}'")
+            else:
+                # Read existing content
+                with open(profile_path, 'r') as file:
+                    lines = file.readlines()
+
+                # Find and replace or append the new variable
+                variable_set = False
+                for i, line in enumerate(lines):
+                    if line.startswith(f'export {name}='):
+                        lines[i] = f'export {name}="{value}"\n'
+                        variable_set = True
+                        break
+
+                if not variable_set:
+                    lines.append(f'\nexport {name}="{value}"\n')
+
+                # Write back to the profile file
+                with open(profile_path, 'w') as file:
+                    file.writelines(lines)
+
+            logging.info(f"Environment variable '{name}' set to '{value}' in {profile_path} and current process")
+
+            # Verify the change in the current process
+            if os.environ.get(name) != value:
+                logging.warning(f"Process environment mismatch. Expected: {value}, Got: {os.environ.get(name)}")
+
+            # Attempt to update the current shell session
+            try:
+                subprocess.run(f'export {name}="{value}"', shell=True, check=True)
+            except subprocess.CalledProcessError:
+                logging.warning("Failed to update current shell session. Changes will take effect in new sessions.")
+
+            # Note: For system-wide effect, user needs to open a new terminal or run 'source ~/.zshrc' or 'source ~/.bash_profile'
 
         except Exception as e:
             logging.error(f"Failed to set environment variable '{name}': {str(e)}")
