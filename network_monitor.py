@@ -101,7 +101,7 @@ def capture_packets_worker(interface, count, result_queue, logger):
     # This function captures packets on the specified network interface using Scapy.
     try:
         from scapy.all import sniff  # Import the sniff function from Scapy for packet capture
-        logger.info(f"Starting packet capture on interface {interface} using scapy")  # Log the start of the capture
+        
         packets = []  # Initialize a list to store captured packets
 
         # Define a packet handler function for Scapy to call on each packet captured
@@ -361,8 +361,15 @@ def log_suspicious_activities(log_file, data, logger):
         f.flush()  # Ensure all data is flushed to the file
         # Synchronize the file's contents with the storage device
         os.fsync(f.fileno())
+def check_root():
+    if os.geteuid() != 0:
+        print("This script requires root privileges to capture network packets.")
+        print("Please run the script with sudo, like this:")
+        print("sudo python3 network_monitor.py")
+        sys.exit(1)
 
 def main():
+    check_root() # Check if the script is running as root
     # Setup the logger and log listener to handle logging messages in a queue
     logger, log_listener = setup_logging_queue()
     log_listener.start()  # Start the log listener to listen for log messages
