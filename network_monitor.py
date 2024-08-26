@@ -366,6 +366,7 @@ def main():
     # Setup the logger and log listener to handle logging messages in a queue
     logger, log_listener = setup_logging_queue()
     log_listener.start()  # Start the log listener to listen for log messages
+
     try:
         # Define parameters directly in the script for monitoring
         PORT_SCAN_THRESHOLD = 20  # Define the threshold for detecting port scans
@@ -376,28 +377,28 @@ def main():
         if not interfaces:  # Check if no interfaces were found
             logger.info("No active network interfaces found. Exiting.")
             return  # Exit if no valid interfaces are available
-        
+
         # Prompt user to choose a network interface for packet capture
         interface, local_ip, subnet_mask = choose_interface(interfaces, logger)
         if not interface:  # Check if no interface was selected
             logger.info("No interface selected. Exiting.")
             return  # Exit if no interface is chosen
+
         logger.info(f"Using network interface: {get_display(interface)} with IP: {local_ip}")  # Log the chosen interface information
-        
-        log_file = 'security_log.txt'  # Define the log file for suspicious activity logs
-        
+
         while True:  # Continuous loop to capture packets and analyze
             packets = capture_packets(interface, count, logger)  # Capture packets on the selected interface
-            suspicious_activities = analyze_traffic(packets, logger, PORT_SCAN_THRESHOLD, DNS_QUERY_THRESHOLD, local_ip, subnet_mask)# Analyze the captured packets
+            suspicious_activities = analyze_traffic(packets, logger, PORT_SCAN_THRESHOLD, DNS_QUERY_THRESHOLD, local_ip, subnet_mask)  # Analyze the captured packets
+
             if suspicious_activities:  # Check if any suspicious activities were detected
                 logger.info("Suspicious activities detected!")  # Log that suspicious activities were found
-                log_suspicious_activities(log_file, suspicious_activities, logger)  # Log the suspicious activities to the file
                 for activity in suspicious_activities:  # Iterate through the suspicious activities
                     logger.info(f"- {': '.join(map(str, activity))}")  # Log each activity in detail
             else:
                 logger.info("No suspicious activities detected in this batch.")  # Log that there were no suspicious activities
-            
+
             time.sleep(60)  # Wait for 60 seconds before the next iteration
+
     except KeyboardInterrupt:  # Handle keyboard interrupt to stop the loop gracefully
         logger.info("\nStopping packet capture. Exiting.")  # Log the stopping of packet capture
     except Exception as e:  # Catch any other exceptions that occur
