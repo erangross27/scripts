@@ -6,6 +6,7 @@ import re
 from pathlib import Path
 import tempfile
 import shutil
+import textwrap
 
 # Initialize the Anthropic client
 client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
@@ -52,17 +53,21 @@ def update_readme_chunk(current_content, new_descriptions):
 
             {new_descriptions}
 
-            Please provide an updated version of the README.md that incorporates these changes. Maintain the overall structure and any existing sections not related to script descriptions. For the script descriptions, use the following format:
-
-            - **script_name.py**: Brief description of what the script does.
-
-            Ensure all scripts are listed, adding new ones and updating existing ones as necessary.
+            Please provide an updated version of the README.md that incorporates these changes. Follow these guidelines:
+            1. Maintain the overall structure and any existing sections not related to script descriptions.
+            2. Ensure all scripts are listed, adding new ones and updating existing ones as necessary.
+            3. Use the following format for script descriptions, with word wrapping at 80 characters:
+               - **script_name.py**: Brief description of what the script does, wrapped at
+                 80 characters and indented properly.
+            4. Preserve any existing sections like "License" or "Contributing" if present.
+            5. If not present, add a "License" section at the end with the MIT License.
+            6. Ensure proper Markdown formatting throughout the document.
             """
         }
     ]
     response = client.messages.create(
         model="claude-3-sonnet-20240229",
-        max_tokens=1000,
+        max_tokens=2000,
         temperature=0,
         messages=messages
     )
