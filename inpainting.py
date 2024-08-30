@@ -1,3 +1,41 @@
+"""
+Watermark Detection and Inpainting Application
+
+This script implements a graphical user interface (GUI) application for detecting
+and removing watermarks from images and videos using machine learning models.
+
+Key Features:
+1. YOLOv5 model for watermark detection
+2. Stable Diffusion Inpainting model for watermark removal
+3. Support for processing both images and videos
+4. Real-time progress tracking and logging
+5. Intermediate frame saving for video processing
+
+The application allows users to:
+- Load a custom YOLOv5 model for watermark detection
+- Select input images or videos for processing
+- Choose output locations for processed files
+- View progress and logs in real-time
+- Save intermediate frames during video processing for analysis
+
+Dependencies:
+- torch
+- cv2
+- numpy
+- tkinter
+- logging
+- threading
+- diffusers
+- PIL
+
+Usage:
+Run this script to launch the GUI application. Use the interface to load models,
+select input/output files, and process images or videos for watermark removal.
+
+Note: Ensure all required dependencies are installed and CUDA is available
+for optimal performance when processing large files or videos.
+"""
+
 import torch
 import cv2
 import numpy as np

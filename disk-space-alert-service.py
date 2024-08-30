@@ -1,3 +1,35 @@
+"""
+Disk Space Alert Service
+
+This script implements a Windows service that monitors disk space on local drives
+and sends email alerts when available space falls below a configured threshold.
+
+Features:
+- Runs as a Windows service
+- Configurable check interval and minimum free space threshold
+- Email alerts with customizable SMTP settings
+- Encrypted storage of email credentials in Windows Registry
+- Logging with rotation to prevent excessive log file growth
+
+Usage:
+python script.py [install|start|stop|remove|update|reconfigure]
+- install: Install the service and configure email settings
+- start: Start the service
+- stop: Stop the service
+- remove: Remove the service
+- update: Update the service configuration
+- reconfigure: Reconfigure email settings
+
+Dependencies:
+psutil, win32event, win32service, win32serviceutil, servicemanager, winreg, cryptography
+
+Configuration:
+Settings are stored in a 'config.json' file in the same directory as the script.
+Email credentials are securely stored in the Windows Registry.
+
+Note: This script is designed to run on Windows systems only.
+"""
+
 import sys
 import os
 from typing import Dict, List, Optional

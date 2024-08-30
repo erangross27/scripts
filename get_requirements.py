@@ -1,3 +1,23 @@
+"""
+This script generates a requirements.txt file by analyzing Python files in the current directory.
+
+It extracts import statements from each Python file, normalizes package names, filters out standard
+library modules and Windows-specific modules (on non-Windows systems), and creates a requirements
+file. Each entry in the requirements file includes the package name and the files that use it.
+
+Functions:
+- get_imports: Extracts import statements from a Python file.
+- normalize_package_name: Normalizes package names (e.g., 'PIL' to 'Pillow').
+- get_stdlib_modules: Returns a list of standard library modules.
+- is_windows_specific: Checks if a package is Windows-specific.
+- get_all_requirements: Main function to generate the requirements file.
+- main: Entry point of the script.
+
+Usage:
+Run this script in the directory containing the Python files you want to analyze.
+The generated requirements.txt file will be saved in the same directory.
+"""
+
 import os
 import ast
 import sys

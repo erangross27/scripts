@@ -1,3 +1,33 @@
+"""
+Watermark Detection Application
+
+This application provides a graphical user interface for detecting watermarks in images and videos using a YOLOv5 model.
+
+Features:
+- Load a custom YOLOv5 model for watermark detection
+- Process individual images or video files
+- Display processing progress and log information
+- Save processed images/videos with detected watermarks highlighted
+
+The application uses PyTorch for the deep learning model, OpenCV for image and video processing,
+and Tkinter for the graphical user interface.
+
+Usage:
+1. Select a YOLOv5 model file (.pt)
+2. Choose an input image or video file
+3. Specify an output file location
+4. Click "Process File" to start the watermark detection
+
+The application will display progress and log information during processing.
+Detected watermarks are highlighted with green rectangles in the output.
+
+Classes:
+- WatermarkDetectionApp: Main application class handling the GUI and processing logic
+- GUILogHandler: Custom logging handler to update the GUI log display
+
+Note: This application requires PyTorch, OpenCV, and other dependencies to be installed.
+"""
+
 import torch
 import cv2
 import numpy as np
@@ -61,6 +91,7 @@ class WatermarkDetectionApp:
         # Configure grid
         self.master.grid_columnconfigure(1, weight=1)
         self.master.grid_rowconfigure(5, weight=1)
+
     def browse_model(self):
         # Open file dialog to select YOLOv5 model
         filename = filedialog.askopenfilename(filetypes=[("PyTorch Model", "*.pt")])
@@ -173,6 +204,7 @@ class WatermarkDetectionApp:
             progress = (frame_num + 1) / total_frames * 100
             self.progress_var.set(progress)
             self.master.update_idletasks()
+
         cap.release()
         out.release()
 
@@ -193,6 +225,7 @@ class WatermarkDetectionApp:
             logger.warning("No watermark detected in the frame")
 
         return img
+
     def update_log(self, message):
         # Update the log display in the GUI
         self.log_text.insert(tk.END, message + '\n')

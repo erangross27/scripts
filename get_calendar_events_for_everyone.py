@@ -1,3 +1,28 @@
+"""
+This script retrieves calendar events for the authenticated user using Microsoft Graph API.
+
+It uses DeviceCodeCredential for authentication and fetches events for the next 7 days.
+The script prints out the subject, start time, and end time for each event found.
+
+Required environment variables:
+- MICROSOFT_CLIENT_ID: The client ID for your Microsoft application
+- MICROSOFT_TENANT_ID: The tenant ID (defaults to 'common' if not set)
+
+Dependencies:
+- asyncio
+- os
+- logging
+- datetime
+- msgraph
+- azure.identity
+
+The main functionality is implemented in the get_calendar_events() async function,
+which authenticates the user, retrieves their calendar events, and prints the details.
+
+Usage:
+Run this script directly to fetch and display calendar events for the next 7 days.
+"""
+
 import asyncio
 import os
 import logging

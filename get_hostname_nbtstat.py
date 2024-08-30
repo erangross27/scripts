@@ -1,3 +1,32 @@
+"""
+Network Scanner
+
+This script performs a network scan on the local network, gathering information about active devices.
+It uses various Windows-specific commands and registry access to collect data.
+
+The script does the following:
+1. Determines the local IP address and network information.
+2. Discovers active IPs on the network using the ARP table.
+3. Retrieves hostname, MAC address, and attempts to determine device type for each active IP.
+4. Writes the collected information to a file named 'network_scan_results.txt'.
+
+Functions:
+- get_local_ip_and_network(): Determines local IP and network information.
+- get_arp_table(): Retrieves the ARP table to find active IPs.
+- get_netbios_name(ip): Attempts to get the NetBIOS name for an IP.
+- get_local_mac(): Retrieves the local machine's MAC address.
+- get_mac_address(ip, local_ip): Gets the MAC address for a given IP.
+- get_device_type(mac): Attempts to determine the device type based on MAC address prefix.
+- get_hostname(ip, local_ip): Retrieves the hostname for an IP.
+- main(): Orchestrates the entire scanning process.
+
+Note: This script is designed to work on Windows systems and requires administrative privileges
+to access certain network information.
+
+Usage:
+Run the script with Python 3.x on a Windows system with appropriate permissions.
+"""
+
 import socket
 import subprocess
 import winreg

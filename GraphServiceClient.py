@@ -1,3 +1,23 @@
+"""
+This script retrieves calendar information and upcoming holidays/all-day events for a Microsoft user using the Microsoft Graph API.
+
+The script performs the following operations:
+1. Authenticates with Microsoft Graph using ClientSecretCredential.
+2. Retrieves the first user's ID from the list of users.
+3. Fetches and displays the user's calendar information.
+4. Retrieves and displays upcoming holidays and all-day events for the next year.
+
+Requirements:
+- Azure Identity library
+- Microsoft Graph SDK for Python
+- Proper environment variables set for MICROSOFT_TENANT_ID, MICROSOFT_CLIENT_ID, and MICROSOFT_CLIENT_SECRET
+
+Usage:
+Run the script directly to execute the main function, which will call get_calendar_info().
+
+Note: This script uses asyncio for asynchronous operations and ensures UTF-8 encoding for console output.
+"""
+
 import asyncio
 from azure.identity.aio import ClientSecretCredential
 from msgraph import GraphServiceClient

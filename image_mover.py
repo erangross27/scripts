@@ -1,3 +1,28 @@
+"""
+Image Mover Application
+
+This script creates a PyQt5-based GUI application for moving image files from a source directory
+to a destination directory. The application allows users to select source and destination 
+directories through a graphical interface and then move all image files (with extensions
+.jpg, .jpeg, .png, .gif, .bmp) from the source to the destination.
+
+Features:
+- Select source and destination directories via GUI
+- Move image files between directories
+- Handle filename conflicts in the destination directory
+- Simple and intuitive user interface
+
+Usage:
+Run this script to launch the Image Mover application. Use the buttons to select directories
+and initiate the image moving process.
+
+Dependencies:
+- PyQt5
+- os
+- shutil
+
+"""
+
 import os
 import shutil
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QFileDialog, QVBoxLayout, QLabel

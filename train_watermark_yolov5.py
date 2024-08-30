@@ -1,3 +1,27 @@
+"""
+YOLOv5 Training Script
+
+This script sets up and runs a training process for YOLOv5 object detection model.
+It includes the following main components:
+
+1. Importing necessary libraries and YOLOv5 modules
+2. Defining hyperparameters for YOLOv5 training
+3. Setting up command-line argument parsing for various training options
+4. Creating a data.yaml file with dataset information
+5. Initializing device and callbacks
+6. Running the training process
+
+The script is designed to be run from the command line with various optional arguments
+to customize the training process. It uses a pre-defined set of hyperparameters and
+allows for further customization through command-line options.
+
+Usage:
+    python script_name.py [arguments]
+
+For a full list of available arguments, run:
+    python script_name.py --help
+"""
+
 import torch
 import yaml
 from pathlib import Path
@@ -14,39 +38,39 @@ from utils.callbacks import Callbacks # type: ignore
 
 
 def main():
-    # Define hyperparameters
+    # Define hyperparameters for YOLOv5 training
     hyp = {
-        'lr0': 0.01,
-        'lrf': 0.1,
-        'momentum': 0.937,
-        'weight_decay': 0.0005,
-        'warmup_epochs': 3.0,
-        'warmup_momentum': 0.8,
-        'warmup_bias_lr': 0.1,
-        'box': 0.05,
-        'cls': 0.5,
-        'cls_pw': 1.0,
-        'obj': 1.0,
-        'obj_pw': 1.0,
-        'iou_t': 0.20,
-        'anchor_t': 4.0,
-        'fl_gamma': 0.0,
-        'hsv_h': 0.015,
-        'hsv_s': 0.7,
-        'hsv_v': 0.4,
-        'degrees': 0.0,
-        'translate': 0.1,
-        'scale': 0.5,
-        'shear': 0.0,
-        'perspective': 0.0,
-        'flipud': 0.0,
-        'fliplr': 0.5,
-        'mosaic': 1.0,
-        'mixup': 0.0,
-        'copy_paste': 0.0  # Add this line
+        'lr0': 0.01,  # Initial learning rate
+        'lrf': 0.1,  # Final OneCycleLR learning rate (lr0 * lrf)
+        'momentum': 0.937,  # SGD momentum/Adam beta1
+        'weight_decay': 0.0005,  # Optimizer weight decay
+        'warmup_epochs': 3.0,  # Warmup epochs
+        'warmup_momentum': 0.8,  # Warmup initial momentum
+        'warmup_bias_lr': 0.1,  # Warmup initial bias lr
+        'box': 0.05,  # Box loss gain
+        'cls': 0.5,  # Cls loss gain
+        'cls_pw': 1.0,  # Cls BCELoss positive_weight
+        'obj': 1.0,  # Obj loss gain (scale with pixels)
+        'obj_pw': 1.0,  # Obj BCELoss positive_weight
+        'iou_t': 0.20,  # IoU training threshold
+        'anchor_t': 4.0,  # Anchor-multiple threshold
+        'fl_gamma': 0.0,  # Focal loss gamma (efficientDet default gamma=1.5)
+        'hsv_h': 0.015,  # Image HSV-Hue augmentation (fraction)
+        'hsv_s': 0.7,  # Image HSV-Saturation augmentation (fraction)
+        'hsv_v': 0.4,  # Image HSV-Value augmentation (fraction)
+        'degrees': 0.0,  # Image rotation (+/- deg)
+        'translate': 0.1,  # Image translation (+/- fraction)
+        'scale': 0.5,  # Image scale (+/- gain)
+        'shear': 0.0,  # Image shear (+/- deg)
+        'perspective': 0.0,  # Image perspective (+/- fraction), range 0-0.001
+        'flipud': 0.0,  # Image flip up-down (probability)
+        'fliplr': 0.5,  # Image flip left-right (probability)
+        'mosaic': 1.0,  # Image mosaic (probability)
+        'mixup': 0.0,  # Image mixup (probability)
+        'copy_paste': 0.0  # Segment copy-paste (probability)
     }
 
-    # Define and parse arguments
+    # Define and parse command-line arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('--weights', type=str, default='yolov5s.pt', help='initial weights path')
     parser.add_argument('--cfg', type=str, default='/home/erangross/Downloads/yolov5/models/yolov5s.yaml', help='model.yaml path')

@@ -1,3 +1,33 @@
+"""
+Quantum Key Cracking using Grover's Algorithm
+
+This script demonstrates the use of Grover's algorithm to crack a 3-bit secret key
+using IBM's Qiskit framework and quantum computing services. It includes the following
+main components:
+
+1. Setup of IBM Quantum services using an API token.
+2. Implementation of a custom oracle function for the 3-bit key.
+3. Implementation of a diffuser function for 3 qubits.
+4. Creation of a Grover's algorithm circuit for key cracking.
+5. Execution of the quantum circuit on IBM's quantum simulator.
+6. Analysis and visualization of the results.
+
+The script uses a more complex oracle implementation to demonstrate a practical
+application of Grover's algorithm in cryptography. It also includes error handling
+for the API token and provides a detailed explanation of the results.
+
+Requirements:
+- Qiskit
+- Matplotlib
+- IBM Quantum account and API token
+
+Usage:
+Set the IBM_QUANTUM_TOKEN environment variable with your API token before running the script.
+The secret key is set within the script and can be modified as needed.
+
+Note: This is a demonstration and should not be used for actual cryptographic purposes.
+"""
+
 import os
 from qiskit import QuantumCircuit
 from qiskit_ibm_runtime import QiskitRuntimeService, Sampler, Options

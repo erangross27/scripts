@@ -1,3 +1,37 @@
+"""
+Multi-Video Frame Extractor
+
+This script provides a graphical user interface for extracting frames from multiple video files.
+It allows users to select video files, choose an output folder, and specify extraction parameters.
+The application uses PyQt5 for the GUI and OpenCV for video processing.
+
+Key features:
+- Select multiple video files for frame extraction
+- Choose output folder for extracted frames
+- Two extraction modes: extract every N frames or extract X frames per video
+- Set maximum number of frames to extract per video
+- Progress bar and status updates during extraction
+- Multithreaded extraction process to keep UI responsive
+
+Classes:
+- FrameExtractor: A QThread subclass that handles the frame extraction process
+- App: The main application window, inheriting from QWidget
+
+Usage:
+Run this script directly to launch the graphical user interface.
+Select video files, set extraction parameters, and click "Extract Frames" to begin the process.
+
+Dependencies:
+- PyQt5
+- OpenCV (cv2)
+- sys
+- os
+
+Author: [Eran Gross]
+Date: [30/08/2024]
+Version: 1.0
+"""
+
 import sys
 import cv2
 import os

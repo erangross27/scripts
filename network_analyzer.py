@@ -1,3 +1,29 @@
+"""
+Network Security Analyzer
+
+This script provides a graphical user interface for analyzing network traffic and detecting suspicious activities.
+It uses the Scapy library for packet capture and analysis, and PyQt5 for the GUI.
+
+Key features:
+- Real-time network traffic monitoring
+- Detection of various suspicious activities (e.g., port scans, large data transfers, excessive DNS queries)
+- User-friendly interface for starting/stopping analysis and viewing detected activities
+- Support for multiple network interfaces
+
+Classes:
+- NetworkAnalyzer: Handles packet capture and analysis
+- MainWindow: Creates and manages the GUI
+
+Dependencies:
+- PyQt5
+- Scapy
+- psutil
+- cryptography
+
+Usage:
+Run the script to launch the GUI. Select a network interface and click "Start Monitoring" to begin analysis.
+"""
+
 from cryptography.utils import CryptographyDeprecationWarning
 import warnings
 
@@ -458,4 +484,6 @@ if __name__ == "__main__":
     window = MainWindow()
     window.show()
     sys.exit(app.exec_())
+
+
 

@@ -1,3 +1,23 @@
+"""
+This script provides information about disk usage and CPU utilization.
+
+It uses the psutil library to gather and display the following information:
+1. Free space available on C: and D: drives (in GB)
+2. CPU usage statistics for each CPU core (user, system, and idle percentages)
+
+The script first checks disk partitions, focusing on C: and D: drives,
+and reports the free space available on each.
+
+Then, it collects CPU usage data for a 1-second interval and displays
+the usage percentages for each CPU core.
+
+Requirements:
+- psutil library must be installed
+
+Note: This script is designed for Windows systems, as it specifically looks for
+C: and D: drives.
+"""
+
 import psutil
 
 # Get disk usage statistics

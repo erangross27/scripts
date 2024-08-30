@@ -1,3 +1,28 @@
+"""
+This script provides a GUI application for extracting text from images using Google Cloud Vision API.
+
+The application allows users to:
+1. Select an image file
+2. Extract text from the selected image
+3. Save the extracted text as either a TXT or CSV file
+
+Key components:
+- extract_text_from_image: Extracts text from an image using Google Cloud Vision API
+- save_to_file: Saves extracted text to a file (TXT or CSV)
+- select_image_path: Opens a file dialog for selecting an image
+- convert_and_save: Extracts text from the selected image and saves it to a file
+- main: Sets up the GUI and runs the application
+
+Requirements:
+- Google Cloud Vision API credentials (google.json file in the same directory as the script)
+- google-cloud-vision library
+- tkinter library
+
+Usage:
+Run the script to open the GUI. Select an image, choose the output file type (TXT or CSV),
+and click 'Convert' to extract and save the text.
+"""
+
 from google.cloud import vision
 import os
 import tkinter as tk

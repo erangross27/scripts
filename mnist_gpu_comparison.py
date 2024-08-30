@@ -1,3 +1,23 @@
+"""
+This script demonstrates the training and testing of a Convolutional Neural Network (CNN) on the MNIST dataset using PyTorch.
+It compares the performance of training on CPU versus GPU (if available) and provides metrics on execution time and memory usage.
+
+The script includes the following main components:
+1. A simple CNN model definition (Net class)
+2. Data loading and preprocessing for the MNIST dataset
+3. A training and testing function (train_and_test)
+4. Functions to print GPU and CPU memory usage
+5. Execution of the training process on both CPU and GPU (if available)
+6. Comparison of training times and calculation of GPU speedup over CPU
+
+Requirements:
+- PyTorch
+- torchvision
+- psutil
+- GPUtil
+
+The script will automatically use CUDA if available, otherwise it will default to CPU.
+"""
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -7,7 +27,7 @@ import time
 import psutil
 import GPUtil
 
-# Check if CUDA is available
+# Check if CUDA is available and set the device accordingly
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
 
@@ -17,10 +37,11 @@ if torch.cuda.is_available():
     print(f"Number of GPUs: {torch.cuda.device_count()}")
     print(f"CUDA Version: {torch.version.cuda}")
 
-# Define a simple CNN
+# Define a simple Convolutional Neural Network (CNN)
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
+        # Define the layers of the CNN
         self.conv1 = nn.Conv2d(1, 32, 3, 1)
         self.conv2 = nn.Conv2d(32, 64, 3, 1)
         self.dropout1 = nn.Dropout2d(0.25)
@@ -29,6 +50,7 @@ class Net(nn.Module):
         self.fc2 = nn.Linear(128, 10)
 
     def forward(self, x):
+        # Define the forward pass of the network
         x = self.conv1(x)
         x = nn.functional.relu(x)
         x = self.conv2(x)
@@ -49,13 +71,16 @@ transform = transforms.Compose([
     transforms.Normalize((0.1307,), (0.3081,))
 ])
 
+# Load training and test datasets
 train_dataset = torchvision.datasets.MNIST(root='./data', train=True, download=True, transform=transform)
 test_dataset = torchvision.datasets.MNIST(root='./data', train=False, download=True, transform=transform)
 
+# Create data loaders for batching
 train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=64, shuffle=True)
 test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=1000, shuffle=False)
 
 def train_and_test(device, num_epochs=5):
+    # Initialize the model, optimizer, and loss function
     model = Net().to(device)
     optimizer = optim.Adam(model.parameters())
     criterion = nn.CrossEntropyLoss()
@@ -64,6 +89,7 @@ def train_and_test(device, num_epochs=5):
         model.train()
         start_time = time.time()
         for batch_idx, (data, target) in enumerate(train_loader):
+            # Move data to the specified device (CPU or GPU)
             data, target = data.to(device), target.to(device)
             optimizer.zero_grad()
             output = model(data)
@@ -115,7 +141,7 @@ cpu_end_time = time.time()
 print(f"Total CPU training time: {cpu_end_time - cpu_start_time:.2f} seconds")
 print_cpu_memory()
 
-# Train on GPU
+# Train on GPU if available
 if torch.cuda.is_available():
     print("\nTraining on GPU:")
     gpu_start_time = time.time()
@@ -125,6 +151,6 @@ if torch.cuda.is_available():
     print(f"Total GPU training time: {gpu_end_time - gpu_start_time:.2f} seconds")
     print_gpu_memory()
 
-    # Calculate speedup
+    # Calculate and print the speedup of GPU over CPU
     speedup = (cpu_end_time - cpu_start_time) / (gpu_end_time - gpu_start_time)
     print(f"\nGPU speedup over CPU: {speedup:.2f}x")

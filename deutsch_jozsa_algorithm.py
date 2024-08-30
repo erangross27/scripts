@@ -1,3 +1,28 @@
+"""
+Deutsch-Jozsa Algorithm Implementation using IBM Quantum
+
+This script implements the Deutsch-Jozsa algorithm using IBM Quantum's cloud-based quantum computers.
+The Deutsch-Jozsa algorithm is designed to determine whether a given function is constant or balanced.
+
+The script performs the following main steps:
+1. Sets up the connection to IBM Quantum using an API token.
+2. Defines the Deutsch-Jozsa circuit and a balanced oracle.
+3. Creates and transpiles the circuit for the selected backend.
+4. Runs the circuit on the least busy available quantum computer.
+5. Retrieves and processes the results.
+6. Visualizes the results using a histogram.
+
+The script requires the IBM_QUANTUM_TOKEN environment variable to be set with a valid API token.
+
+Dependencies:
+- qiskit
+- qiskit_ibm_runtime
+- matplotlib
+- os
+
+Note: This script is designed for educational and demonstrative purposes.
+"""
+
 import os
 from qiskit import QuantumCircuit, transpile
 from qiskit_ibm_runtime import QiskitRuntimeService, Sampler, Options
