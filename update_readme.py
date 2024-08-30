@@ -167,30 +167,33 @@ def get_script_description(docstring):
     return response.content[0].text.strip()
 
 def update_readme_content(current_content, script_name, script_description):
-    """Update the README.md content for a single script."""
+    """Update the README.md content for a single script and ensure license section exists."""
     messages = [
         {
             "role": "user",
             "content": f"""
-            Given the current README.md content:
-            {current_content}
+Given the current README.md content:
+{current_content}
 
-            Update or add the description for the script "{script_name}" with the following description:
+Update or add the description for the script "{script_name}" with the following description:
+{script_description}
 
-            {script_description}
+Please follow these guidelines:
+1. Maintain the overall structure and any existing sections not related to script descriptions.
+2. Use the following format for the script description, with word wrapping at 80 characters:
+   - **{script_name}**: {script_description}
+   (wrapped at 80 characters and indented properly)
+3. If the script already exists in the README, update its description. If it's new, add it to the appropriate section.
+4. Preserve any existing sections like "License" or "Contributing" if present.
+5. If a "License" section is not present, add it at the end with the following content:
 
-            Please follow these guidelines:
-            1. Maintain the overall structure and any existing sections not related to script descriptions.
-            2. Use the following format for the script description, with word wrapping at 80 characters:
-               - **{script_name}**: {script_description}
-                 (wrapped at 80 characters and indented properly)
-            3. If the script already exists in the README, update its description. If it's new, add it to the appropriate section.
-            4. Preserve any existing sections like "License" or "Contributing" if present.
-            5. If not present, add a "License" section at the end with the MIT License.
-            6. Ensure proper Markdown formatting throughout the document.
+## License
 
-            Return the entire updated README content.
-            """
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+6. Ensure proper Markdown formatting throughout the document.
+Return the entire updated README content.
+"""
         }
     ]
     response = client.messages.create(
@@ -200,6 +203,7 @@ def update_readme_content(current_content, script_name, script_description):
         messages=messages
     )
     return response.content[0].text.strip()
+
 
 def main():
     """
