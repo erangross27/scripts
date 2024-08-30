@@ -1,3 +1,4 @@
+```markdown
 # Python Scripts Collection
 
 This repository contains a diverse collection of Python scripts for various tasks, including image and video processing, system monitoring, network analysis, quantum computing demonstrations, calendar management with Microsoft Graph API, and more.
@@ -5,88 +6,25 @@ This repository contains a diverse collection of Python scripts for various task
 ## Contents
 
 ### Image Processing
-- `captureImage.py`: Captures images from a camera.
-- `compress_image_to_small_size.py`: Compresses images to reduce file size.
-- `convert_image_to_doc.py`: Converts images to document format.
-- `convert_svg_to_diffrent_images_format.py`: Converts SVG files to various image formats.
-- `extract_text_from_image_regular.py`: Extracts text from regular images.
-- `extract_text_from_image_tables.py`: Extracts text from images containing tables.
-- `watermar_detection.py`: Detects watermarks in images.
+- **captureImage.py**: This script captures an image from the default camera and saves it to the specified output directory with a unique filename based on the current date and time.
+- **compress_image_to_small_size.py**: This script provides a graphical user interface for compressing JPEG images, allowing users to compress either a single image file or all images in a folder with adjustable compression quality, input/output path selection, and real-time quality adjustment display.
+- **convert_image_to_doc.py**: This script provides a graphical user interface that allows users to convert image files to text documents using Google Cloud Vision API's optical character recognition (OCR) capabilities, with the extracted text formatted right-to-left and saved as a Microsoft Word document.
+- **convert_svg_to_diffrent_images_format.py**: This script provides a graphical user interface for converting SVG files to raster image formats like PNG, JPG, and BMP, allowing users to select an input SVG file, choose an output format and location, set the desired resolution, and perform the conversion.
+- **extract_text_from_image_regular.py**: This script provides a graphical user interface (GUI) application that allows users to extract text from images using the Google Cloud Vision API, and save the extracted text as either a TXT or CSV file.
+- **extract_text_from_image_tables.py**: This script provides a graphical user interface (GUI) application that allows users to extract text from images using the Google Cloud Vision API, process the extracted text to separate names and IDs, and save the processed data as either a TXT or CSV file.
+- **watermar_detection.py**: This script provides a graphical user interface for detecting watermarks in images and videos using a YOLOv5 model, allowing users to load custom models, process individual files, and save the output with detected watermarks highlighted.
+- **inpainting.py**: This script implements a graphical user interface (GUI) application that utilizes machine learning models for detecting and removing watermarks from images and videos.
+- **image_mover.py**: This script creates a graphical user interface (GUI) application using PyQt5 that allows users to move image files from a source directory to a destination directory.
 
 ### Video Processing
-- `convert_mp4_codec_and_resolution_for_tv.py`: Converts MP4 files for TV compatibility.
-- `convert_youtube_to_download_multiple_movies_and_music.py`: Downloads YouTube videos and music.
-- `create_movie_clip_from_images_and_sound.py`: Creates video clips from images and audio.
-- `extract_frames_from_video.py`: Extracts individual frames from video files.
-- `get_clip_resolution.py`: Retrieves the resolution of video clips.
+- **convert_mp4_codec_and_resolution_for_tv.py**: This script creates a graphical user interface (GUI) application that allows users to convert video files using FFmpeg, with options to select the source video, destination folder, video codec, and output resolution, while displaying the conversion progress.
+- **convert_youtube_to_download_multiple_movies_and_music.py**: This script provides a graphical user interface for downloading and converting YouTube videos to MP3 or MP4 format, allowing batch processing, custom save locations, and multithreaded operations.
+- **create_movie_clip_from_images_and_sound.py**: This script creates a video slideshow from a directory of images with a repeating background sound.
+- **extract_frames_from_video.py**: This script provides a graphical user interface for extracting frames from multiple video files, allowing users to select videos, choose an output folder, and specify extraction parameters such as extracting every N frames or a maximum number of frames per video.
+- **get_clip_resolution.py**: This script loads a video file named "output2.mp4" using the moviepy library and prints its resolution (width and height).
 
 ### System Utilities
-- `disk-space-alert-service.py`: Monitors and alerts on disk space usage.
-- `disksizeinfo.py`: Provides information on disk sizes.
-- `discover_monitor_information.py`: Retrieves monitor information.
-- `get_hostname_nbtstat.py`: Gets hostname using nbtstat.
-- `how_many_core_cpu.py`: Determines the number of CPU cores.
-- `system_discovery.py`: Discovers system information.
-
-### Network Tools
-- `network_analyzer.py`: Analyzes network traffic and performance.
-- `network_monitor.py`: Monitors network activities and logs security events.
-
-### File Conversion
-- `compress_pdf_file.py`: Compresses PDF files.
-- `convert_audio_to_text.py`: Converts audio files to text.
-- `numbering_pdf.py`: Adds page numbers to PDF files.
-
-### AI and Machine Learning
-- `anthropic_claude_chat.py`: Implements a chat interface using Anthropic's Claude AI.
-- `anthropic_claude_chat_for_linux.py`: Linux version of the Claude AI chat interface.
-- `inpainting.py`: Performs image inpainting using AI techniques.
-
-### Quantum Computing
-- `deutsch_jozsa_algorithm.py`: Implements the Deutsch-Jozsa quantum algorithm.
-- `quantum_key_cracking.py`: Demonstrates quantum key cracking techniques.
-- `quantum_rng.py`: Quantum random number generator.
-
-### Calendar Management (Microsoft Graph API)
-- `get_calendar_events.py`: Retrieves calendar events using Microsoft Graph API.
-- `get_calendar_permissions.py`: Manages calendar permissions using Microsoft Graph API.
-- `GraphServiceClient.py`: Helper class for interacting with Microsoft Graph API.
-
-### Miscellaneous
-- `get_requirements.py`: Generates requirements file for Python projects.
-- `organize_dataset.py`: Organizes datasets for machine learning projects.
-
-## Requirements
-See `requirements.txt` for a list of Python dependencies.
-
-## Usage
-Each script can be run independently. Please refer to the individual script files for specific usage instructions and requirements.
-
-## Contributing
-Contributions to improve existing scripts or add new useful scripts are welcome. Please feel free to submit pull requests or open issues for discussion.
-
-## License
-This project is licensed under the MIT License - see the LICENSE.md file for details.
-
-MIT License
-
-Copyright (c) 2024 Eran Gross
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
+- **anthropic_claude_chat.py**: The ClaudeChat application provides a graphical user interface for interacting with the Anthropic Claude AI model, allowing users to have conversations, upload and analyze files, and manage conversation history.
+- **anthropic_claude_chat_for_linux.py**: The ClaudeChat application provides a graphical user interface for interacting with the Claude AI model from Anthropic, allowing users to have conversations, upload files for analysis, and manage conversation history.
+- **disk-space-alert-service.py**: This script implements a Windows service that monitors disk space on local drives and sends email alerts when available space falls below a configured threshold.
+- **disksizeinfo.py**: This script retrieves and displays the available free space on the

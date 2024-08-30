@@ -1,23 +1,11 @@
 #!/usr/bin/env python3
 
-"""
-This script automatically updates a README.md file with descriptions of Python scripts in the same directory.
-
-It performs the following steps:
-1. Scans the directory for Python files.
-2. Extracts the docstring from each Python file.
-3. Uses the Anthropic API to generate a brief description of each script based on its docstring.
-4. Updates the README.md file with the generated descriptions, maintaining existing content and structure.
-
-The script requires an Anthropic API key to be set in the ANTHROPIC_API_KEY environment variable.
-
-Usage: Run this script in the directory containing the Python files and README.md to be updated.
-"""
-
 import os
 import anthropic
 import re
 from pathlib import Path
+import tempfile
+import shutil
 
 # Initialize the Anthropic client
 client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
@@ -49,8 +37,9 @@ def get_script_description(docstring):
         messages=messages
     )
     return response.content[0].text.strip()
-def update_readme(script_descriptions, current_content):
-    """Update the README.md file with script descriptions."""
+
+def update_readme_chunk(current_content, new_descriptions):
+    """Update a chunk of the README.md file with new script descriptions."""
     messages = [
         {
             "role": "user",
@@ -61,7 +50,7 @@ def update_readme(script_descriptions, current_content):
 
             And the following new or updated script descriptions:
 
-            {script_descriptions}
+            {new_descriptions}
 
             Please provide an updated version of the README.md that incorporates these changes. Maintain the overall structure and any existing sections not related to script descriptions. For the script descriptions, use the following format:
 
@@ -80,33 +69,50 @@ def update_readme(script_descriptions, current_content):
     return response.content[0].text.strip()
 
 def main():
-    # Get the directory of this script
     script_dir = Path(__file__).parent.resolve()
     readme_path = script_dir / "README.md"
-    script_descriptions = {}
+    
+    # Create a temporary file
+    with tempfile.NamedTemporaryFile(mode='w+', delete=False) as temp_file:
+        temp_path = Path(temp_file.name)
+        
+        # Read current README.md content
+        current_content = ""
+        if readme_path.exists():
+            with open(readme_path, 'r') as readme:
+                current_content = readme.read()
+        
+        # Write initial content to temp file
+        temp_file.write(current_content)
 
-    # Read current README.md content
-    current_content = ""
-    if readme_path.exists():
-        with open(readme_path, 'r') as readme:
-            current_content = readme.read()
+        # Process files in chunks
+        chunk_size = 5
+        all_files = [f for f in os.listdir(script_dir) if f.endswith('.py') and f != Path(__file__).name]
+        
+        for i in range(0, len(all_files), chunk_size):
+            chunk = all_files[i:i+chunk_size]
+            new_descriptions = {}
+            
+            for filename in chunk:
+                full_path = script_dir / filename
+                docstring = get_docstring(full_path)
+                if docstring:
+                    description = get_script_description(docstring)
+                    new_descriptions[filename] = description
+                else:
+                    print(f"No docstring found for {filename}")
+            
+            # Update temp file with this chunk
+            current_content = update_readme_chunk(current_content, new_descriptions)
+            temp_file.seek(0)
+            temp_file.write(current_content)
+            temp_file.truncate()
+            
+            print(f"Processed files {i+1} to {min(i+chunk_size, len(all_files))}")
 
-    # Iterate through all Python files in the directory
-    for filename in os.listdir(script_dir):
-        if filename.endswith('.py') and filename != Path(__file__).name:
-            full_path = script_dir / filename
-            docstring = get_docstring(full_path)
-            if docstring:
-                description = get_script_description(docstring)
-                script_descriptions[filename] = description
-            else:
-                print(f"No docstring found for {filename}")
-
-    # Update the README.md file
-    updated_content = update_readme(script_descriptions, current_content)
-    with open(readme_path, 'w') as readme:
-        readme.write(updated_content)
-    print("README.md has been updated.")
+    # Replace the original README.md with the temp file
+    shutil.move(temp_path, readme_path)
+    print("README.md has been fully updated.")
 
 if __name__ == "__main__":
     main()
