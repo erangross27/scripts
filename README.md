@@ -2,9 +2,7 @@
 # Python Scripts Collection
 
 This repository contains a diverse collection of Python scripts for various tasks,
-
 including image and video processing, system monitoring, network analysis, quantum 
-
 computing demonstrations, calendar management with Microsoft Graph API, and more.
 
 ## Contents
