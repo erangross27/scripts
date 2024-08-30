@@ -50,6 +50,14 @@ This repository contains a diverse collection of Python scripts for various task
   training and validation sets, creating the necessary directory structure, and
   copying the image files and corresponding label files into their respective
   training and validation directories within the destination folder.
+- **matrix_multiplication_comparison.py**: This script compares the performance
+  of applying Gaussian blur to an image using CPU and GPU (if available), by
+  measuring and displaying the execution times and memory usage for both
+  methods.
+- **sort_cpu_gpu_comparison.py**: This script compares the performance of sorting
+  algorithms on CPU and GPU by generating random data, sorting it using NumPy for
+  CPU and PyTorch for GPU, measuring the time taken for each method, and reporting
+  the average times and speedup achieved by GPU sorting over CPU sorting.
 
 ### Video Processing
 - **convert_mp4_codec_and_resolution_for_tv.py**: This script creates a
@@ -120,13 +128,5 @@ This repository contains a diverse collection of Python scripts for various task
   real-time network traffic monitoring and detection of suspicious activities
   such as port scans, large data transfers, and excessive DNS queries, utilizing
   the Scapy library for packet capture and analysis and PyQt5 for the GUI.
-- **compress_pdf_file.py**: This script provides a graphical user interface for
-  compressing PDF files using Ghostscript, allowing users to select input and
-  output files, and displaying a progress bar during the compression process.
-- **discover_monitor_information.py**: This script retrieves information about
-  the monitors connected to a Windows system using the Windows Management
-  Instrumentation (WMI) interface and returns the information as a list of
-  dictionaries.
-- **discover_gpu_memory.py**: This script retrieves and prints information about
-  the Intel GPU installed on the Windows system, including the GPU name, total
-  VRAM (if available), driver version
+- **network_monitor.py**: This script captures and analyzes network traffic on
+  specified network interfaces to detect

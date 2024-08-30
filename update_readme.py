@@ -4,12 +4,139 @@ import os
 import anthropic
 import re
 from pathlib import Path
-import tempfile
-import shutil
-import textwrap
+import psycopg2
+from psycopg2 import sql
+import hashlib
+import subprocess
+from datetime import datetime
 
 # Initialize the Anthropic client
 client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+
+# Database connection parameters
+DB_NAME = os.environ.get('DB_NAME', 'scripts_db')
+DB_USER = os.environ.get('DB_USER', 'scripts_user')
+DB_PASSWORD = os.environ.get('DB_PASSWORD', 'scripts_password')
+DB_HOST = os.environ.get('DB_HOST', 'localhost')
+DB_PORT = os.environ.get('DB_PORT', '5432')
+
+def create_db_and_user():
+    """
+    Create the database and user if they don't exist.
+    Also creates the 'processed_files' table in the database.
+    """
+    try:
+        # Check if user exists
+        user_exists = subprocess.run(['sudo', '-u', 'postgres', 'psql', '-tAc', 
+                                      f"SELECT 1 FROM pg_roles WHERE rolname='{DB_USER}'"],
+                                     capture_output=True, text=True).stdout.strip() == '1'
+        
+        if not user_exists:
+            subprocess.run(['sudo', '-u', 'postgres', 'psql', '-c', 
+                            f"CREATE USER {DB_USER} WITH PASSWORD '{DB_PASSWORD}';"], 
+                           check=True)
+            print(f"Created user: {DB_USER}")
+        else:
+            print(f"User {DB_USER} already exists")
+
+        # Check if database exists
+        db_exists = subprocess.run(['sudo', '-u', 'postgres', 'psql', '-tAc', 
+                                    f"SELECT 1 FROM pg_database WHERE datname='{DB_NAME}'"],
+                                   capture_output=True, text=True).stdout.strip() == '1'
+        
+        if not db_exists:
+            subprocess.run(['sudo', '-u', 'postgres', 'psql', '-c', 
+                            f"CREATE DATABASE {DB_NAME} OWNER {DB_USER};"], 
+                           check=True)
+            print(f"Created database: {DB_NAME}")
+        else:
+            print(f"Database {DB_NAME} already exists")
+
+        # Connect to the database as the user to create the table
+        conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASSWORD, host=DB_HOST, port=DB_PORT)
+        cur = conn.cursor()
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS processed_files (
+                filename TEXT PRIMARY KEY,
+                last_modified TIMESTAMP,
+                file_hash TEXT
+            )
+        """)
+        conn.commit()
+        cur.close()
+        conn.close()
+
+    except subprocess.CalledProcessError as e:
+        print(f"Error executing PostgreSQL command: {e}")
+        return False
+    except psycopg2.Error as e:
+        print(f"Error connecting to PostgreSQL: {e}")
+        return False
+    return True
+
+
+def get_db_connection():
+    """
+    Establish and return a connection to the database.
+    """
+    return psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASSWORD, host=DB_HOST, port=DB_PORT)
+
+def ensure_db_setup():
+    """
+    Ensure the database, user, and necessary tables are set up.
+    """
+    if create_db_and_user():
+        print("Database setup confirmed.")
+        return True
+    else:
+        print("Failed to set up the database. Exiting.")
+        return False
+
+def get_file_hash(filepath):
+    """
+    Calculate and return the MD5 hash of a file.
+    """
+    with open(filepath, 'rb') as f:
+        return hashlib.md5(f.read()).hexdigest()
+
+
+def is_file_processed(filename, last_modified, file_hash):
+    """
+    Check if a file has already been processed by comparing its last modified time and hash.
+    """
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT last_modified, file_hash FROM processed_files WHERE filename = %s", (filename,))
+    result = cur.fetchone()
+    cur.close()
+    conn.close()
+
+    if result:
+        db_last_modified, db_file_hash = result
+        # Compare timestamps within a small tolerance (e.g., 1 second)
+        time_difference = abs(db_last_modified.timestamp() - last_modified)
+        return time_difference < 1 and db_file_hash == file_hash
+    return False
+
+
+
+def update_processed_file(filename, last_modified, file_hash):
+    """
+    Update or insert a record for a processed file in the database.
+    """
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("""
+    INSERT INTO processed_files (filename, last_modified, file_hash)
+    VALUES (%s, to_timestamp(%s), %s)
+    ON CONFLICT (filename) DO UPDATE
+    SET last_modified = to_timestamp(EXCLUDED.last_modified), file_hash = EXCLUDED.file_hash
+    """, (filename, last_modified, file_hash))
+    conn.commit()
+    cur.close()
+    conn.close()
+
+
 
 def get_docstring(filename):
     """Extract the docstring from a Python file."""
@@ -39,14 +166,13 @@ def get_script_description(docstring):
     )
     return response.content[0].text.strip()
 
-def update_readme_for_script(current_content, script_name, script_description):
+def update_readme_content(current_content, script_name, script_description):
     """Update the README.md content for a single script."""
     messages = [
         {
             "role": "user",
             "content": f"""
             Given the current README.md content:
-
             {current_content}
 
             Update or add the description for the script "{script_name}" with the following description:
@@ -76,6 +202,11 @@ def update_readme_for_script(current_content, script_name, script_description):
     return response.content[0].text.strip()
 
 def main():
+    """
+    Main function to process Python files and update the README.md.
+    """
+    if not ensure_db_setup():
+        exit(1)
     script_dir = Path(__file__).parent.resolve()
     readme_path = script_dir / "README.md"
     
@@ -90,13 +221,20 @@ def main():
     
     for i, filename in enumerate(all_files, 1):
         full_path = script_dir / filename
-        docstring = get_docstring(full_path)
-        if docstring:
-            description = get_script_description(docstring)
-            current_content = update_readme_for_script(current_content, filename, description)
-            print(f"Processed file {i} of {len(all_files)}: {filename}")
+        last_modified = os.path.getmtime(full_path)
+        file_hash = get_file_hash(full_path)
+        
+        if not is_file_processed(filename, last_modified, file_hash):
+            docstring = get_docstring(full_path)
+            if docstring:
+                description = get_script_description(docstring)
+                current_content = update_readme_content(current_content, filename, description)
+                update_processed_file(filename, last_modified, file_hash)
+                print(f"Processed file {i} of {len(all_files)}: {filename}")
+            else:
+                print(f"No docstring found for {filename}")
         else:
-            print(f"No docstring found for {filename}")
+            print(f"Skipped file {i} of {len(all_files)}: {filename} (no changes)")
 
     # Write the updated content to README.md
     with open(readme_path, 'w') as readme:
