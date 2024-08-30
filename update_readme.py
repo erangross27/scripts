@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 import os
 import anthropic
 import re
@@ -30,10 +29,9 @@ def create_db_and_user():
         user_exists = subprocess.run(['sudo', '-u', 'postgres', 'psql', '-tAc', 
                                       f"SELECT 1 FROM pg_roles WHERE rolname='{DB_USER}'"],
                                      capture_output=True, text=True).stdout.strip() == '1'
-        
         if not user_exists:
             subprocess.run(['sudo', '-u', 'postgres', 'psql', '-c', 
-                            f"CREATE USER {DB_USER} WITH PASSWORD '{DB_PASSWORD}';"], 
+                            f"CREATE USER {DB_USER} WITH PASSWORD '{DB_PASSWORD}';"],
                            check=True)
             print(f"Created user: {DB_USER}")
         else:
@@ -43,10 +41,9 @@ def create_db_and_user():
         db_exists = subprocess.run(['sudo', '-u', 'postgres', 'psql', '-tAc', 
                                     f"SELECT 1 FROM pg_database WHERE datname='{DB_NAME}'"],
                                    capture_output=True, text=True).stdout.strip() == '1'
-        
         if not db_exists:
             subprocess.run(['sudo', '-u', 'postgres', 'psql', '-c', 
-                            f"CREATE DATABASE {DB_NAME} OWNER {DB_USER};"], 
+                            f"CREATE DATABASE {DB_NAME} OWNER {DB_USER};"],
                            check=True)
             print(f"Created database: {DB_NAME}")
         else:
@@ -56,16 +53,15 @@ def create_db_and_user():
         conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASSWORD, host=DB_HOST, port=DB_PORT)
         cur = conn.cursor()
         cur.execute("""
-            CREATE TABLE IF NOT EXISTS processed_files (
-                filename TEXT PRIMARY KEY,
-                last_modified TIMESTAMP,
-                file_hash TEXT
-            )
+        CREATE TABLE IF NOT EXISTS processed_files (
+            filename TEXT PRIMARY KEY,
+            last_modified TIMESTAMP,
+            file_hash TEXT
+        )
         """)
         conn.commit()
         cur.close()
         conn.close()
-
     except subprocess.CalledProcessError as e:
         print(f"Error executing PostgreSQL command: {e}")
         return False
@@ -73,7 +69,6 @@ def create_db_and_user():
         print(f"Error connecting to PostgreSQL: {e}")
         return False
     return True
-
 
 def get_db_connection():
     """
@@ -99,7 +94,6 @@ def get_file_hash(filepath):
     with open(filepath, 'rb') as f:
         return hashlib.md5(f.read()).hexdigest()
 
-
 def is_file_processed(filename, last_modified, file_hash):
     """
     Check if a file has already been processed by comparing its last modified time and hash.
@@ -118,8 +112,6 @@ def is_file_processed(filename, last_modified, file_hash):
         return time_difference < 1 and db_file_hash == file_hash
     return False
 
-
-
 def update_processed_file(filename, last_modified, file_hash):
     """
     Update or insert a record for a processed file in the database.
@@ -135,8 +127,6 @@ def update_processed_file(filename, last_modified, file_hash):
     conn.commit()
     cur.close()
     conn.close()
-
-
 
 def get_docstring(filename):
     """Extract the docstring from a Python file."""
@@ -165,8 +155,19 @@ def get_script_description(docstring):
         messages=messages
     )
     return response.content[0].text.strip()
-def update_readme_content(current_content, script_name, script_description):
+
+def get_license_filename(script_dir):
+    """Find the correct license filename in the directory."""
+    license_variants = ['LICENSE', 'LICENSE.md', 'License.md', 'license.md']
+    for variant in license_variants:
+        if os.path.exists(os.path.join(script_dir, variant)):
+            return variant
+    return None
+
+def update_readme_content(current_content, script_name, script_description, license_filename):
     """Update the README.md content for a single script and ensure license section exists."""
+    license_link = f"[{license_filename}]({license_filename})" if license_filename else "LICENSE file (not found)"
+    
     messages = [
         {
             "role": "user",
@@ -188,9 +189,9 @@ Please follow these guidelines:
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
+This project is licensed under the MIT License - see the {license_link} for details.
 
-6. If a "License" section is already present, ensure it points to LICENSE.md, not LICENSE.
+6. If a "License" section is already present, ensure it uses the correct license filename: {license_filename}
 7. Ensure proper Markdown formatting throughout the document.
 Return the entire updated README content.
 """
@@ -204,17 +205,17 @@ Return the entire updated README content.
     )
     return response.content[0].text.strip()
 
-
-
 def main():
     """
     Main function to process Python files and update the README.md.
     """
     if not ensure_db_setup():
         exit(1)
+
     script_dir = Path(__file__).parent.resolve()
     readme_path = script_dir / "README.md"
-    
+    license_filename = get_license_filename(script_dir)
+
     # Read current README.md content
     current_content = ""
     if readme_path.exists():
@@ -223,17 +224,16 @@ def main():
 
     # Process files individually
     all_files = [f for f in os.listdir(script_dir) if f.endswith('.py') and f != Path(__file__).name]
-    
     for i, filename in enumerate(all_files, 1):
         full_path = script_dir / filename
         last_modified = os.path.getmtime(full_path)
         file_hash = get_file_hash(full_path)
-        
+
         if not is_file_processed(filename, last_modified, file_hash):
             docstring = get_docstring(full_path)
             if docstring:
                 description = get_script_description(docstring)
-                current_content = update_readme_content(current_content, filename, description)
+                current_content = update_readme_content(current_content, filename, description, license_filename)
                 update_processed_file(filename, last_modified, file_hash)
                 print(f"Processed file {i} of {len(all_files)}: {filename}")
             else:
@@ -246,6 +246,9 @@ def main():
         readme.write(current_content)
 
     print("README.md has been fully updated.")
+
+    if not license_filename:
+        print("Warning: No LICENSE file found in the project directory.")
 
 if __name__ == "__main__":
     main()
