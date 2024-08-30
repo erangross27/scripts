@@ -1,3 +1,25 @@
+"""
+This script provides a graphical user interface for converting image files to text documents using Google Cloud Vision API.
+
+The program allows users to select an image file, process it using optical character recognition (OCR),
+and save the extracted text as a Microsoft Word document (.docx). The text is formatted right-to-left
+to accommodate languages that are written in this direction.
+
+Key features:
+1. GUI for easy interaction
+2. Image selection via file dialog
+3. Progress bar to track conversion progress
+4. Automatic formatting of text (right-to-left, right-aligned)
+5. Saving output as a Word document
+
+Dependencies:
+- google-cloud-vision
+- python-docx
+- tkinter
+
+Note: This script requires a valid Google Cloud Vision API key (google.json) in the same directory.
+"""
+
 import io
 import sys
 import os

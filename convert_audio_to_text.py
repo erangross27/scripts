@@ -1,3 +1,33 @@
+"""
+Audio to Text Converter
+
+This script provides a graphical user interface for converting audio files to text using Google Cloud Speech-to-Text API.
+
+Features:
+- Browse and select audio files (supports .m4a format)
+- Choose save location for the output text file
+- Convert audio to text with automatic punctuation and profanity filtering
+- Supports Hebrew language (iw-IL)
+
+Dependencies:
+- os
+- tkinter
+- google.cloud.speech
+- wave
+- audioop
+- pydub
+
+Note: Requires a valid Google Cloud credentials file.
+
+Usage:
+1. Run the script
+2. Use the GUI to select an audio file and save location
+3. Enter a filename for the output
+4. Click "Convert" to process the audio and generate text
+
+The script handles audio format conversion (m4a to wav) and channel conversion (stereo to mono) automatically.
+"""
+
 import os
 import tkinter as tk
 from tkinter import filedialog

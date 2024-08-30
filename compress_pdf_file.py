@@ -1,3 +1,26 @@
+"""
+PDF Compressor
+
+This script provides a graphical user interface for compressing PDF files using Ghostscript.
+It allows users to select input and output files, and displays a progress bar during compression.
+
+Features:
+- File selection for input and output PDFs
+- Progress bar to show compression status
+- Multithreaded compression to keep the GUI responsive
+- Estimated time calculation based on file size
+- Error handling for common issues (e.g., missing Ghostscript)
+
+Dependencies:
+- subprocess
+- tkinter
+- os
+- threading
+- time
+
+Note: This script requires Ghostscript to be installed and accessible in the system PATH.
+"""
+
 import subprocess
 from subprocess import CREATE_NO_WINDOW
 import tkinter as tk

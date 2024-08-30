@@ -1,3 +1,28 @@
+"""
+This script compares the performance of CPU and GPU sorting algorithms.
+
+It uses NumPy for CPU sorting and PyTorch for GPU sorting. The script performs the following tasks:
+1. Checks for CUDA availability and sets the device accordingly.
+2. Prints information about the GPU if available.
+3. Defines functions for CPU and GPU sorting.
+4. Defines functions to print CPU and GPU memory usage.
+5. Runs a comparison between CPU and GPU sorting:
+   - Generates random data
+   - Sorts the data using both CPU and GPU
+   - Measures and reports the time taken for each method
+   - Calculates and reports average times and speedup
+   
+The comparison is run multiple times with a large array to get a reliable performance measure.
+
+Requirements:
+- NumPy
+- PyTorch
+- psutil
+- GPUtil
+
+Note: GPU sorting will only be performed if CUDA is available.
+"""
+
 import numpy as np
 import torch
 import time

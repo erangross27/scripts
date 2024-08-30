@@ -1,3 +1,32 @@
+"""
+SVG Converter
+
+This script provides a graphical user interface (GUI) for converting SVG files to raster image formats
+(PNG, JPG, BMP) using PyQt5. The application allows users to select an input SVG file, choose an output
+format and location, set the desired resolution, and perform the conversion.
+
+Key features:
+- Select input SVG file
+- Choose output format (PNG, JPG, BMP)
+- Set custom resolution
+- Automatically detect and set resolution from input SVG
+- Convert SVG to selected raster format
+
+Dependencies:
+- PyQt5
+- sys
+- os
+
+Usage:
+Run the script to launch the GUI application. Select an input SVG file, choose the output format and
+location, adjust the resolution if needed, and click the "Convert" button to perform the conversion.
+
+Classes:
+- SVGConverter: Main application window class that handles the UI and conversion process.
+
+Note: This script must be run in an environment with PyQt5 installed.
+"""
+
 import sys
 import os
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 

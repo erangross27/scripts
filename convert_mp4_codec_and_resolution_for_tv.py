@@ -1,11 +1,39 @@
+"""
+Video Converter Application
+
+This script creates a GUI application for converting video files using FFmpeg.
+It allows users to select a source video file, choose a destination folder,
+and set conversion parameters such as codec and resolution. The application
+shows a progress bar during the conversion process.
+
+Features:
+- Select source video file and destination folder
+- Choose video codec (libx264 or mpeg4)
+- Select output resolution (480p, 720p, or 1080p)
+- Display conversion progress
+- Handle FFmpeg processes and update GUI asynchronously
+
+Dependencies:
+- tkinter
+- subprocess
+- re
+- time
+- threading
+- os
+- sys
+- FFmpeg (must be accessible in the system PATH or bundled with the application)
+
+Note: This script is designed to work both as a standalone Python script and
+when bundled with PyInstaller.
+"""
+
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 import subprocess
 import re
-import time
+import sys
 import threading
 import os
-import sys
 # Check if the application is running as a PyInstaller bundle
 if getattr(sys, 'frozen', False):
     # The application is running as a bundle

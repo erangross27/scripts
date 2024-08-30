@@ -1,3 +1,29 @@
+"""
+YouTube Video Converter
+
+This script provides a graphical user interface (GUI) for downloading and converting YouTube videos to either MP3 or MP4 format.
+
+Features:
+- Multiple URL input for batch processing
+- Option to choose between MP3 and MP4 output formats
+- Custom save location selection
+- Multithreaded download and conversion process
+- Progress updates and error handling
+
+Dependencies:
+- os
+- tkinter
+- pytube
+- moviepy
+- threading
+- queue
+
+Usage:
+Run the script to open the GUI. Enter YouTube URLs, select the desired output format and save location, then click "Download" to start the conversion process.
+
+Note: This script requires an active internet connection to download videos from YouTube.
+"""
+
 import os
 import tkinter as tk
 from tkinter import filedialog, ttk

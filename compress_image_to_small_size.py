@@ -1,3 +1,36 @@
+"""
+Image Compressor GUI Application
+
+This script provides a graphical user interface for compressing JPEG images.
+It allows users to compress either a single image file or all images in a folder.
+The application uses PyQt5 for the GUI and Pillow for image processing.
+
+Features:
+- Compress single JPEG image or all JPEG images in a folder
+- Adjustable compression quality (1-100)
+- Input and output path selection via file dialogs
+- Real-time quality adjustment display
+- Compression progress and results displayed in the GUI
+
+Usage:
+Run the script to launch the GUI application. Select the input (file or folder),
+choose the output location, adjust the quality as needed, and click "Compress"
+to start the compression process.
+
+Dependencies:
+- os
+- sys
+- PIL (Pillow)
+- PyQt5
+
+Classes:
+- ImageCompressorGUI: Main application window and logic
+
+Functions:
+- compress_image: Compresses a single image file
+- compress_images_in_folder: Compresses all JPEG images in a folder
+"""
+
 import os
 import sys
 from PIL import Image

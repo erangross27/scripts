@@ -1,3 +1,29 @@
+"""
+This script creates a video slideshow from a directory of images with a repeating background sound.
+
+The script performs the following steps:
+1. Loads images from a specified directory.
+2. Creates a video clip from the images, displaying each for a set duration.
+3. Loads a background sound file.
+4. Repeats the background sound to match the length of the video.
+5. Combines the image sequence with the repeated background sound.
+6. Outputs the final video file.
+
+Required libraries:
+- os: For file and directory operations.
+- cv2: For image loading and processing.
+- moviepy.editor: For video and audio manipulation.
+
+Usage:
+- Set the 'image_directory' variable to the path of your image folder.
+- Set the 'output_video' variable to your desired output video filename.
+- Set the 'image_duration' variable to the number of seconds each image should be displayed.
+- Set the 'background_sound' variable to the path of your MP3 background sound file.
+- Run the script to generate the video.
+
+Note: Ensure all required libraries are installed before running the script.
+"""
+
 import os
 import cv2
 from moviepy.editor import ImageSequenceClip, AudioFileClip, concatenate_audioclips

@@ -1,3 +1,23 @@
+"""
+This script provides functionality to gather and display system information.
+
+It uses the platform, socket, and psutil modules to collect various details about the system,
+including the operating system, machine architecture, hostname, IP address, CPU cores, and total RAM.
+
+The main function, system_discovery(), prints this information to the console.
+
+When run as a standalone script, it automatically executes the system_discovery() function.
+
+Dependencies:
+    - platform
+    - socket
+    - psutil
+
+Usage:
+    Run the script directly to see the system information output.
+    Alternatively, import the system_discovery function to use it in other scripts.
+"""
+
 # Import necessary modules
 import platform  # For system and OS information
 import socket    # For network-related functions

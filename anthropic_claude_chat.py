@@ -1,3 +1,38 @@
+"""
+ClaudeChat Application
+
+This application provides a graphical user interface for interacting with the Anthropic Claude AI model. 
+It allows users to have conversations with the AI, upload and analyze files, and manage conversation history.
+
+Key features:
+- Chat interface with Claude AI
+- File upload and analysis (text, PDF, images, Word, Excel)
+- Conversation history management
+- Code block highlighting and copying
+- Multiple Claude model selection
+
+The application uses PyQt5 for the GUI, SQLite for storing conversation history, 
+and integrates with various libraries for file handling and API communication.
+
+Main classes:
+- ClaudeChat: The main application window and logic
+- ConversationHistory: Manages conversation storage and retrieval
+- MessageProcessor: Handles asynchronous API calls to Claude
+- PythonHighlighter: Provides syntax highlighting for code blocks
+
+Usage:
+Run this script to launch the ClaudeChat application. An Anthropic API key is required.
+
+Dependencies:
+- PyQt5
+- anthropic
+- fitz (PyMuPDF)
+- Pillow
+- win32com
+
+Note: This application is designed to run on Windows due to some Windows-specific features.
+"""
+
 import base64
 import json
 import logging
