@@ -40,6 +40,16 @@ This repository contains a diverse collection of Python scripts for various task
 - **image_mover.py**: This script creates a graphical user interface (GUI)
   application using PyQt5 that allows users to move image files from a source
   directory to a destination directory.
+- **train_watermark_yolov5.py**: This script sets up and runs the training
+  process for the YOLOv5 object detection model, allowing for customization
+  through command-line arguments and predefined hyperparameters.
+- **mnist_cuda.py**: This script trains a convolutional neural network model on
+  the MNIST handwritten digit dataset using PyTorch for image classification
+  tasks.
+- **organize_dataset.py**: The script organizes a dataset by splitting it into
+  training and validation sets, creating the necessary directory structure, and
+  copying the image files and corresponding label files into their respective
+  training and validation directories within the destination folder.
 
 ### Video Processing
 - **convert_mp4_codec_and_resolution_for_tv.py**: This script creates a
@@ -59,6 +69,10 @@ This repository contains a diverse collection of Python scripts for various task
   as extracting every N frames or a maximum number of frames per video.
 - **get_clip_resolution.py**: This script loads a video file named "output2.mp4"
   using the moviepy library and prints its resolution (width and height).
+- **video_encoding_comparison.py**: This script compares the performance of CPU
+  and GPU video encoding using FFmpeg by measuring the encoding time for both
+  methods, calculating the average encoding times, and providing a comparison of
+  the performance between CPU and GPU.
 
 ### System Utilities
 - **anthropic_claude_chat.py**: The ClaudeChat application provides a graphical
@@ -98,6 +112,10 @@ This repository contains a diverse collection of Python scripts for various task
   permissions for a user from the Microsoft Graph API using Azure AD
   authentication, and it prints the calendar names, IDs, and permission details
   for each calendar.
+- **GraphServiceClient.py**: This script retrieves a Microsoft user's calendar
+  information, including upcoming holidays and all-day events for the next year,
+  by authenticating with the Microsoft Graph API and fetching the necessary
+  data.
 - **network_analyzer.py**: This script provides a graphical user interface for
   real-time network traffic monitoring and detection of suspicious activities
   such as port scans, large data transfers, and excessive DNS queries, utilizing
@@ -111,23 +129,4 @@ This repository contains a diverse collection of Python scripts for various task
   dictionaries.
 - **discover_gpu_memory.py**: This script retrieves and prints information about
   the Intel GPU installed on the Windows system, including the GPU name, total
-  VRAM (if available), driver version, and video processor information, using
-  the Windows Management Instrumentation (WMI) interface.
-- **network_monitor.py**: This script captures and analyzes network traffic on
-  specified network interfaces to detect potential security threats, such as
-  port scans, high volumes of inbound connections, suspicious DNS queries, and
-  potential password or credit card transmissions, while logging any suspicious
-  activities.
-- **numbering_pdf.py**: This script provides a graphical user interface for
-  adding customizable page numbers to PDF documents, allowing users to preview
-  and save the numbered PDF file.
-
-### Quantum Computing
-- **deutsch_jozsa_algorithm.py**: This script implements the Deutsch-Jozsa
-  algorithm, which determines whether a given function is constant or balanced,
-  using IBM Quantum's cloud-based quantum computers.
-- **quantum_key_cracking.py**: This script demonstrates the use of Grover's
-  algorithm, implemented using IBM's Qiskit framework, to crack a 3-bit secret
-  key by leveraging quantum computing services.
-- **quantum_rng.py**: This script demonstrates the generation of random numbers
-  using a quantum circuit implemente
+  VRAM (if available), driver version
