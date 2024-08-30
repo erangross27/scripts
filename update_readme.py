@@ -165,7 +165,6 @@ def get_script_description(docstring):
         messages=messages
     )
     return response.content[0].text.strip()
-
 def update_readme_content(current_content, script_name, script_description):
     """Update the README.md content for a single script and ensure license section exists."""
     messages = [
@@ -191,7 +190,8 @@ Please follow these guidelines:
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
 
-6. Ensure proper Markdown formatting throughout the document.
+6. If a "License" section is already present, ensure it points to LICENSE.md, not LICENSE.
+7. Ensure proper Markdown formatting throughout the document.
 Return the entire updated README content.
 """
         }
@@ -203,6 +203,7 @@ Return the entire updated README content.
         messages=messages
     )
     return response.content[0].text.strip()
+
 
 
 def main():
