@@ -151,13 +151,14 @@ def update_processed_file(filename, last_modified, file_hash):
     cur = conn.cursor()
     cur.execute("""
     INSERT INTO processed_files (filename, last_modified, file_hash)
-    VALUES (%s, to_timestamp(%s), %s)
+    VALUES (%s, %s, %s)
     ON CONFLICT (filename) DO UPDATE
-    SET last_modified = to_timestamp(EXCLUDED.last_modified), file_hash = EXCLUDED.file_hash
-    """, (filename, last_modified, file_hash))
+    SET last_modified = EXCLUDED.last_modified, file_hash = EXCLUDED.file_hash
+    """, (filename, datetime.fromtimestamp(last_modified), file_hash))
     conn.commit()
     cur.close()
     conn.close()
+
 
 def get_docstring(filename):
     """Extract the docstring from a Python file."""
@@ -255,7 +256,7 @@ def main():
             current_content = readme.read()
 
     # Process files individually
-    all_files = [f for f in os.listdir(script_dir) if f.endswith('.py') and f != Path(__file__).name]
+    all_files = [f for f in os.listdir(script_dir) if f.endswith('.py')]
     for i, filename in enumerate(all_files, 1):
         full_path = script_dir / filename
         last_modified = os.path.getmtime(full_path)

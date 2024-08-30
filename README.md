@@ -60,6 +60,10 @@ computing demonstrations, calendar management with Microsoft Graph API, and more
   algorithms on CPU and GPU by generating random data, sorting it using NumPy for
   CPU and PyTorch for GPU, measuring the time taken for each method, and reporting
   the average times and speedup achieved by GPU sorting over CPU sorting.
+**update_readme.py**: This script processes Python files in a directory, extracts
+  their docstrings, generates brief descriptions using the Anthropic API, and
+  updates a README.md file with these descriptions, while managing a PostgreSQL
+  database to track processed files and avoid unnecessary reprocessing.
 
 ### Video Processing
 **convert_mp4_codec_and_resolution_for_tv.py**: This script creates a
@@ -129,10 +133,4 @@ computing demonstrations, calendar management with Microsoft Graph API, and more
 **network_analyzer.py**: This script provides a graphical user interface for
   real-time network traffic monitoring and detection of suspicious activities
   such as port scans, large data transfers, and excessive DNS queries, utilizing
-  the Scapy library for packet capture and analysis and PyQt5 for the GUI.
-**network_monitor.py**: This script captures and analyzes network traffic on
-  specified network interfaces to detect
-
-## License
-
-This project is licensed under the MIT License see the [LICENSE.md](LICENSE.md) file for details.
+  the Scapy library
