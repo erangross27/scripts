@@ -1,4 +1,35 @@
 #!/usr/bin/env python3
+
+"""
+This script processes Python files in a directory, extracts their docstrings,
+generates brief descriptions using the Anthropic API, and updates a README.md
+file with these descriptions. It also manages a PostgreSQL database to track
+processed files and avoid unnecessary reprocessing. The script ensures proper
+setup of the database and handles the creation of necessary tables. It also
+checks for and includes license information in the README.md file.
+
+Key features:
+- Processes Python files in the script's directory
+- Extracts docstrings from Python files
+- Uses Anthropic API to generate brief descriptions of scripts
+- Updates README.md with script descriptions and license information
+- Manages a PostgreSQL database to track processed files
+- Handles database and user creation if they don't exist
+- Calculates file hashes to detect changes
+
+Dependencies:
+- anthropic
+- psycopg2
+- hashlib
+- subprocess
+
+Environment variables:
+- ANTHROPIC_API_KEY: API key for Anthropic
+- DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT: Database connection parameters
+
+Usage:
+Run the script directly to process files and update the README.md.
+"""
 import os
 import anthropic
 import re
