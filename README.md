@@ -8,9 +8,10 @@ computing demonstrations, calendar management with Microsoft Graph API, and more
 ## Contents
 
 ### Image Processing
-`captureImage.py`: This script captures an image from the default camera and
-  saves it to the specified output directory with a unique filename based on the
-  current date and time.
+**captureImage.py**: This script captures an image from the default camera and
+saves it to the specified output directory with a unique filename based on the
+current date and time.
+
 `compress_image_to_small_size.py`: This script provides a graphical user
   interface for compressing JPEG images, allowing users to compress either a
   single image file or all images in a folder with adjustable compression
