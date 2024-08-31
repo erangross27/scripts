@@ -9,7 +9,7 @@ computing demonstrations, calendar management with Microsoft Graph API, and more
 
 ### Image Processing
 
-__captureImage__.py: This script captures an image from the default camera and
+`captureImage.py`: This script captures an image from the default camera and
 saves it to the specified output directory with a unique filename based on the
 current date and time.
 
