@@ -47,7 +47,10 @@ from diffusers import StableDiffusionInpaintPipeline
 import os
 from datetime import datetime
 from PIL import Image, ImageOps
-
+from huggingface_hub import login, HfFolder
+from huggingface_hub.utils import LocalTokenNotFoundError
+import tkinter as tk
+from tkinter import simpledialog
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -113,11 +116,20 @@ class WatermarkDetectionApp:
         self.master.grid_columnconfigure(1, weight=1)
         self.master.grid_rowconfigure(5, weight=1)
 
-
     def download_and_load_inpainting_model(self):
-        model_id = "runwayml/stable-diffusion-inpainting"
+        model_id = "stabilityai/stable-diffusion-2-inpainting"
         
         try:
+            # Check if the user is already logged in
+            token = HfFolder.get_token()
+            if token is None:
+                # If not logged in, prompt for the token
+                token = simpledialog.askstring("Hugging Face Login", "Enter your Hugging Face token:", parent=self.master)
+                if token:
+                    login(token)
+                else:
+                    raise ValueError("Hugging Face token is required to download the model.")
+            
             # Determine the device
             device = "cuda" if torch.cuda.is_available() else "cpu"
             logger.info(f"Attempting to use device: {device}")
@@ -133,10 +145,9 @@ class WatermarkDetectionApp:
             self.inpainting_pipeline = StableDiffusionInpaintPipeline.from_pretrained(
                 model_id,
                 torch_dtype=torch.float16 if device == "cuda" else torch.float32,
-                use_safetensors=False,
-                low_cpu_mem_usage=True,
-                revision="fp16" if device == "cuda" else "main",
-                allow_pickle=True
+                use_safetensors=True,
+                variant="fp16" if device == "cuda" else None,
+                use_auth_token=token
             )
             logger.info("Model loaded successfully")
             
@@ -167,13 +178,12 @@ class WatermarkDetectionApp:
             success_message = f"Inpainting model loaded successfully on {device} with memory optimizations"
             logger.info(success_message)
             messagebox.showinfo("Success", success_message)
+        
         except Exception as e:
             error_message = f"Error loading inpainting model: {str(e)}"
             logger.error(error_message, exc_info=True)
             messagebox.showerror("Error", error_message)
 
-    # Ensure logging is set up
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
     def inpaint(self, prompt, image, mask_image):
         try:
@@ -353,34 +363,40 @@ class WatermarkDetectionApp:
             mask_vis_path = os.path.join(detected_frames_dir, f"frame_{frame_num:04d}_mask.jpg")
             cv2.imwrite(mask_vis_path, mask_vis)
             
-            inpainting_successful = False
-            for attempt in range(1):  # Run inpainting three times
-                try:
-                    inpainted_frame, inpaint_vis = self.inpaint_image(
-                        inpainted_frame if attempt > 0 else frame,
-                        watermark_mask,
-                        prompt="remove watermark surrounding with green rectangle and repaint the scene based on surrounding",
-                        negative_prompt="text, watermark, logo, shutterstock, copyright, blurry, distorted, low quality",
-                        num_inference_steps=50,
-                        guidance_scale=10.0,
-                        strength=1.0,
-                        seed=frame_num + (attempt * 1000)
-                    )
-                    
-                    # Save inpainted frame and visualization for this attempt
-                    attempt_frame_path = os.path.join(inpainted_frames_dir, f"frame_{frame_num:04d}_attempt_{attempt+1}.jpg")
-                    cv2.imwrite(attempt_frame_path, inpainted_frame)
-                    attempt_vis_path = os.path.join(inpainted_frames_dir, f"frame_{frame_num:04d}_attempt_{attempt+1}_vis.jpg")
-                    cv2.imwrite(attempt_vis_path, inpaint_vis)
-                    
-                    inpainting_successful = True
-                    logger.info(f"Successfully inpainted frame {frame_num}, attempt {attempt+1}")
-                    break  # Exit the loop if inpainting is successful
-                except Exception as e:
-                    logger.warning(f"Inpainting attempt {attempt+1} for frame {frame_num} failed: {str(e)}")
-            
-            if not inpainting_successful:
-                logger.error(f"All inpainting attempts failed for frame {frame_num}. Using original frame.")
+            # Only proceed with inpainting if watermark is detected
+            if np.any(watermark_mask > 0):
+                inpainting_successful = False
+                for attempt in range(1):  # Run inpainting once
+                    try:
+                        inpainted_frame, inpaint_vis = self.inpaint_image(
+                            frame,
+                            watermark_mask,
+                            prompt="remove watermark surrounding with green rectangle and repaint the scene based on surrounding",
+                            negative_prompt="text, watermark, logo, shutterstock, copyright, blurry, distorted, low quality",
+                            num_inference_steps=50,
+                            guidance_scale=10.0,
+                            strength=1.0,
+                            seed=frame_num + (attempt * 1000)
+                        )
+                        
+                        # Save inpainted frame and visualization for this attempt
+                        attempt_frame_path = os.path.join(inpainted_frames_dir, f"frame_{frame_num:04d}_attempt_{attempt+1}.jpg")
+                        cv2.imwrite(attempt_frame_path, inpainted_frame)
+                        attempt_vis_path = os.path.join(inpainted_frames_dir, f"frame_{frame_num:04d}_attempt_{attempt+1}_vis.jpg")
+                        cv2.imwrite(attempt_vis_path, inpaint_vis)
+                        
+                        inpainting_successful = True
+                        logger.info(f"Successfully inpainted frame {frame_num}, attempt {attempt+1}")
+                        break  # Exit the loop if inpainting is successful
+                    except Exception as e:
+                        logger.warning(f"Inpainting attempt {attempt+1} for frame {frame_num} failed: {str(e)}")
+                
+                if not inpainting_successful:
+                    logger.error(f"All inpainting attempts failed for frame {frame_num}. Using original frame.")
+                    inpainted_frame = frame
+                    inpaint_vis = frame
+            else:
+                logger.info(f"No watermark detected in frame {frame_num}. Skipping inpainting.")
                 inpainted_frame = frame
                 inpaint_vis = frame
             
@@ -440,10 +456,13 @@ class WatermarkDetectionApp:
         return mask, marked_img
 
 
+
     def visualize_mask(self, img, mask):
         vis = img.copy()
-        vis[mask > 0] = cv2.addWeighted(img[mask > 0], 0.5, np.full_like(img[mask > 0], [0, 255, 0]), 0.5, 0)
+        if mask is not None and np.any(mask > 0):
+            vis[mask > 0] = cv2.addWeighted(img[mask > 0], 0.5, np.full_like(img[mask > 0], [0, 255, 0]), 0.5, 0)
         return vis
+
 
         
 
