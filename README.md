@@ -1,4 +1,3 @@
-```markdown
 # Python Scripts Collection
 
 This repository contains a diverse collection of Python scripts for various tasks,
@@ -9,161 +8,83 @@ computing demonstrations, calendar management with Microsoft Graph API, and more
 
 ### Image Processing
 
-`captureImage.py`: This script captures an image from the default camera and
-saves it to the specified output directory with a unique filename based on the
-current date and time.
-
-`compress_image_to_small_size.py`: This script provides a graphical user
-  interface for compressing JPEG images, allowing users to compress either a
-  single image file or all images in a folder with adjustable compression
-  quality, input/output path selection, and real-time quality adjustment
-  display.
-
-`convert_image_to_doc.py`: This script provides a graphical user interface
-  that allows users to convert image files to text documents using Google Cloud
-  Vision API's optical character recognition (OCR) capabilities, with the
-  extracted text formatted right-to-left and saved as a Microsoft Word document.
-
-`convert_svg_to_diffrent_images_format.py`: This script provides a graphical
-  user interface for converting SVG files to raster image formats like PNG, JPG,
-  and BMP, allowing users to select an input SVG file, choose an output format
-  and location, set the desired resolution, and perform the conversion.
-
-`extract_text_from_image_regular.py`: This script provides a graphical user
-  interface (GUI) application that allows users to extract text from images
-  using the Google Cloud Vision API, and save the extracted text as either a TXT
-  or CSV file.
-
-`extract_text_from_image_tables.py`: This script provides a graphical user
-  interface (GUI) application that allows users to extract text from images
-  using the Google Cloud Vision API, process the extracted text to separate
-  names and IDs, and save the processed data as either a TXT or CSV file.
-
-`watermar_detection.py`: This script provides a graphical user interface for
-  detecting watermarks in images and videos using a YOLOv5 model, allowing users
-  to load custom models, process individual files, and save the output with
-  detected watermarks highlighted.
-
-`inpainting.py`: This script implements a graphical user interface (GUI)
-  application that utilizes machine learning models for detecting and removing
-  watermarks from images and videos.
-
-`image_mover.py`: This script creates a graphical user interface (GUI)
-  application using PyQt5 that allows users to move image files from a source
-  directory to a destination directory.
-
-`train_watermark_yolov5.py`: This script sets up and runs the training
-  process for the YOLOv5 object detection model, allowing for customization
-  through command-line arguments and predefined hyperparameters.
-
-`mnist_cuda.py`: This script trains a convolutional neural network model on
-  the MNIST handwritten digit dataset using PyTorch for image classification
-  tasks.
-
-`organize_dataset.py`: The script organizes a dataset by splitting it into
-  training and validation sets, creating the necessary directory structure, and
-  copying the image files and corresponding label files into their respective
-  training and validation directories within the destination folder.
-
-`matrix_multiplication_comparison.py`: This script compares the performance
-  of applying Gaussian blur to an image using CPU and GPU (if available), by
-  measuring and displaying the execution times and memory usage for both
-  methods.
-
-`sort_cpu_gpu_comparison.py`: This script compares the performance of sorting
-  algorithms on CPU and GPU by generating random data, sorting it using NumPy for
-  CPU and PyTorch for GPU, measuring the time taken for each method, and reporting
-  the average times and speedup achieved by GPU sorting over CPU sorting.
-
-`update_readme.py`: This script processes Python files in a directory, extracts
-  their docstrings, generates brief descriptions using the Anthropic API, and
-  updates a README.md file with these descriptions, while managing a PostgreSQL
-  database to track processed files and avoid unnecessary reprocessing.
+- `captureImage.py`: Captures an image from the default camera with a unique filename.
+- `compress_image_to_small_size.py`: GUI for compressing JPEG images.
+- `convert_image_to_doc.py`: Converts image files to text documents using OCR.
+- `convert_svg_to_diffrent_images_format.py`: Converts SVG files to raster image formats.
+- `extract_text_from_image_regular.py`: Extracts text from images using Google Cloud Vision API.
+- `extract_text_from_image_tables.py`: Extracts and processes text from images with tables.
+- `watermar_detection.py`: Detects watermarks in images and videos using YOLOv5.
+- `inpainting.py`: Detects and removes watermarks from images and videos.
+- `image_mover.py`: GUI for moving image files between directories.
+- `organize_dataset.py`: Organizes datasets into training and validation sets.
 
 ### Video Processing
 
-`convert_mp4_codec_and_resolution_for_tv.py`: This script creates a
-  graphical user interface (GUI) application that allows users to convert video
-  files using FFmpeg, with options to select the source video, destination
-  folder, video codec, and output resolution, while displaying the conversion
-  progress.
-
-`convert_youtube_to_download_multiple_movies_and_music.py`: This script
-  provides a graphical user interface for downloading and converting YouTube
-  videos to MP3 or MP4 format, allowing batch processing, custom save locations,
-  and multithreaded operations.
-
-`create_movie_clip_from_images_and_sound.py`: This script creates a video
-  slideshow from a directory of images with a repeating background sound.
-
-`extract_frames_from_video.py`: This script provides a graphical user
-  interface for extracting frames from multiple video files, allowing users to
-  select videos, choose an output folder, and specify extraction parameters such
-  as extracting every N frames or a maximum number of frames per video.
-
-`get_clip_resolution.py`: This script loads a video file named "output2.mp4"
-  using the moviepy library and prints its resolution (width and height).
-
-`video_encoding_comparison.py`: This script compares the performance of CPU
-  and GPU video encoding using FFmpeg by measuring the encoding time for both
-  methods, calculating the average encoding times, and providing a comparison of
-  the performance between CPU and GPU.
+- `convert_mp4_codec_and_resolution_for_tv.py`: GUI for converting video files using FFmpeg.
+- `convert_youtube_to_download_multiple_movies_and_music.py`: Downloads and converts YouTube videos.
+- `create_movie_clip_from_images_and_sound.py`: Creates video slideshows from images with sound.
+- `extract_frames_from_video.py`: Extracts frames from multiple video files.
+- `get_clip_resolution.py`: Prints the resolution of a video file.
+- `video_encoding_comparison.py`: Compares CPU and GPU video encoding performance.
 
 ### System Utilities
 
-`anthropic_claude_chat.py`: The ClaudeChat application provides a graphical
-  user interface for interacting with the Anthropic Claude AI model, allowing
-  users to have conversations, upload and analyze files, and manage conversation
-  history.
+- `anthropic_claude_chat.py`: GUI for interacting with the Anthropic Claude AI model.
+- `anthropic_claude_chat_for_linux.py`: Linux version of the Claude AI chat interface.
+- `disk-space-alert-service.py`: Windows service for monitoring disk space.
+- `disksizeinfo.py`: Displays disk space and CPU usage information.
+- `convert_audio_to_text.py`: Converts audio files to text using Google Cloud Speech-to-Text API.
+- `system_discovery.py`: Collects and displays system information.
 
-`anthropic_claude_chat_for_linux.py`: The ClaudeChat application provides a
-  graphical user interface for interacting with the Claude AI model from
-  Anthropic, allowing users to have conversations, upload files for analysis,
-  and manage conversation history.
+### Network
 
-`disk-space-alert-service.py`: This script implements a Windows service that
-  monitors disk space on local drives and sends email alerts when available
-  space falls below a configured threshold.
+- `get_hostname_nbtstat.py`: Performs network scans and gathers device information.
+- `network_analyzer.py`: GUI for real-time network traffic monitoring.
 
-`disksizeinfo.py`: This script retrieves and displays the available free
-  space on the C: and D: drives, as well as the CPU usage statistics for each
-  CPU core, including user, system, and idle percentages.
+### Quantum Computing
 
-`convert_audio_to_text.py`: This script provides a graphical user interface
-  that allows users to convert audio files (in .m4a format) to text using the
-  Google Cloud Speech-to-Text API, with options to choose the save location for
-  the output text file, enable automatic punctuation and profanity filtering,
-  and support for the Hebrew language.
+- `deutsch_jozsa_algorithm.py`: Demonstrates the Deutsch-Jozsa quantum algorithm.
+- `quantum_key_cracking.py`: Simulates quantum key cracking.
+- `quantum_rng.py`: Quantum random number generator.
 
-`get_hostname_nbtstat.py`: This script performs a network scan on the local
-  network to gather information about active devices, including their IP
-  addresses, hostnames, MAC addresses, and device types, and writes the
-  collected data to a file named 'network_scan_results.txt'.
+### Calendar
 
-`system_discovery.py`: This script collects and displays various system
-  information such as the operating system, machine architecture, hostname, IP
-  address, CPU cores, and total RAM by utilizing the platform, socket, and
-  psutil modules.
+- `get_calendar_events.py`: Retrieves and displays calendar events using Microsoft Graph API.
+- `get_calendar_events_for_everyone.py`: Retrieves calendar events for the next 7 days.
+- `get_calendar_permissions.py`: Retrieves calendar permissions using Microsoft Graph API.
+- `GraphServiceClient.py`: Retrieves calendar information including holidays and all-day events.
 
-`get_calendar_events.py`: This script authenticates a user with Microsoft
-  Graph API using MSAL, retrieves the user's calendars and their events for the
-  next 365 days, and displays information about the calendars and events.
+### Machine Learning
 
-`get_calendar_events_for_everyone.py`: This script authenticates the user
-  using Microsoft Graph API, retrieves their calendar events for the next 7
-  days, and prints the subject, start time, and end time for each event.
+- `train_watermark_yolov5.py`: Trains YOLOv5 model for watermark detection.
+- `mnist_cuda.py`: Trains a CNN on the MNIST dataset using PyTorch.
+- `mnist_gpu_comparison.py`: Compares CPU and GPU performance for MNIST training.
 
-`get_calendar_permissions.py`: This script retrieves calendars and their
-  permissions for a user from the Microsoft Graph API using Azure AD
-  authentication, and it prints the calendar names, IDs, and permission details
-  for each calendar.
+### File Management
 
-`GraphServiceClient.py`: This script retrieves a Microsoft user's calendar
-  information, including upcoming holidays and all-day events for the next year,
-  by authenticating with the Microsoft Graph API and fetching the necessary
-  data.
+- `compress_pdf_file.py`: Compresses PDF files.
+- `numbering_pdf.py`: Adds page numbers to PDF files.
 
-`network_analyzer.py`: This script provides a graphical user interface for
-  real-time network traffic monitoring and detection of suspicious activities
-  such as port scans, large data transfers, and excessive DNS queries, utilizing
-  the Scapy library
+### Miscellaneous
+
+- `matrix_multiplication_comparison.py`: Compares CPU and GPU performance for matrix operations.
+- `sort_cpu_gpu_comparison.py`: Compares CPU and GPU sorting performance.
+- `update_readme.py`: Automatically updates README.md with script descriptions.
+
+## Usage
+
+Each script can be run independently. Please refer to the individual script files for specific usage instructions and requirements.
+
+## Requirements
+
+Requirements for running these scripts vary. A `requirements.txt` file is provided in the repository root. To install all dependencies, run:
+
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
