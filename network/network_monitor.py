@@ -48,6 +48,7 @@ import multiprocessing
 import ipaddress
 import netifaces
 import argparse
+import ctypes
 from concurrent.futures import ProcessPoolExecutor
 from typing import List, Dict, Any, Tuple
 from scapy.all import IP, TCP, UDP, DNS, DNSQR, Raw, scapy, Ether
@@ -392,19 +393,21 @@ def log_suspicious_activities(log_file, data, logger):
         f.flush()  # Ensure all data is flushed to the file
         # Synchronize the file's contents with the storage device
         os.fsync(f.fileno())
-def check_root():
-    if os.geteuid() != 0:
-        print("This script requires root privileges to capture network packets.")
-        print("Please run the script with sudo, like this:")
-        print("sudo python3 network_monitor.py")
-        sys.exit(1)
+
+def check_root_linux():
+    if sys.platform.startswith('linux'):
+        if os.geteuid() != 0:
+            print("This script requires root privileges to capture network packets on Linux.")
+            print("Please run the script with sudo, like this:")
+            print("sudo python3 network_monitor.py")
+            sys.exit(1)
 
 def main():
     parser = argparse.ArgumentParser(description='Network Monitor')
     parser.add_argument('--interface', type=str, help='Network interface to use')
     args = parser.parse_args()
 
-    check_root()  # Check if the script is running as root
+    check_root_linux()  # Check for root privileges only on Linux
     logger, log_listener = setup_logging_queue()
     log_listener.start()  # Start the log listener to listen for log messages
 
@@ -420,9 +423,9 @@ def main():
 
         if args.interface:
             interface = args.interface
-            interface_info = next((info for info in interfaces.values() if info[0] == interface), None)
+            interface_info = next((info for info in interfaces if info[0] == interface), None)
             if interface_info:
-                local_ip, subnet_mask = interface_info[1], interface_info[2]
+                local_ip, subnet_mask = interface_info[1], "255.255.255.0"  # Assuming a default subnet mask
             else:
                 logger.info(f"Specified interface {interface} not found. Exiting.")
                 return
@@ -457,3 +460,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
