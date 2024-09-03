@@ -70,3 +70,9 @@ scapy
 # Bidirectional text support for Python
 python-bidi
 
+# Library for retrieving system performance and process information
+psutil
+# Library for cryptography and security operations
+cryptography
+## Library for displaying progress bars in Python applications
+tqdm
