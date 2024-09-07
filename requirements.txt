@@ -76,3 +76,9 @@ psutil
 cryptography
 ## Library for displaying progress bars in Python applications
 tqdm
+# Library for working with AI models and data
+pandas 
+# Library for working with large datasets and matrices
+joblib
+# Library for machine learning
+scikit-learn
