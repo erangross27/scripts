@@ -45,29 +45,70 @@ import re
 import logging
 import sys
 import multiprocessing
-import ipaddress
+from multiprocessing import Queue
 import netifaces
 import argparse
 import ctypes
 import numpy as np
 import pandas as pd
 import joblib
+import ipaddress
+from ipaddress import ip_network, ip_address
 from sklearn.ensemble import IsolationForest
 from concurrent.futures import ProcessPoolExecutor
-from typing import List, Dict, Any, Tuple
-from scapy.all import IP, IPv6, TCP, UDP, DNS, DNSQR, Raw, Ether, sniff
+from typing import List, Any, Tuple
+from scapy.all import IP, IPv6, TCP, UDP, DNS, DNSQR, Raw, Ether, sniff, ARP, DHCP
 from scapy.layers import http
-from scapy.layers import http, dns
-from concurrent.futures import ProcessPoolExecutor
+from scapy.layers.inet6 import ICMPv6ND_NS
 from collections import defaultdict
-from multiprocessing import Queue
 from tqdm import tqdm
 from bidi.algorithm import get_display
 from logging.handlers import QueueHandler, QueueListener
-from scapy.layers.llmnr import LLMNRQuery as LLMNR
-from sklearn.ensemble import IsolationForest
 from scapy.layers.llmnr import LLMNRQuery, LLMNRResponse
-from scapy.layers.inet6 import IPv6, ICMPv6ND_NS
+
+
+
+
+
+
+# (Make sure WHITELISTED_IPS, WHITELISTED_PORTS, WHITELISTED_PROTOCOLS, 
+# TIME_BASED_WHITELIST, and COMPILED_DOMAIN_PATTERNS are defined as shown in the previous messages)
+
+
+# Whitelist configurations
+WHITELISTED_IPS = [
+    ip_network("192.168.1.0/24"),  # Local network
+    ip_network("10.0.0.0/8"),      # Private network range
+    ip_network("8.8.8.8/32"),      # Google DNS
+]
+
+WHITELISTED_PORTS = [
+    (80, 80),    # HTTP
+    (443, 443),  # HTTPS
+    (53, 53),    # DNS
+    (123, 123),  # NTP
+    (67, 68),    # DHCP
+    (20, 21),    # FTP
+    (22, 22),    # SSH
+    (3389, 3389),# RDP
+]
+
+WHITELISTED_PROTOCOLS = ["TCP", "UDP", "ICMP", "ICMPv6"]
+
+TIME_BASED_WHITELIST = {
+    "BACKUP_TRAFFIC": ("02:00", "04:00"),
+    "MAINTENANCE_WINDOW": ("22:00", "23:00"),
+}
+
+WHITELISTED_DOMAINS = [
+    r".*\.google\.com$",
+    r".*\.microsoft\.com$",
+    r".*\.apple\.com$",
+]
+
+COMPILED_DOMAIN_PATTERNS = [re.compile(pattern) for pattern in WHITELISTED_DOMAINS]
+
+
 
 # Define a list of feature names used for machine learning analysis of network packets
 FEATURE_NAMES = [
@@ -87,8 +128,12 @@ FEATURE_NAMES = [
     'payload_length', # Length of the packet's payload
     'is_syn',         # Boolean flag indicating if the packet is a SYN packet
     'is_syn_ack',     # Boolean flag indicating if the packet is a SYN-ACK packet
-    'is_icmpv6_nd'    # Boolean flag indicating if the packet is an ICMPv6 Neighbor Discovery packet
+    'is_icmpv6_nd',   # Boolean flag indicating if the packet is an ICMPv6 Neighbor Discovery packet
+    'is_stp',         # Boolean flag indicating if the packet is a Spanning Tree Protocol packet
+    'is_arp'          # Boolean flag indicating if the packet is an ARP packet
 ]
+
+
 
 def setup_logger():
     # Create a logger for the current module
@@ -115,41 +160,25 @@ def setup_logging_queue():
 
 # PersistentAnomalyDetector class for detecting anomalies in network traffic
 class PersistentAnomalyDetector:
-    def __init__(self, model_path='anomaly_model.joblib', contamination=0.05):
-        # Initialize the detector with a model path and contamination rate
+    def __init__(self, model_path='anomaly_model.joblib', contamination=0.01):
         self.model_path = model_path
         self.contamination = contamination
-        try:
-            # Attempt to load a pre-existing model
-            self.model = joblib.load(model_path)
-        except:
-            # If loading fails, create a new IsolationForest model
-            self.model = IsolationForest(contamination=contamination, random_state=42)
-        # Check if the model is already fitted
-        self.is_fitted = hasattr(self.model, 'offset_')
+        self.model = IsolationForest(contamination=contamination, random_state=42)
+        self.is_fitted = False
+        self.feature_names = None
 
     def partial_fit(self, X):
-        # Method to fit the model on new data
-        if not self.is_fitted:
-            # If the model is not fitted, fit it on the new data
-            self.model.fit(X)
-            self.is_fitted = True
-        else:
-            # If the model is already fitted, create a new one and fit it
-            # This is because IsolationForest doesn't support partial_fit
+        if not self.is_fitted or set(X.columns) != set(self.feature_names):
             self.model = IsolationForest(contamination=self.contamination, random_state=42)
             self.model.fit(X)
-        # Save the updated model to disk
+            self.is_fitted = True
+            self.feature_names = X.columns
         joblib.dump(self.model, self.model_path)
 
     def predict(self, X):
-        # Method to make predictions on new data
         if not self.is_fitted:
-            # Raise an error if the model hasn't been fitted yet
             raise ValueError("Model is not fitted yet. Call 'partial_fit' first.")
-        # Return predictions
         return self.model.predict(X)
-
 # Global variable to store our model instance
 anomaly_detector = PersistentAnomalyDetector()
 
@@ -505,47 +534,56 @@ def analyze_traffic(raw_packets: List[Tuple[Any, bytes]], logger: Any, port_scan
 def extract_features(raw_packets):
     features = []
     for packet in raw_packets:
-        # Convert tuple packet to Scapy Ether packet if necessary
         if isinstance(packet, tuple):
             packet = Ether(packet[1])
+        
+        is_ip = int(IP in packet)
+        is_ipv6 = int(IPv6 in packet)
+        is_tcp = int(TCP in packet)
+        is_udp = int(UDP in packet)
+        
+        # Determine IP layer
+        ip_layer = packet[IP] if is_ip else (packet[IPv6] if is_ipv6 else None)
+        
+        # Handle TTL extraction
+        ttl = 0
+        if ip_layer:
+            try:
+                ttl = ip_layer.ttl
+            except AttributeError:
+                try:
+                    ttl = ip_layer._ttl
+                except AttributeError:
+                    # If both fail, leave ttl as 0
+                    pass
 
-        # Initialize multicast and broadcast flags
-        is_multicast = False
-        is_broadcast = False
-
-        # Check for multicast in IPv6
-        if IPv6 in packet:
-            is_multicast = packet[IPv6].dst.startswith('ff')
-        # Check for multicast and broadcast in IPv4
-        elif IP in packet:
-            is_multicast = packet[IP].dst.startswith('224')
-            is_broadcast = packet[IP].dst == '255.255.255.255'
-
-        # Check for ICMPv6 Neighbor Discovery
-        is_icmpv6_nd = int(IPv6 in packet and ICMPv6ND_NS in packet)
-
-        # Extract features from the packet
         feature = [
-            len(packet),  # Total packet length
-            int(IP in packet),  # Is IPv4
-            int(IPv6 in packet),  # Is IPv6
-            int(TCP in packet),  # Is TCP
-            int(UDP in packet),  # Is UDP
-            int(DNS in packet),  # Is DNS
-            int(packet.haslayer(LLMNRQuery) or packet.haslayer(LLMNRResponse)),  # Is LLMNR
-            int(is_multicast),  # Is multicast
-            int(is_broadcast),  # Is broadcast
-            packet[IP].ttl if IP in packet else (packet[IPv6].hlim if IPv6 in packet else 0),  # TTL or Hop Limit
-            packet[TCP].sport if TCP in packet else (packet[UDP].sport if UDP in packet else 0),  # Source port
-            packet[TCP].dport if TCP in packet else (packet[UDP].dport if UDP in packet else 0),  # Destination port
-            int(packet.haslayer(Raw)),  # Has payload
-            len(packet[Raw].load) if Raw in packet else 0,  # Payload length
-            int(packet[TCP].flags == 2) if TCP in packet else 0,  # Is SYN flag set
-            int(packet[TCP].flags == 18) if TCP in packet else 0,  # Is SYN-ACK flag set
-            is_icmpv6_nd  # Is ICMPv6 Neighbor Discovery
+            len(packet),                    # packet_length
+            is_ip,                          # is_ip
+            is_ipv6,                        # is_ipv6
+            is_tcp,                         # is_tcp
+            is_udp,                         # is_udp
+            int(DNS in packet),             # is_dns
+            int(packet.haslayer(LLMNRQuery) or packet.haslayer(LLMNRResponse)),  # is_llmnr
+            int(packet.dst.startswith("01:00:5e") or packet.dst.startswith("33:33")),  # is_multicast
+            int(packet.dst == "ff:ff:ff:ff:ff:ff" or (is_ip and ip_layer.dst == "255.255.255.255")),  # is_broadcast
+            ttl,                            # ttl (now using the value we extracted above)
+            packet[TCP].sport if is_tcp else (packet[UDP].sport if is_udp else 0),  # src_port
+            packet[TCP].dport if is_tcp else (packet[UDP].dport if is_udp else 0),  # dst_port
+            int(packet.haslayer(Raw)),      # has_payload
+            len(packet[Raw].load) if Raw in packet else 0,  # payload_length
+            int(is_tcp and packet[TCP].flags & 0x02),  # is_syn
+            int(is_tcp and packet[TCP].flags & 0x12),  # is_syn_ack
+            int(is_ipv6 and ICMPv6ND_NS in packet),  # is_icmpv6_nd
+            int('STP' in packet),           # is_stp
+            int(ARP in packet)              # is_arp
         ]
         features.append(feature)
     return features
+
+
+
+
 
 def train_anomaly_detector(data):
     # Initialize an Isolation Forest model with 10% contamination and a fixed random state
@@ -562,90 +600,132 @@ def detect_anomalies(model, new_data):
     return predictions
 
 def is_whitelisted(packet):
-    # Define a set of common ports that are considered normal
-    common_ports = {80, 443, 53, 123}  # HTTP, HTTPS, DNS, NTP
-    # Check if the packet is TCP or UDP
+    # Check IP whitelist
+    if IP in packet:
+        src_ip = packet[IP].src
+        dst_ip = packet[IP].dst
+        if any(ip_address(src_ip) in network or ip_address(dst_ip) in network for network in WHITELISTED_IPS):
+            return True
+
+    # Check port whitelist
     if TCP in packet or UDP in packet:
-        # Extract source and destination ports
         sport = packet[TCP].sport if TCP in packet else packet[UDP].sport
         dport = packet[TCP].dport if TCP in packet else packet[UDP].dport
-        # Return True if either port is in the common_ports set
-        return sport in common_ports or dport in common_ports
-    # Check if the packet is an ICMPv6 Neighbor Discovery packet
+        if any(start <= sport <= end or start <= dport <= end for start, end in WHITELISTED_PORTS):
+            return True
+
+    # Check protocol whitelist
+    if IP in packet:
+        proto = packet[IP].proto
+        if proto in [6, 17, 1]:  # TCP, UDP, ICMP
+            proto_name = {6: "TCP", 17: "UDP", 1: "ICMP"}[proto]
+            if proto_name in WHITELISTED_PROTOCOLS:
+                return True
+    elif IPv6 in packet:
+        if packet[IPv6].nh in [6, 17, 58]:  # TCP, UDP, ICMPv6
+            proto_name = {6: "TCP", 17: "UDP", 58: "ICMPv6"}[packet[IPv6].nh]
+            if proto_name in WHITELISTED_PROTOCOLS:
+                return True
+
+    # Check time-based whitelist
+    current_time = time.strftime("%H:%M")
+    for start_time, end_time in TIME_BASED_WHITELIST.values():
+        if start_time <= current_time <= end_time:
+            return True
+
+    # Check domain whitelist for DNS queries
+    if packet.haslayer(http.HTTPRequest):
+        host = packet[http.HTTPRequest].Host.decode()
+        if any(pattern.match(host) for pattern in COMPILED_DOMAIN_PATTERNS):
+            return True
+
+    # Whitelist ICMPv6 Neighbor Discovery packets
     if IPv6 in packet and ICMPv6ND_NS in packet:
-        # Whitelist ICMPv6 Neighbor Discovery packets
         return True
-    # If none of the above conditions are met, return False
+
+    # Whitelist common broadcast packets
+    if packet.dst == "ff:ff:ff:ff:ff:ff":
+        if ARP in packet or DHCP in packet:
+            return True
+        if UDP in packet and packet[UDP].dport in [67, 68]:  # DHCP
+            return True
+
+    # Whitelist STP (Spanning Tree Protocol) packets
+    if packet.haslayer('STP'):
+        return True
+
+    # Whitelist ARP packets for local network
+    if ARP in packet:
+        return ip_address(packet[ARP].psrc) in ip_network('10.0.0.0/24') or \
+               ip_address(packet[ARP].pdst) in ip_network('10.0.0.0/24')
+
     return False
+
+
 
 
 
 def analyze_traffic_with_ml(raw_packets, logger):
     global anomaly_detector
 
-    # Extract features from the raw packets
     features = extract_features(raw_packets)
     
-    # Check if there are any features extracted
     if not features:
         logger.warning("No packets captured or no features extracted. Skipping ML analysis.")
-        return [], []  # Return empty lists for anomalies and anomaly_details
+        return [], []
 
-    # Create a DataFrame from the extracted features
     df = pd.DataFrame(features, columns=FEATURE_NAMES)
 
-    # Check if the anomaly detector model has been fitted
+    # Ensure all features are numerical
+    for col in df.columns:
+        if not pd.api.types.is_numeric_dtype(df[col]):
+            logger.warning(f"Column {col} is not numeric. Converting to numeric.")
+            df[col] = pd.to_numeric(df[col], errors='coerce')
+
+    # Replace any NaN values with 0
+    df = df.fillna(0)
+
     if not anomaly_detector.is_fitted:
         logger.info("Fitting the anomaly detection model for the first time.")
-        # Fit the model with the current data
         anomaly_detector.partial_fit(df)
-        # Make predictions using the newly fitted model
-        anomalies = anomaly_detector.predict(df)
+        anomaly_scores = -anomaly_detector.model.score_samples(df)
     else:
         try:
-            # Attempt to make predictions with the existing model
-            anomalies = anomaly_detector.predict(df)
+            anomaly_scores = -anomaly_detector.model.score_samples(df)
         except ValueError as e:
-            # Handle the case where there's a feature mismatch
-            logger.warning(f"Feature mismatch detected: {str(e)}")
-            logger.info("Retraining the model with the current feature set.")
-            # Create a new anomaly detector and fit it with the current data
-            anomaly_detector = PersistentAnomalyDetector()
-            anomaly_detector.partial_fit(df)
-            # Make predictions using the newly fitted model
-            anomalies = anomaly_detector.predict(df)
+            if "feature names" in str(e):
+                logger.warning("Feature mismatch detected. Retraining the model with the current feature set.")
+                anomaly_detector = PersistentAnomalyDetector()  # Create a new model
+                anomaly_detector.partial_fit(df)
+                anomaly_scores = -anomaly_detector.model.score_samples(df)
+            else:
+                raise e
 
-    # Update the model with the current data to adapt over time
-    anomaly_detector.partial_fit(df)
+    # Use a dynamic threshold based on the distribution of anomaly scores
+    threshold = np.percentile(anomaly_scores, 99)  # Adjust this percentile as needed
+    anomalies = anomaly_scores > threshold
 
-    # Count the number of detected anomalies
-    anomaly_count = np.sum(anomalies == -1)
+    anomaly_count = np.sum(anomalies)
     logger.info(f"ML model detected {anomaly_count} anomalies out of {len(raw_packets)} packets")
 
-    # Initialize a list to store detailed information about anomalies
     anomaly_details = []
 
-    # Iterate through the anomalies and corresponding packets
-    for i, (anomaly, packet) in enumerate(zip(anomalies, raw_packets)):
-        if anomaly == -1:
-            # Convert tuple packet to Scapy packet if necessary
+    for i, (is_anomaly, score, packet) in enumerate(zip(anomalies, anomaly_scores, raw_packets)):
+        if is_anomaly:
             if isinstance(packet, tuple):
                 packet = Ether(packet[1])
-            # Check if the packet is not whitelisted
             if not is_whitelisted(packet):
-                # Get a summary of the anomalous packet
                 packet_summary = packet.summary()
-                anomaly_details.append(f"Anomaly at packet {i}: {packet_summary}")
+                packet_type = "Broadcast" if packet.dst == "ff:ff:ff:ff:ff:ff" else "Unicast"
+                protocol = packet.lastlayer().name
+                anomaly_details.append(f"Anomaly at packet {i}: {packet_summary} | Type: {packet_type} | Protocol: {protocol} | Score: {score:.2f}")
 
-    # Log detailed information about the first 10 anomalies
     for detail in anomaly_details[:10]:
         logger.info(detail)
 
-    # If there are more than 10 anomalies, log a summary of the remaining
     if len(anomaly_details) > 10:
         logger.info(f"... and {len(anomaly_details) - 10} more anomalies.")
 
-    # Return the anomaly predictions and detailed information
     return anomalies, anomaly_details
 
 
