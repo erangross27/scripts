@@ -152,6 +152,7 @@ def setup_logging_queue():
 
 class PersistentAnomalyDetector:
     def __init__(self, model_path='anomaly_model.joblib', contamination=0.01):
+        # Initialize the PersistentAnomalyDetector with a model path and contamination rate
         self.model_path = model_path
         self.contamination = contamination
         self.model = IsolationForest(contamination=contamination, random_state=42)
@@ -160,6 +161,7 @@ class PersistentAnomalyDetector:
         self.logger = logging.getLogger(__name__)
 
     def partial_fit(self, X):
+        # Partially fit the model with new data
         if not isinstance(X, pd.DataFrame):
             self.logger.error("Input X must be a pandas DataFrame")
             return
@@ -169,46 +171,54 @@ class PersistentAnomalyDetector:
             return
 
         if not self.is_fitted or self.feature_names is None or set(X.columns) != set(self.feature_names):
+            # If the model is not fitted or the feature set has changed, create a new model
             self.logger.info("Fitting new model or updating feature set")
             self.model = IsolationForest(contamination=self.contamination, random_state=42)
             self.model.fit(X)
             self.is_fitted = True
             self.feature_names = X.columns.tolist()
         else:
+            # Update the existing model with new data
             self.logger.info("Updating existing model")
             self.model.fit(X)
         
         self.save_model()
 
     def predict(self, X):
+        # Make predictions using the fitted model
         if not self.is_fitted:
             raise ValueError("Model is not fitted yet. Call 'partial_fit' first.")
         return self.model.predict(X)
 
     def save_model(self):
+        # Save the fitted model to a file
         if self.is_fitted:
             joblib.dump({'model': self.model, 'feature_names': self.feature_names}, self.model_path)
             self.logger.info(f"Anomaly detection model saved to {self.model_path}")
 
     def load_model(self):
+        # Load a previously saved model from a file
         if os.path.exists(self.model_path):
             try:
                 loaded_data = joblib.load(self.model_path)
                 if isinstance(loaded_data, dict):
+                    # Handle new format (model and feature names)
                     self.model = loaded_data['model']
                     self.feature_names = loaded_data['feature_names']
                 else:
-                    # Handle the case of old format (only model was saved)
+                    # Handle old format (only model was saved)
                     self.model = loaded_data
-                    self.feature_names = None
+                self.feature_names = None
                 self.is_fitted = True
                 self.logger.info(f"Anomaly detection model loaded from {self.model_path}")
             except Exception as e:
+                # If loading fails, create a new model
                 self.logger.error(f"Error loading model: {e}")
                 self.model = IsolationForest(contamination=self.contamination, random_state=42)
                 self.is_fitted = False
                 self.feature_names = None
         else:
+            # If no saved model exists, prepare to create a new one
             self.logger.info("No existing model found. A new model will be created.")
 
 # Global variable to store our model instance
@@ -580,10 +590,10 @@ def extract_features(raw_packets):
         ttl = 0
         if ip_layer:
             try:
-                ttl = ip_layer.ttl
+                ttl = int(ip_layer.ttl)  # Convert to int here
             except AttributeError:
                 try:
-                    ttl = ip_layer._ttl
+                    ttl = int(ip_layer.hlim)  # For IPv6, it's called hlim
                 except AttributeError:
                     # If both fail, leave ttl as 0
                     pass
@@ -614,8 +624,6 @@ def extract_features(raw_packets):
 
 
 
-
-
 def train_anomaly_detector(data):
     # Initialize an Isolation Forest model with 10% contamination and a fixed random state
     model = IsolationForest(contamination=0.1, random_state=42)
@@ -632,7 +640,7 @@ def detect_anomalies(model, new_data):
 
 def is_whitelisted(packet):
     logger = logging.getLogger(__name__)
-    
+
     # Check IP whitelist
     if IP in packet:
         src_ip = packet[IP].src
@@ -681,14 +689,11 @@ def is_whitelisted(packet):
     # Whitelist certain types of broadcast packets
     if packet.dst == "ff:ff:ff:ff:ff:ff":
         # Whitelist common broadcast protocols
-        if ARP in packet:
+        if ARP in packet or packet.type == 0x0806:
             logger.debug("Packet whitelisted: ARP broadcast")
             return True
         if DHCP in packet or (UDP in packet and packet[UDP].dport in [67, 68]):  # DHCP
             logger.debug("Packet whitelisted: DHCP broadcast")
-            return True
-        if packet.type == 0x0806:  # ARP
-            logger.debug("Packet whitelisted: ARP broadcast")
             return True
         if packet.type == 0x86DD and ICMPv6ND_NS in packet:  # IPv6 Neighbor Discovery
             logger.debug("Packet whitelisted: IPv6 Neighbor Discovery")
@@ -709,9 +714,27 @@ def is_whitelisted(packet):
         logger.debug("Packet whitelisted: LLDP")
         return True
 
-    # Whitelist common multicast packets
-    if packet.dst.startswith(("01:00:5e", "33:33")):  # IPv4 and IPv6 multicast
-        logger.debug("Packet whitelisted: Multicast")
+    # Whitelist multicast packets
+    def is_multicast_mac(mac_address):
+        mac_bytes = bytes.fromhex(mac_address.replace(':', ''))
+        return (mac_bytes[0] & 0x01) == 0x01
+
+    if is_multicast_mac(packet.dst):
+        multicast_type = "Unknown"
+        if packet.dst.startswith("01:00:5e"):
+            multicast_type = "IPv4"
+        elif packet.dst.startswith("33:33"):
+            multicast_type = "IPv6"
+        elif packet.dst == "01:80:c2:00:00:00":
+            multicast_type = "STP (Spanning Tree Protocol)"
+        elif packet.dst == "01:80:c2:00:00:0e":
+            multicast_type = "LLDP (Link Layer Discovery Protocol)"
+        elif packet.dst == "01:00:0c:cc:cc:cc":
+            multicast_type = "Cisco CDP/VTP/UDLD"
+        elif packet.dst == "01:00:0c:cc:cc:cd":
+            multicast_type = "Cisco PVST+"
+        
+        logger.debug(f"Packet whitelisted: {multicast_type} Multicast")
         return True
 
     # Whitelist local network ARP
@@ -729,6 +752,7 @@ def is_whitelisted(packet):
 
     logger.debug(f"Packet not whitelisted: {packet.summary()}")
     return False
+
 
 
 
