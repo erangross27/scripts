@@ -150,7 +150,6 @@ def setup_logging_queue():
     return logger, listener  # Return both the logger and the listener for further use
 #
 
-# PersistentAnomalyDetector class for detecting anomalies in network traffic
 class PersistentAnomalyDetector:
     def __init__(self, model_path='anomaly_model.joblib', contamination=0.01):
         self.model_path = model_path
@@ -158,22 +157,62 @@ class PersistentAnomalyDetector:
         self.model = IsolationForest(contamination=contamination, random_state=42)
         self.is_fitted = False
         self.feature_names = None
+        self.logger = logging.getLogger(__name__)
 
     def partial_fit(self, X):
-        if not self.is_fitted or set(X.columns) != set(self.feature_names):
+        if not isinstance(X, pd.DataFrame):
+            self.logger.error("Input X must be a pandas DataFrame")
+            return
+
+        if X.empty:
+            self.logger.warning("Empty DataFrame provided. Skipping partial_fit.")
+            return
+
+        if not self.is_fitted or self.feature_names is None or set(X.columns) != set(self.feature_names):
+            self.logger.info("Fitting new model or updating feature set")
             self.model = IsolationForest(contamination=self.contamination, random_state=42)
             self.model.fit(X)
             self.is_fitted = True
-            self.feature_names = X.columns
-        joblib.dump(self.model, self.model_path)
+            self.feature_names = X.columns.tolist()
+        else:
+            self.logger.info("Updating existing model")
+            self.model.fit(X)
+        
+        self.save_model()
 
     def predict(self, X):
         if not self.is_fitted:
             raise ValueError("Model is not fitted yet. Call 'partial_fit' first.")
         return self.model.predict(X)
+
+    def save_model(self):
+        if self.is_fitted:
+            joblib.dump({'model': self.model, 'feature_names': self.feature_names}, self.model_path)
+            self.logger.info(f"Anomaly detection model saved to {self.model_path}")
+
+    def load_model(self):
+        if os.path.exists(self.model_path):
+            try:
+                loaded_data = joblib.load(self.model_path)
+                if isinstance(loaded_data, dict):
+                    self.model = loaded_data['model']
+                    self.feature_names = loaded_data['feature_names']
+                else:
+                    # Handle the case of old format (only model was saved)
+                    self.model = loaded_data
+                    self.feature_names = None
+                self.is_fitted = True
+                self.logger.info(f"Anomaly detection model loaded from {self.model_path}")
+            except Exception as e:
+                self.logger.error(f"Error loading model: {e}")
+                self.model = IsolationForest(contamination=self.contamination, random_state=42)
+                self.is_fitted = False
+                self.feature_names = None
+        else:
+            self.logger.info("No existing model found. A new model will be created.")
+
 # Global variable to store our model instance
 anomaly_detector = PersistentAnomalyDetector()
-
 
 def get_interfaces():
     # Retrieve a list of active network interfaces along with their IP addresses
@@ -592,11 +631,14 @@ def detect_anomalies(model, new_data):
     return predictions
 
 def is_whitelisted(packet):
+    logger = logging.getLogger(__name__)
+    
     # Check IP whitelist
     if IP in packet:
         src_ip = packet[IP].src
         dst_ip = packet[IP].dst
         if any(ip_address(src_ip) in network or ip_address(dst_ip) in network for network in WHITELISTED_IPS):
+            logger.debug(f"Packet whitelisted due to IP: {src_ip} or {dst_ip}")
             return True
 
     # Check port whitelist
@@ -604,6 +646,7 @@ def is_whitelisted(packet):
         sport = packet[TCP].sport if TCP in packet else packet[UDP].sport
         dport = packet[TCP].dport if TCP in packet else packet[UDP].dport
         if any(start <= sport <= end or start <= dport <= end for start, end in WHITELISTED_PORTS):
+            logger.debug(f"Packet whitelisted due to port: {sport} or {dport}")
             return True
 
     # Check protocol whitelist
@@ -612,120 +655,162 @@ def is_whitelisted(packet):
         if proto in [6, 17, 1]:  # TCP, UDP, ICMP
             proto_name = {6: "TCP", 17: "UDP", 1: "ICMP"}[proto]
             if proto_name in WHITELISTED_PROTOCOLS:
+                logger.debug(f"Packet whitelisted due to protocol: {proto_name}")
                 return True
     elif IPv6 in packet:
         if packet[IPv6].nh in [6, 17, 58]:  # TCP, UDP, ICMPv6
             proto_name = {6: "TCP", 17: "UDP", 58: "ICMPv6"}[packet[IPv6].nh]
             if proto_name in WHITELISTED_PROTOCOLS:
+                logger.debug(f"Packet whitelisted due to protocol: {proto_name}")
                 return True
 
     # Check time-based whitelist
     current_time = time.strftime("%H:%M")
-    for start_time, end_time in TIME_BASED_WHITELIST.values():
+    for window_name, (start_time, end_time) in TIME_BASED_WHITELIST.items():
         if start_time <= current_time <= end_time:
+            logger.debug(f"Packet whitelisted due to time window: {window_name}")
             return True
 
     # Check domain whitelist for DNS queries
-    if packet.haslayer(http.HTTPRequest):
-        host = packet[http.HTTPRequest].Host.decode()
-        if any(pattern.match(host) for pattern in COMPILED_DOMAIN_PATTERNS):
+    if packet.haslayer(DNSQR):
+        qname = packet[DNSQR].qname.decode('utf-8')
+        if any(pattern.match(qname) for pattern in COMPILED_DOMAIN_PATTERNS):
+            logger.debug(f"Packet whitelisted due to DNS query domain: {qname}")
+            return True
+
+    # Whitelist certain types of broadcast packets
+    if packet.dst == "ff:ff:ff:ff:ff:ff":
+        # Whitelist common broadcast protocols
+        if ARP in packet:
+            logger.debug("Packet whitelisted: ARP broadcast")
+            return True
+        if DHCP in packet or (UDP in packet and packet[UDP].dport in [67, 68]):  # DHCP
+            logger.debug("Packet whitelisted: DHCP broadcast")
+            return True
+        if packet.type == 0x0806:  # ARP
+            logger.debug("Packet whitelisted: ARP broadcast")
+            return True
+        if packet.type == 0x86DD and ICMPv6ND_NS in packet:  # IPv6 Neighbor Discovery
+            logger.debug("Packet whitelisted: IPv6 Neighbor Discovery")
             return True
 
     # Whitelist ICMPv6 Neighbor Discovery packets
     if IPv6 in packet and ICMPv6ND_NS in packet:
+        logger.debug("Packet whitelisted: ICMPv6 Neighbor Discovery")
         return True
-
-    # Whitelist common broadcast packets
-    if packet.dst == "ff:ff:ff:ff:ff:ff":
-        if ARP in packet or DHCP in packet:
-            return True
-        if UDP in packet and packet[UDP].dport in [67, 68]:  # DHCP
-            return True
 
     # Whitelist STP (Spanning Tree Protocol) packets
     if packet.haslayer('STP'):
+        logger.debug("Packet whitelisted: Spanning Tree Protocol")
         return True
 
-    # Whitelist ARP packets for local network
-    if ARP in packet:
-        return ip_address(packet[ARP].psrc) in ip_network('10.0.0.0/24') or \
-               ip_address(packet[ARP].pdst) in ip_network('10.0.0.0/24')
+    # Whitelist LLDP (Link Layer Discovery Protocol) packets
+    if packet.type == 0x88cc:
+        logger.debug("Packet whitelisted: LLDP")
+        return True
 
+    # Whitelist common multicast packets
+    if packet.dst.startswith(("01:00:5e", "33:33")):  # IPv4 and IPv6 multicast
+        logger.debug("Packet whitelisted: Multicast")
+        return True
+
+    # Whitelist local network ARP
+    if ARP in packet:
+        arp_src_ip = packet[ARP].psrc
+        arp_dst_ip = packet[ARP].pdst
+        if (ip_address(arp_src_ip) in ip_network('10.0.0.0/8') or
+            ip_address(arp_dst_ip) in ip_network('10.0.0.0/8') or
+            ip_address(arp_src_ip) in ip_network('192.168.0.0/16') or
+            ip_address(arp_dst_ip) in ip_network('192.168.0.0/16') or
+            ip_address(arp_src_ip) in ip_network('172.16.0.0/12') or
+            ip_address(arp_dst_ip) in ip_network('172.16.0.0/12')):
+            logger.debug("Packet whitelisted: Local network ARP")
+            return True
+
+    logger.debug(f"Packet not whitelisted: {packet.summary()}")
     return False
+
+
 
 def analyze_traffic_with_ml(raw_packets, logger):
     global anomaly_detector
 
-    # Extract features from the raw packets
     features = extract_features(raw_packets)
     
-    # Check if any features were extracted
     if not features:
         logger.warning("No packets captured or no features extracted. Skipping ML analysis.")
         return [], []
 
-    # Create a DataFrame from the extracted features
     df = pd.DataFrame(features, columns=FEATURE_NAMES)
 
-    # Ensure all features are numerical
     for col in df.columns:
         if not pd.api.types.is_numeric_dtype(df[col]):
             logger.warning(f"Column {col} is not numeric. Converting to numeric.")
             df[col] = pd.to_numeric(df[col], errors='coerce')
 
-    # Replace any NaN values with 0
     df = df.fillna(0)
 
-    # If the anomaly detector is not fitted, fit it with the current data
-    if not anomaly_detector.is_fitted:
-        logger.info("Fitting the anomaly detection model for the first time.")
-        anomaly_detector.partial_fit(df)
-        anomaly_scores = -anomaly_detector.model.score_samples(df)
-    else:
-        try:
-            # Calculate anomaly scores for the current data
-            anomaly_scores = -anomaly_detector.model.score_samples(df)
-        except ValueError as e:
-            # Handle feature mismatch by retraining the model
-            if "feature names" in str(e):
-                logger.warning("Feature mismatch detected. Retraining the model with the current feature set.")
-                anomaly_detector = PersistentAnomalyDetector()  # Create a new model
-                anomaly_detector.partial_fit(df)
-                anomaly_scores = -anomaly_detector.model.score_samples(df)
-            else:
-                raise e
+    if df.empty:
+        logger.warning("DataFrame is empty after preprocessing. Skipping ML analysis.")
+        return [], []
 
-    # Calculate dynamic threshold for anomaly detection
+    # Always update the model
+    anomaly_detector.partial_fit(df)
+    
+    if not anomaly_detector.is_fitted:
+        logger.warning("Anomaly detector is not fitted. Skipping anomaly detection.")
+        return [], []
+
+    anomaly_scores = -anomaly_detector.model.score_samples(df)
+
     threshold = np.percentile(anomaly_scores, 99)  # Adjust this percentile as needed
     anomalies = anomaly_scores > threshold
 
-    # Count and log the number of detected anomalies
     anomaly_count = np.sum(anomalies)
     logger.info(f"ML model detected {anomaly_count} anomalies out of {len(raw_packets)} packets")
 
     anomaly_details = []
+    whitelisted_anomalies = 0
+    broadcast_anomalies = 0
+    broadcast_types = defaultdict(int)
 
-    # Analyze each anomaly
     for i, (is_anomaly, score, packet) in enumerate(zip(anomalies, anomaly_scores, raw_packets)):
         if is_anomaly:
             if isinstance(packet, tuple):
                 packet = Ether(packet[1])
-            if not is_whitelisted(packet):
-                # Generate detailed information about the anomaly
+            
+            if packet.dst == "ff:ff:ff:ff:ff:ff":
+                broadcast_anomalies += 1
+                broadcast_types[packet.type] += 1
+                logger.debug(f"Broadcast packet detected at packet {i}: {packet.summary()} | Score: {score:.2f}")
+            elif not is_whitelisted(packet):
                 packet_summary = packet.summary()
-                packet_type = "Broadcast" if packet.dst == "ff:ff:ff:ff:ff:ff" else "Unicast"
+                packet_type = "Unicast"
                 protocol = packet.lastlayer().name
                 anomaly_details.append(f"Anomaly at packet {i}: {packet_summary} | Type: {packet_type} | Protocol: {protocol} | Score: {score:.2f}")
+            else:
+                whitelisted_anomalies += 1
+                logger.debug(f"Whitelisted anomaly at packet {i}: {packet.summary()} | Score: {score:.2f}")
 
-    # Log details of the first 10 anomalies
-    for detail in anomaly_details[:10]:
-        logger.info(detail)
+    logger.info(f"Total anomalies: {anomaly_count}, Whitelisted: {whitelisted_anomalies}, Broadcast: {broadcast_anomalies}, Reported: {len(anomaly_details)}")
+    
+    if broadcast_types:
+        logger.info("Broadcast packet types detected as anomalies:")
+        for ether_type, count in broadcast_types.items():
+            logger.info(f"  EtherType 0x{ether_type:04x}: {count} packets")
 
-    # Log a summary if there are more than 10 anomalies
-    if len(anomaly_details) > 10:
-        logger.info(f"... and {len(anomaly_details) - 10} more anomalies.")
+    if anomaly_details:
+        logger.info("Anomalies detected by machine learning model after whitelisting and broadcast filtering:")
+        for detail in anomaly_details[:10]:
+            logger.info(detail)
+        if len(anomaly_details) > 10:
+            logger.info(f"... and {len(anomaly_details) - 10} more anomalies.")
+    else:
+        logger.info("No non-broadcast anomalies detected by machine learning model after whitelisting.")
 
     return anomalies, anomaly_details
+
+
 
 
 def process_packet_batch(interface, count, logger, port_scan_threshold, dns_query_threshold, local_ip, subnet_mask):
@@ -836,44 +921,40 @@ def setup_network_interface(args, logger):
     return interface, local_ip, subnet_mask
 
 def main():
-    # Set up command-line argument parsing
     parser = argparse.ArgumentParser(description='Network Monitor')
     parser.add_argument('--interface', type=str, help='Network interface to use')
     args = parser.parse_args()
 
-    # Check for root privileges on Linux systems
     check_root_linux()
 
-    # Set up logging queue and start the log listener
     logger, log_listener = setup_logging_queue()
     log_listener.start()
 
     try:
-        # Define thresholds for detecting suspicious activities
         PORT_SCAN_THRESHOLD = 20
         DNS_QUERY_THRESHOLD = 50
-        COUNT = 1000  # Number of packets to capture in each batch
+        COUNT = 1000
 
-        # Set up the network interface for packet capture
         interface, local_ip, subnet_mask = setup_network_interface(args, logger)
         if not interface:
             logger.error("No valid interface found. Exiting.")
-            return  # Exit if no valid interface is found
+            return
 
-        # Initialize a counter for tracking potential false positives
         false_positive_count = defaultdict(int)
+        iteration_count = 0
+        save_interval = 10  # Save every 10 iterations, adjust as needed
 
-        # Main monitoring loop
+        global anomaly_detector
+        anomaly_detector = PersistentAnomalyDetector()
+        anomaly_detector.load_model()  # Load existing model if available
+
         while True:
             try:
-                # Process a batch of packets and analyze for suspicious activities and anomalies
                 packets, suspicious_activities, anomalies, anomaly_details = process_packet_batch(
                     interface, COUNT, logger, PORT_SCAN_THRESHOLD, DNS_QUERY_THRESHOLD, local_ip, subnet_mask
                 )
 
-                # Log results only if packets were captured
                 if packets:
-                    # Log suspicious activities if any are detected
                     if suspicious_activities:
                         logger.info("Suspicious activities detected:")
                         for activity in suspicious_activities:
@@ -881,45 +962,42 @@ def main():
                     else:
                         logger.info("No suspicious activities detected by regular analysis.")
 
-                    # Log anomalies detected by the machine learning model
                     if anomaly_details:
                         logger.info("Anomalies detected by machine learning model:")
-                        for detail in anomaly_details[:10]:  # Log details of first 10 anomalies
+                        for detail in anomaly_details[:10]:
                             logger.info(detail)
                         if len(anomaly_details) > 10:
                             logger.info(f"... and {len(anomaly_details) - 10} more anomalies.")
                     else:
                         logger.info("No anomalies detected by machine learning model.")
 
-                    # Handle potential false positives
                     for detail in anomaly_details:
                         false_positive_count[detail] += 1
-                        if false_positive_count[detail] > 10:  # Adjust this threshold as needed
+                        if false_positive_count[detail] > 10:
                             logger.info(f"Adapting to frequent anomaly: {detail}")
-                            # Here you could add logic to adjust the model or features
                             false_positive_count[detail] = 0
                 else:
                     logger.warning("No packets captured in this batch. Network might be disconnected.")
 
+                iteration_count += 1
+                if iteration_count % save_interval == 0:
+                    anomaly_detector.save_model()
+
             except Exception as e:
                 logger.error(f"An error occurred during packet processing: {e}", exc_info=True)
 
-            # Wait before processing the next batch
             time.sleep(60)
 
     except KeyboardInterrupt:
-        # Handle user interruption (e.g., Ctrl+C)
         logger.info("\nStopping packet capture. Exiting.")
     except Exception as e:
-        # Log any unexpected errors
         logger.error(f"An unexpected error occurred: {e}", exc_info=True)
     finally:
-        # Ensure the log listener is stopped before exiting
         log_listener.stop()
 
-# Entry point of the script
 if __name__ == "__main__":
     main()
+
 
 
 
