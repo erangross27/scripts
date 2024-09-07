@@ -67,14 +67,6 @@ from logging.handlers import QueueHandler, QueueListener
 from scapy.layers.llmnr import LLMNRQuery, LLMNRResponse
 
 
-
-
-
-
-# (Make sure WHITELISTED_IPS, WHITELISTED_PORTS, WHITELISTED_PROTOCOLS, 
-# TIME_BASED_WHITELIST, and COMPILED_DOMAIN_PATTERNS are defined as shown in the previous messages)
-
-
 # Whitelist configurations
 WHITELISTED_IPS = [
     ip_network("192.168.1.0/24"),  # Local network
