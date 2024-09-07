@@ -51,6 +51,7 @@ from huggingface_hub import login, HfFolder
 from huggingface_hub.utils import LocalTokenNotFoundError
 import tkinter as tk
 from tkinter import simpledialog
+from diffusers import StableDiffusionXLInpaintPipeline
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -117,7 +118,7 @@ class WatermarkDetectionApp:
         self.master.grid_rowconfigure(5, weight=1)
 
     def download_and_load_inpainting_model(self):
-        model_id = "stabilityai/stable-diffusion-2-inpainting"
+        model_id = "stabilityai/stable-diffusion-xl-base-1.0"
         
         try:
             # Check if the user is already logged in
@@ -142,7 +143,7 @@ class WatermarkDetectionApp:
             
             # Load the model
             logger.info(f"Loading model from {model_id}")
-            self.inpainting_pipeline = StableDiffusionInpaintPipeline.from_pretrained(
+            self.inpainting_pipeline = StableDiffusionXLInpaintPipeline.from_pretrained(
                 model_id,
                 torch_dtype=torch.float16 if device == "cuda" else torch.float32,
                 use_safetensors=True,
@@ -314,7 +315,6 @@ class WatermarkDetectionApp:
         logger.info(f"Saved intermediate frame: {output_path}")
 
     def process_video(self, input_path, output_path):
-        # Process a video file
         cap = cv2.VideoCapture(input_path)
         if not cap.isOpened():
             raise ValueError("Error opening video file")
@@ -365,46 +365,31 @@ class WatermarkDetectionApp:
             
             # Only proceed with inpainting if watermark is detected
             if np.any(watermark_mask > 0):
-                inpainting_successful = False
-                for attempt in range(1):  # Run inpainting once
-                    try:
-                        inpainted_frame, inpaint_vis = self.inpaint_image(
-                            frame,
-                            watermark_mask,
-                            prompt="remove watermark surrounding with green rectangle and repaint the scene based on surrounding",
-                            negative_prompt="text, watermark, logo, shutterstock, copyright, blurry, distorted, low quality",
-                            num_inference_steps=50,
-                            guidance_scale=10.0,
-                            strength=1.0,
-                            seed=frame_num + (attempt * 1000)
-                        )
-                        
-                        # Save inpainted frame and visualization for this attempt
-                        attempt_frame_path = os.path.join(inpainted_frames_dir, f"frame_{frame_num:04d}_attempt_{attempt+1}.jpg")
-                        cv2.imwrite(attempt_frame_path, inpainted_frame)
-                        attempt_vis_path = os.path.join(inpainted_frames_dir, f"frame_{frame_num:04d}_attempt_{attempt+1}_vis.jpg")
-                        cv2.imwrite(attempt_vis_path, inpaint_vis)
-                        
-                        inpainting_successful = True
-                        logger.info(f"Successfully inpainted frame {frame_num}, attempt {attempt+1}")
-                        break  # Exit the loop if inpainting is successful
-                    except Exception as e:
-                        logger.warning(f"Inpainting attempt {attempt+1} for frame {frame_num} failed: {str(e)}")
-                
-                if not inpainting_successful:
-                    logger.error(f"All inpainting attempts failed for frame {frame_num}. Using original frame.")
+                try:
+                    inpainted_frame, inpaint_vis = self.inpaint_image(
+                        frame,
+                        watermark_mask,
+                        prompt="high quality, detailed image without any watermark, text, or logo. Clear, sharp, and consistent with the surrounding image content.",
+                        negative_prompt="text, watermark, logo, blurry, low quality, distorted, inconsistent lighting or texture",
+                        num_inference_steps=50,
+                        guidance_scale=7.5,
+                        strength=1.0,
+                        seed=frame_num
+                    )
+                    
+                    # Save inpainted frame and visualization
+                    inpainted_frame_path = os.path.join(inpainted_frames_dir, f"frame_{frame_num:04d}.jpg")
+                    cv2.imwrite(inpainted_frame_path, inpainted_frame)
+                    inpaint_vis_path = os.path.join(inpainted_frames_dir, f"frame_{frame_num:04d}_vis.jpg")
+                    cv2.imwrite(inpaint_vis_path, inpaint_vis)
+                    
+                    logger.info(f"Successfully inpainted frame {frame_num}")
+                except Exception as e:
+                    logger.error(f"Inpainting failed for frame {frame_num}: {str(e)}")
                     inpainted_frame = frame
-                    inpaint_vis = frame
             else:
                 logger.info(f"No watermark detected in frame {frame_num}. Skipping inpainting.")
                 inpainted_frame = frame
-                inpaint_vis = frame
-            
-            # Save final inpainted frame and visualization
-            inpainted_frame_path = os.path.join(inpainted_frames_dir, f"frame_{frame_num:04d}_final.jpg")
-            cv2.imwrite(inpainted_frame_path, inpainted_frame)
-            inpaint_vis_path = os.path.join(inpainted_frames_dir, f"frame_{frame_num:04d}_final_vis.jpg")
-            cv2.imwrite(inpaint_vis_path, inpaint_vis)
             
             # Write to output video
             out.write(inpainted_frame)
@@ -466,7 +451,7 @@ class WatermarkDetectionApp:
 
         
 
-    def inpaint_image(self, img, mask, prompt="", negative_prompt="", num_inference_steps=50, guidance_scale=10.0, strength=1.0, seed=None):
+    def inpaint_image(self, img, mask, prompt="", negative_prompt="", num_inference_steps=50, guidance_scale=7.5, strength=1.0, seed=None):
         if mask is None or np.sum(mask) == 0:
             return img, img
         
@@ -510,19 +495,17 @@ class WatermarkDetectionApp:
         
         generator = torch.manual_seed(seed) if seed is not None else None
         
-        # Perform inpainting multiple times
-        for _ in range(1):  # Run inpainting twice
-            inpainted = self.inpainting_pipeline(
-                prompt=prompt,
-                image=img_pil,
-                mask_image=mask_pil,
-                negative_prompt=negative_prompt or "text, watermark, logo, shutterstock, copyright, blurry, distorted, low quality",
-                num_inference_steps=num_inference_steps,
-                guidance_scale=guidance_scale,
-                strength=strength,
-                generator=generator
-            ).images[0]
-            img_pil = inpainted  # Use the result for the next iteration
+        # Perform inpainting
+        inpainted = self.inpainting_pipeline(
+            prompt=prompt,
+            image=img_pil,
+            mask_image=mask_pil,
+            negative_prompt=negative_prompt or "text, watermark, logo, shutterstock, copyright, blurry, distorted, low quality",
+            num_inference_steps=num_inference_steps,
+            guidance_scale=guidance_scale,
+            strength=strength,
+            generator=generator
+        ).images[0]
         
         # Resize back to original crop size
         inpainted = inpainted.resize(orig_size, Image.LANCZOS)
