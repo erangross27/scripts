@@ -653,19 +653,18 @@ def is_whitelisted(packet):
 
     return False
 
-
-
-
-
 def analyze_traffic_with_ml(raw_packets, logger):
     global anomaly_detector
 
+    # Extract features from the raw packets
     features = extract_features(raw_packets)
     
+    # Check if any features were extracted
     if not features:
         logger.warning("No packets captured or no features extracted. Skipping ML analysis.")
         return [], []
 
+    # Create a DataFrame from the extracted features
     df = pd.DataFrame(features, columns=FEATURE_NAMES)
 
     # Ensure all features are numerical
@@ -677,14 +676,17 @@ def analyze_traffic_with_ml(raw_packets, logger):
     # Replace any NaN values with 0
     df = df.fillna(0)
 
+    # If the anomaly detector is not fitted, fit it with the current data
     if not anomaly_detector.is_fitted:
         logger.info("Fitting the anomaly detection model for the first time.")
         anomaly_detector.partial_fit(df)
         anomaly_scores = -anomaly_detector.model.score_samples(df)
     else:
         try:
+            # Calculate anomaly scores for the current data
             anomaly_scores = -anomaly_detector.model.score_samples(df)
         except ValueError as e:
+            # Handle feature mismatch by retraining the model
             if "feature names" in str(e):
                 logger.warning("Feature mismatch detected. Retraining the model with the current feature set.")
                 anomaly_detector = PersistentAnomalyDetector()  # Create a new model
@@ -693,28 +695,33 @@ def analyze_traffic_with_ml(raw_packets, logger):
             else:
                 raise e
 
-    # Use a dynamic threshold based on the distribution of anomaly scores
+    # Calculate dynamic threshold for anomaly detection
     threshold = np.percentile(anomaly_scores, 99)  # Adjust this percentile as needed
     anomalies = anomaly_scores > threshold
 
+    # Count and log the number of detected anomalies
     anomaly_count = np.sum(anomalies)
     logger.info(f"ML model detected {anomaly_count} anomalies out of {len(raw_packets)} packets")
 
     anomaly_details = []
 
+    # Analyze each anomaly
     for i, (is_anomaly, score, packet) in enumerate(zip(anomalies, anomaly_scores, raw_packets)):
         if is_anomaly:
             if isinstance(packet, tuple):
                 packet = Ether(packet[1])
             if not is_whitelisted(packet):
+                # Generate detailed information about the anomaly
                 packet_summary = packet.summary()
                 packet_type = "Broadcast" if packet.dst == "ff:ff:ff:ff:ff:ff" else "Unicast"
                 protocol = packet.lastlayer().name
                 anomaly_details.append(f"Anomaly at packet {i}: {packet_summary} | Type: {packet_type} | Protocol: {protocol} | Score: {score:.2f}")
 
+    # Log details of the first 10 anomalies
     for detail in anomaly_details[:10]:
         logger.info(detail)
 
+    # Log a summary if there are more than 10 anomalies
     if len(anomaly_details) > 10:
         logger.info(f"... and {len(anomaly_details) - 10} more anomalies.")
 
