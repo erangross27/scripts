@@ -585,6 +585,12 @@ def analyze_traffic_with_ml(raw_packets, logger):
 
     # Extract features from the raw packets
     features = extract_features(raw_packets)
+    
+    # Check if there are any features extracted
+    if not features:
+        logger.warning("No packets captured or no features extracted. Skipping ML analysis.")
+        return [], []  # Return empty lists for anomalies and anomaly_details
+
     # Create a DataFrame from the extracted features
     df = pd.DataFrame(features, columns=FEATURE_NAMES)
 
@@ -642,21 +648,26 @@ def analyze_traffic_with_ml(raw_packets, logger):
     # Return the anomaly predictions and detailed information
     return anomalies, anomaly_details
 
+
 def process_packet_batch(interface, count, logger, port_scan_threshold, dns_query_threshold, local_ip, subnet_mask):
     # Capture a specified number of packets from the given network interface
     packets = capture_packets(interface, count, logger)
 
+    # Check if any packets were captured
+    if not packets:
+        logger.warning("No packets captured. Network might be disconnected.")
+        return [], [], [], []  # Return empty lists for all results
+
     # Analyze the captured packets for suspicious activities
-    # This includes checking for port scans, unusual DNS queries, and other potential threats
     suspicious_activities = analyze_traffic(packets, logger, port_scan_threshold, dns_query_threshold, local_ip, subnet_mask)
 
     # Perform machine learning-based anomaly detection on the captured packets
-    # This can identify unusual patterns that might not be caught by rule-based analysis
     anomalies, anomaly_details = analyze_traffic_with_ml(packets, logger)
 
     # Return all the results: raw packets, detected suspicious activities,
     # anomaly flags, and detailed information about the anomalies
     return packets, suspicious_activities, anomalies, anomaly_details
+
 
 
 def log_results(logger, suspicious_activities, anomaly_details):
@@ -757,6 +768,7 @@ def main():
     # Set up logging queue and start the log listener
     logger, log_listener = setup_logging_queue()
     log_listener.start()
+
     try:
         # Define thresholds for detecting suspicious activities
         PORT_SCAN_THRESHOLD = 20
@@ -766,6 +778,7 @@ def main():
         # Set up the network interface for packet capture
         interface, local_ip, subnet_mask = setup_network_interface(args, logger)
         if not interface:
+            logger.error("No valid interface found. Exiting.")
             return  # Exit if no valid interface is found
 
         # Initialize a counter for tracking potential false positives
@@ -773,38 +786,46 @@ def main():
 
         # Main monitoring loop
         while True:
-            # Process a batch of packets and analyze for suspicious activities and anomalies
-            packets, suspicious_activities, anomalies, anomaly_details = process_packet_batch(
-                interface, COUNT, logger, PORT_SCAN_THRESHOLD, DNS_QUERY_THRESHOLD, local_ip, subnet_mask
-            )
+            try:
+                # Process a batch of packets and analyze for suspicious activities and anomalies
+                packets, suspicious_activities, anomalies, anomaly_details = process_packet_batch(
+                    interface, COUNT, logger, PORT_SCAN_THRESHOLD, DNS_QUERY_THRESHOLD, local_ip, subnet_mask
+                )
 
-            # Log suspicious activities if any are detected
-            if suspicious_activities:
-                logger.info("Suspicious activities detected:")
-                for activity in suspicious_activities:
-                    logger.info(f"- {': '.join(map(str, activity))}")
-            else:
-                logger.info("No suspicious activities detected by regular analysis.")
+                # Log results only if packets were captured
+                if packets:
+                    # Log suspicious activities if any are detected
+                    if suspicious_activities:
+                        logger.info("Suspicious activities detected:")
+                        for activity in suspicious_activities:
+                            logger.info(f"- {': '.join(map(str, activity))}")
+                    else:
+                        logger.info("No suspicious activities detected by regular analysis.")
 
-            # Log anomalies detected by the machine learning model
-            if anomaly_details:
-                logger.info("Anomalies detected by machine learning model:")
-                for detail in anomaly_details[:10]:  # Log details of first 10 anomalies
-                    logger.info(detail)
-                if len(anomaly_details) > 10:
-                    logger.info(f"... and {len(anomaly_details) - 10} more anomalies.")
-            else:
-                logger.info("No anomalies detected by machine learning model.")
+                    # Log anomalies detected by the machine learning model
+                    if anomaly_details:
+                        logger.info("Anomalies detected by machine learning model:")
+                        for detail in anomaly_details[:10]:  # Log details of first 10 anomalies
+                            logger.info(detail)
+                        if len(anomaly_details) > 10:
+                            logger.info(f"... and {len(anomaly_details) - 10} more anomalies.")
+                    else:
+                        logger.info("No anomalies detected by machine learning model.")
 
-            # Handle potential false positives
-            for detail in anomaly_details:
-                false_positive_count[detail] += 1
-                if false_positive_count[detail] > 10:  # Adjust this threshold as needed
-                    logger.info(f"Adapting to frequent anomaly: {detail}")
-                    # Here you could add logic to adjust the model or features
-                    false_positive_count[detail] = 0
+                    # Handle potential false positives
+                    for detail in anomaly_details:
+                        false_positive_count[detail] += 1
+                        if false_positive_count[detail] > 10:  # Adjust this threshold as needed
+                            logger.info(f"Adapting to frequent anomaly: {detail}")
+                            # Here you could add logic to adjust the model or features
+                            false_positive_count[detail] = 0
+                else:
+                    logger.warning("No packets captured in this batch. Network might be disconnected.")
 
-            # Wait for 60 seconds before processing the next batch
+            except Exception as e:
+                logger.error(f"An error occurred during packet processing: {e}", exc_info=True)
+
+            # Wait before processing the next batch
             time.sleep(60)
 
     except KeyboardInterrupt:
@@ -812,7 +833,7 @@ def main():
         logger.info("\nStopping packet capture. Exiting.")
     except Exception as e:
         # Log any unexpected errors
-        logger.error(f"An error occurred: {e}", exc_info=True)
+        logger.error(f"An unexpected error occurred: {e}", exc_info=True)
     finally:
         # Ensure the log listener is stopped before exiting
         log_listener.stop()
