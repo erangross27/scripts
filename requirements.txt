@@ -1,84 +1,63 @@
-# Image processing library
-Pillow
-
+# Image processing library Pillow
 # GUI framework for Python
 PyQt5
-
 # Library for working with diffusion models
 diffusers
-
 # Google API client library
 google
-
 # Anthropic's API client library
 anthropic
-
 # PDF manipulation library
 PyMuPDF
-
 # HTTP client library
 httpx
-
 # Computer vision library
 opencv-python
-
 # Audio processing library
 pydub
-
 # Library for creating and updating Microsoft Word documents
 python-docx
-
 # YouTube video downloader library
 pytube
-
 # Video editing library
 moviepy
-
 # Quantum computing framework
 qiskit
-
 # IBM Quantum runtime for Qiskit
 qiskit-ibm-runtime
-
 # Plotting library
 matplotlib
-
 # Windows Management Instrumentation library
 wmi
-
 # Cross-platform library for retrieving information on running processes and system utilization
 psutil
-
 # Google Cloud Vision API client library
 google-cloud-vision
-
 # Microsoft Graph API client library
 msgraph-sdk
-
 # Azure Active Directory authentication library
 azure-identity
-
 # Machine learning framework
 torch
-
 # Library for retrieving network interface information
 netifaces
-
 # Packet manipulation program
 scapy
-
 # Bidirectional text support for Python
 python-bidi
-
 # Library for retrieving system performance and process information
 psutil
 # Library for cryptography and security operations
 cryptography
-## Library for displaying progress bars in Python applications
+# Library for displaying progress bars in Python applications
 tqdm
 # Library for working with AI models and data
-pandas 
+pandas
 # Library for working with large datasets and matrices
 joblib
 # Library for machine learning
 scikit-learn
+# Numerical computing library for Python
+numpy
+# Library for working with pre-trained models and natural language processing tasks
+transformers

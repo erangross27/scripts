@@ -34,7 +34,7 @@ import warnings
 def setup_environment():
     # Ignore CryptographyDeprecationWarning
     warnings.filterwarnings("ignore", category=CryptographyDeprecationWarning)
-#Calling it at the beginging of the script to suppress warnings during the execution of the script.
+#Calling it at the beginning of the script to suppress warnings during the execution of the script.
 setup_environment()
 
 import os
@@ -57,7 +57,14 @@ from ipaddress import ip_network, ip_address
 from sklearn.ensemble import IsolationForest
 from concurrent.futures import ProcessPoolExecutor
 from typing import List, Any, Tuple
-from scapy.all import IP, IPv6, TCP, UDP, DNS, DNSQR, Raw, Ether, sniff, ARP, DHCP
+from scapy.layers.inet import IP, TCP, UDP
+from scapy.layers.inet6 import IPv6
+from scapy.layers.dns import DNS, DNSQR
+from scapy.layers.l2 import Ether, ARP
+from scapy.layers.dhcp import DHCP
+from scapy.packet import Raw
+from scapy.sendrecv import sniff
+
 from scapy.layers import http
 from scapy.layers.inet6 import ICMPv6ND_NS
 from collections import defaultdict
