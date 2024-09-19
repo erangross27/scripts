@@ -61,3 +61,5 @@ scikit-learn
 numpy
 # Library for working with pre-trained models and natural language processing tasks
 transformers
+# Library for converting python script to exe file
+pyinstaller
