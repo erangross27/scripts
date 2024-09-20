@@ -53,6 +53,10 @@ import numpy as np
 import pandas as pd
 import joblib
 import ipaddress
+import joblib
+from sklearn.ensemble import IsolationForest
+import warnings
+from sklearn.exceptions import InconsistentVersionWarning
 from ipaddress import ip_network, ip_address
 from sklearn.ensemble import IsolationForest
 from concurrent.futures import ProcessPoolExecutor
@@ -204,28 +208,36 @@ class PersistentAnomalyDetector:
             self.logger.info(f"Anomaly detection model saved to {self.model_path}")
 
     def load_model(self):
-        # Load a previously saved model from a file
         if os.path.exists(self.model_path):
             try:
-                loaded_data = joblib.load(self.model_path)
+                with warnings.catch_warnings():
+                    warnings.filterwarnings("ignore", category=InconsistentVersionWarning)
+                    loaded_data = joblib.load(self.model_path)
+                
                 if isinstance(loaded_data, dict):
-                    # Handle new format (model and feature names)
                     self.model = loaded_data['model']
                     self.feature_names = loaded_data['feature_names']
                 else:
-                    # Handle old format (only model was saved)
                     self.model = loaded_data
-                self.feature_names = None
+                    self.feature_names = None
+                
                 self.is_fitted = True
                 self.logger.info(f"Anomaly detection model loaded from {self.model_path}")
+                
+                # Check if the loaded model is an IsolationForest
+                if not isinstance(self.model, IsolationForest):
+                    raise ValueError("Loaded model is not an IsolationForest")
+                
+                # Ensure the model has the correct attributes
+                if not hasattr(self.model, 'contamination') or not hasattr(self.model, 'random_state'):
+                    raise ValueError("Loaded model is missing expected attributes")
+                
             except Exception as e:
-                # If loading fails, create a new model
                 self.logger.error(f"Error loading model: {e}")
                 self.model = IsolationForest(contamination=self.contamination, random_state=42)
                 self.is_fitted = False
                 self.feature_names = None
         else:
-            # If no saved model exists, prepare to create a new one
             self.logger.info("No existing model found. A new model will be created.")
 
 # Global variable to store our model instance
