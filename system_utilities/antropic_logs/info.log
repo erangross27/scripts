@@ -1,0 +1,67 @@
+2024-11-01 09:07:19,228 - INFO - Logging setup completed
+2024-11-01 09:07:19,228 - INFO - Application started
+2024-11-01 09:07:27,184 - INFO - Environment variable 'ANTHROPIC_API_KEY' set to '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' in registry and current process
+2024-11-01 09:07:27,951 - INFO - Connecting to the database: conversation_history.db
+2024-11-01 09:07:27,951 - INFO - Connected to the database: conversation_history.db
+2024-11-01 09:07:27,951 - INFO - Creating conversations table...
+2024-11-01 09:07:27,967 - INFO - Conversations table created successfully
+2024-11-01 09:07:28,032 - INFO - PythonHighlighter initialized
+2024-11-01 09:07:28,034 - INFO - Chat cleared
+2024-11-01 09:07:28,034 - INFO - Conversation history reset: [{'role': 'assistant', 'content': 'You are a professional Python developer with 20 years of experience.'}]
+2024-11-01 09:07:28,034 - INFO - Adding new conversation with ID: f3b8b5d3-db4c-4e4a-aec5-27f3ab4eec5d and title: New Conversation
+2024-11-01 09:07:28,034 - INFO - Creating new conversation in the database with ID: f3b8b5d3-db4c-4e4a-aec5-27f3ab4eec5d, title: New Conversation
+2024-11-01 09:07:28,049 - INFO - New conversation created in the database
+2024-11-01 09:07:28,049 - INFO - Changes committed to the database
+2024-11-01 09:07:28,049 - INFO - New conversation added to the database with ID: f3b8b5d3-db4c-4e4a-aec5-27f3ab4eec5d
+2024-11-01 09:07:28,049 - INFO - Loading conversations from the database
+2024-11-01 09:07:28,049 - INFO - Loaded 1 conversations from the database
+2024-11-01 09:07:28,049 - INFO - Updating sidebar with 1 conversations
+2024-11-01 09:07:28,081 - INFO - Sidebar updated
+2024-11-01 09:07:28,081 - INFO - Loading conversations from the database
+2024-11-01 09:07:28,081 - INFO - Loaded 1 conversations from the database
+2024-11-01 09:07:28,081 - INFO - Updating sidebar with 1 conversations
+2024-11-01 09:07:28,081 - INFO - Sidebar updated
+2024-11-01 09:07:28,081 - INFO - ClaudeChat initialized
+2024-11-01 09:07:28,081 - INFO - API key: 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
+2024-11-01 09:07:28,081 - INFO - Conversation history: []
+2024-11-01 09:07:28,081 - INFO - Chat history: []
+2024-11-01 09:07:28,081 - INFO - ClaudeChat window shown
+2024-11-01 09:07:33,196 - INFO - Non-code block: h
+2024-11-01 09:07:33,196 - INFO - Key pressed: h
+2024-11-01 09:07:33,382 - INFO - Non-code block: he
+2024-11-01 09:07:33,382 - INFO - Key pressed: e
+2024-11-01 09:07:33,881 - INFO - Non-code block: hel
+2024-11-01 09:07:33,881 - INFO - Key pressed: l
+2024-11-01 09:07:34,033 - INFO - Non-code block: hell
+2024-11-01 09:07:34,033 - INFO - Key pressed: l
+2024-11-01 09:07:34,240 - INFO - Non-code block: hello
+2024-11-01 09:07:34,240 - INFO - Key pressed: o
+2024-11-01 09:07:34,648 - INFO - Key pressed: 
+2024-11-01 09:07:37,668 - INFO - Key pressed: 
+2024-11-01 09:07:38,002 - INFO - Non-code block: 
+2024-11-01 09:07:38,002 - INFO - Non-code block: 
+2024-11-01 09:07:38,002 - INFO - Return key pressed with Ctrl modifier
+2024-11-01 09:07:38,876 - INFO - HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2024-11-01 09:07:38,876 - INFO - New message received: Hi! How can I help you today?
+2024-11-01 09:07:38,891 - INFO - Checking if text is a code block: Hi! How can I help you today?
+2024-11-01 09:07:38,891 - INFO - Conversation history updated: [{'role': 'user', 'content': [{'type': 'text', 'text': 'hello'}]}, {'role': 'assistant', 'content': [{'type': 'text', 'text': 'Hi! How can I help you today?'}]}]
+2024-11-01 09:07:38,891 - INFO - Is code block: False
+2024-11-01 09:07:38,891 - INFO - Chat updated with message: Hi! How can I help you today?
+2024-11-01 09:07:38,891 - INFO - User input enabled
+2024-11-01 09:07:38,891 - INFO - User input widget enabled: True
+2024-11-01 09:07:38,891 - INFO - Send button enabled: True
+2024-11-01 09:07:38,891 - INFO - Clear button enabled: True
+2024-11-01 09:07:38,891 - INFO - Upload button enabled: True
+2024-11-01 09:07:38,891 - INFO - Focus set to user input
+2024-11-01 09:07:38,891 - INFO - Updating conversation with ID: f3b8b5d3-db4c-4e4a-aec5-27f3ab4eec5d
+2024-11-01 09:07:39,454 - INFO - HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2024-11-01 09:07:39,454 - INFO - Generated conversation title: Basic Greeting Exchange Conversation
+2024-11-01 09:07:39,454 - INFO - Updating conversation in the database with ID: f3b8b5d3-db4c-4e4a-aec5-27f3ab4eec5d, title: Basic Greeting Exchange Conversation, history: [{'role': 'user', 'content': [{'type': 'text', 'text': 'hello'}]}, {'role': 'assistant', 'content': [{'type': 'text', 'text': 'Hi! How can I help you today?'}]}]
+2024-11-01 09:07:39,454 - INFO - Conversation updated in the database
+2024-11-01 09:07:39,470 - INFO - Changes committed to the database
+2024-11-01 09:07:39,470 - INFO - Conversation history updated in the database
+2024-11-01 09:07:39,470 - INFO - Loading conversations from the database
+2024-11-01 09:07:39,470 - INFO - Loaded 1 conversations from the database
+2024-11-01 09:07:39,470 - INFO - Updating sidebar with 1 conversations
+2024-11-01 09:07:39,470 - INFO - Sidebar updated
+2024-11-01 09:07:41,499 - INFO - Application exited with code: 0
