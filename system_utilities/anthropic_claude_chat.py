@@ -1183,7 +1183,7 @@ class ClaudeChat(QWidget):
             elif selected_model == "Claude-3-Haiku":
                 model_name = "claude-3-haiku-20240307"
             elif selected_model == "claude-3-5-sonnet":
-                model_name = "claude-3-5-sonnet-20240620"
+                model_name = "claude-3-5-sonnet-20241022"
             else:
                 model_name = "claude-3-haiku-20240307"  # Default to Claude-3-Opus if no valid selection
             return model_name
