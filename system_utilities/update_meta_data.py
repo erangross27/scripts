@@ -13,7 +13,12 @@ logging.basicConfig(level=logging.INFO)
 
 class ShutterstockMetadataUpdater:
     def __init__(self):
-        self.anthropic = Anthropic()
+        # Retrieve the Anthropic API key from environment variables
+        api_key = os.environ.get("ANTHROPIC_API_KEY")
+        if not api_key:
+            logging.error("Anthropic API key must be set in the ANTHROPIC_API_KEY environment variable.")
+            raise ValueError("Missing Anthropic API key")
+        self.anthropic = Anthropic(api_key=api_key)
         self.shutterstock_token = None
         self.download_folder = os.environ.get("DOWNLOAD_FOLDER", "downloaded_images")
 
@@ -116,30 +121,23 @@ class ShutterstockMetadataUpdater:
                     img.save(buffered, format="JPEG")
                     img_str = base64.b64encode(buffered.getvalue()).decode()
 
-                response = self.anthropic.messages.create(
+                response = self.anthropic.completions.create(
                     model=model_name,
-                    max_tokens=300,
-                    messages=[{
-                        "role": "user",
-                        "content": [
-                            {
-                                "type": "image",
-                                "source": {
-                                    "type": "base64",
-                                    "media_type": "image/jpeg",
-                                    "data": img_str
-                                }
-                            },
-                            {
-                                "type": "text",
-                                "text": "Provide exactly in this format:\nDescription: [70 chars max description]\nKeywords: [7 relevant keywords separated by commas]\nCategory: [one of: nature/wildlife/landscape/people/business/food]"
-                                }
-                            ]
-                        }]
+                    max_tokens_to_sample=300,
+                    prompt=f"""{Anthropic.HUMAN_PROMPT}
+Provide exactly in this format:
+Description: [70 chars max description]
+Keywords: [7 relevant keywords separated by commas]
+Category: [one of: nature/wildlife/landscape/people/business/food]
+
+[Attached Image]
+
+{Anthropic.AI_PROMPT}""",
+                    attachments={"image": img_str},
                 )
 
                 # Parse Claude's response
-                lines = response.content.split('\n')
+                lines = response.completion.strip().split('\n')
                 results[image_id] = {
                     'description': lines[0].replace('Description: ', '')[:70],
                     'keywords': [k.strip() for k in lines[1].replace('Keywords: ', '').split(',')][:7],
@@ -211,7 +209,7 @@ def main():
     # Retrieve credentials from environment variables
     SHUTTERSTOCK_CLIENT_ID = os.environ.get("SHUTTERSTOCK_CLIENT_ID")
     SHUTTERSTOCK_CLIENT_SECRET = os.environ.get("SHUTTERSTOCK_CLIENT_SECRET")
-    # Anthropic API key should be set as environment variable ANTHROPIC_API_KEY
+    # Anthropic API key is retrieved in the class initialization
 
     if not SHUTTERSTOCK_CLIENT_ID or not SHUTTERSTOCK_CLIENT_SECRET:
         logging.error("Shutterstock Client ID and Secret must be set in environment variables.")
