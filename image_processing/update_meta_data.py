@@ -265,37 +265,25 @@ class LocalMetadataUpdater:
                 if img.mode in ('RGBA', 'P'):
                     img = img.convert('RGB')
                 
-                # Start with more aggressive size reduction
-                max_dimension = 2000  # Reduce maximum dimension
+                # Calculate new dimensions while maintaining aspect ratio
                 width, height = img.size
-                ratio = min(max_dimension/width, max_dimension/height, 1.0)
+                ratio = min(5000/width, 5000/height, 1.0)  # Won't upscale
                 new_size = (int(width * ratio), int(height * ratio))
                 
                 # Create smaller version only for AI analysis
                 temp_img = img.resize(new_size, Image.Resampling.LANCZOS)
                 
-                # Try different quality settings until we get under 5MB
-                for quality in [85, 70, 60, 50, 40, 30]:
+                # Save to memory buffer
+                buffered = BytesIO()
+                temp_img.save(buffered, format="JPEG", quality=85, optimize=True)
+                
+                # Reduce quality if still too large
+                quality = 85
+                while buffered.tell() > 5 * 1024 * 1024 and quality > 30:
                     buffered = BytesIO()
+                    quality -= 10
                     temp_img.save(buffered, format="JPEG", quality=quality, optimize=True)
-                    file_size = buffered.tell()
-                    
-                    if file_size <= 5 * 1024 * 1024:  # 5MB in bytes
-                        self.log_signal.emit(f"Compressed image for AI analysis. Size: {file_size/1024/1024:.2f}MB")
-                        break
-                    
-                    # If we're still too big at lowest quality, reduce dimensions
-                    if quality == 30:
-                        max_dimension = int(max_dimension * 0.8)
-                        new_size = (int(width * max_dimension/max(width, height)), 
-                                int(height * max_dimension/max(width, height)))
-                        temp_img = img.resize(new_size, Image.Resampling.LANCZOS)
-                        buffered = BytesIO()
-                        temp_img.save(buffered, format="JPEG", quality=quality, optimize=True)
-
-                if buffered.tell() > 5 * 1024 * 1024:
-                    raise ValueError(f"Unable to compress image below 5MB: {buffered.tell()/1024/1024:.2f}MB")
-                    
+                
                 img_str = base64.b64encode(buffered.getvalue()).decode()
 
             message = self.anthropic.messages.create(
@@ -303,8 +291,9 @@ class LocalMetadataUpdater:
                 max_tokens=1000,
                 temperature=0,
                 system="""You are a professional image analyst providing metadata for stock photos from the Golan Heights region. 
-                        Consider both secular and Christian religious significance when relevant.
-                        Focus on historical and biblical connections where applicable.""",
+                 IMPORTANT: Headlines must be VERY short - maximum 30 characters.
+                 Write headlines like newspaper headlines - brief and clear.
+                 Consider both secular and Christian religious significance when relevant.""",
                 messages=[
                     {
                         "role": "user",
@@ -320,7 +309,7 @@ class LocalMetadataUpdater:
                             {
                                 "type": "text",
                                 "text": """Analyze this image and provide exactly in this format:
-    1. Headline: [write a clear, descriptive headline in 70 chars max]
+    1. Headline: [write a clear, concise headline in maximum 30 chars]
     2. Keywords: [provide 10-15 relevant comma-separated keywords, include relevant biblical/Christian terms if applicable]
     3. Category 1: [select one category from this list:
     - Backgrounds/Textures
@@ -362,6 +351,74 @@ class LocalMetadataUpdater:
             self.log_signal.emit(f"Detailed error: {traceback.format_exc()}")
             return None
 
+    
+    def _parse_analysis_response(self, response_text):
+        try:
+            # Extract headline and ensure it's short
+            headline_match = re.search(r'Headline:\s*(.+?)(?:\n|$)', response_text)
+            headline = headline_match.group(1).strip() if headline_match else ''
+            
+            # Strictly enforce 30 character limit
+            if len(headline) > 30:
+                # Try to find a natural break point
+                break_point = headline[:30].rfind(' ')
+                if break_point > 0:
+                    headline = headline[:break_point].strip()
+                else:
+                    headline = headline[:27] + '...'
+                    
+            self.log_signal.emit(f"Headline length: {len(headline)} chars: '{headline}'")
+
+            # Extract keywords and ensure they're comma-separated
+            keywords_match = re.search(r'Keywords:\s*(.+?)(?:\n|$)', response_text)
+            if keywords_match:
+                # First split by semicolons if present, then by commas
+                keywords_text = keywords_match.group(1)
+                if ';' in keywords_text:
+                    keywords = [k.strip() for k in keywords_text.split(';')]
+                else:
+                    keywords = [k.strip() for k in keywords_text.split(',')]
+                # Clean up keywords
+                keywords = [k.strip('., ') for k in keywords if k.strip()]
+            else:
+                keywords = []
+
+            # Extract categories
+            cat1_match = re.search(r'Category 1:\s*(.+?)(?:\n|$)', response_text)
+            cat2_match = re.search(r'Category 2:\s*(.+?)(?:\n|$)', response_text)
+            categories = []
+            if cat1_match: categories.append(cat1_match.group(1).strip())
+            if cat2_match: categories.append(cat2_match.group(1).strip())
+
+            # Extract biblical reference
+            bible_match = re.search(r'Biblical Reference:\s*(.+?)(?:\n|$)', response_text)
+            biblical_ref = bible_match.group(1).strip() if bible_match else ''
+
+            metadata = {
+                'headline': headline,  # Already limited to 40 chars
+                'keywords': keywords[:15],  # Limit to 15 keywords
+                'categories': categories[:2],
+                'location': 'Golan Heights',
+                'type': 'Photo',
+                'biblical_reference': biblical_ref,
+                'creator': 'Eran Gross',
+                'copyright': '© Eran Gross'
+            }
+
+            # Log the parsed metadata for debugging
+            self.log_signal.emit(f"Parsed metadata:")
+            self.log_signal.emit(f"Headline: {metadata['headline']}")
+            self.log_signal.emit(f"Keywords: {', '.join(metadata['keywords'])}")
+            self.log_signal.emit(f"Categories: {', '.join(metadata['categories'])}")
+            self.log_signal.emit(f"Biblical Reference: {metadata['biblical_reference']}")
+            self.log_signal.emit(f"Creator: {metadata['creator']}")
+            self.log_signal.emit(f"Copyright: {metadata['copyright']}")
+
+            return metadata
+        except Exception as e:
+            self.log_signal.emit(f"Error parsing AI response: {str(e)}")
+            return None
+
     def _update_local_metadata(self, image_path, metadata):
         """Update local image EXIF metadata."""
         if not self.worker.is_running:
@@ -383,30 +440,49 @@ class LocalMetadataUpdater:
                 if ifd not in exif_dict:
                     exif_dict[ifd] = {}
 
-            # Convert metadata to UTF-16 bytes for Windows compatibility
-            headline_bytes = metadata['headline'].encode('utf-16le')
-            # Join keywords with commas instead of semicolons
-            keywords_bytes = ', '.join(metadata['keywords']).encode('utf-16le')
-            categories_bytes = ', '.join(metadata['categories']).encode('utf-16le')
-            location_bytes = f"{metadata['location']} - {metadata.get('biblical_reference', '')}".encode('utf-16le')
+            # Prepare metadata strings
+            headline = metadata['headline']
+            keywords = ', '.join(k.strip() for k in metadata['keywords'])
+            categories = ', '.join(metadata['categories'])
+            location = f"{metadata['location']} - {metadata.get('biblical_reference', '')}"
+            creator = metadata['creator']
+            copyright_notice = metadata['copyright']
+
+            # Convert to bytes with Windows encoding (UTF-16LE)
+            headline_bytes = headline.encode('utf-16le')
+            keywords_bytes = keywords.encode('utf-16le')
+            categories_bytes = categories.encode('utf-16le')
+            location_bytes = location.encode('utf-16le')
+            creator_bytes = creator.encode('utf-16le')
+            copyright_bytes = copyright_notice.encode('utf-16le')
 
             # Update EXIF fields
             exif_dict['0th'][piexif.ImageIFD.XPTitle] = headline_bytes
             exif_dict['0th'][piexif.ImageIFD.XPKeywords] = keywords_bytes
             exif_dict['0th'][piexif.ImageIFD.XPSubject] = categories_bytes
             exif_dict['0th'][piexif.ImageIFD.XPComment] = location_bytes
+            exif_dict['0th'][piexif.ImageIFD.XPAuthor] = creator_bytes
+            exif_dict['0th'][piexif.ImageIFD.Copyright] = copyright_notice.encode('utf-8')
             
             # Add standard IPTC fields with UTF-8 encoding
-            exif_dict['0th'][piexif.ImageIFD.ImageDescription] = metadata['headline'].encode('utf-8')
-            # Also add keywords in standard field if available
-            if piexif.ImageIFD.Keywords in exif_dict['0th']:
-                exif_dict['0th'][piexif.ImageIFD.Keywords] = ', '.join(metadata['keywords']).encode('utf-8')
+            exif_dict['0th'][piexif.ImageIFD.ImageDescription] = headline.encode('utf-8')
+            exif_dict['0th'][piexif.ImageIFD.Artist] = creator.encode('utf-8')
 
             # Save updated EXIF data
             try:
                 exif_bytes = piexif.dump(exif_dict)
                 piexif.insert(exif_bytes, image_path)
                 self.log_signal.emit(f"Updated metadata for {os.path.basename(image_path)}")
+                
+                # Log the actual metadata being written
+                self.log_signal.emit(f"Written metadata:")
+                self.log_signal.emit(f"Title: {headline}")
+                self.log_signal.emit(f"Keywords: {keywords}")
+                self.log_signal.emit(f"Categories: {categories}")
+                self.log_signal.emit(f"Location: {location}")
+                self.log_signal.emit(f"Creator: {creator}")
+                self.log_signal.emit(f"Copyright: {copyright_notice}")
+                
             except Exception as e:
                 self.log_signal.emit(f"Failed to write EXIF data: {str(e)}")
                 # Try alternative method
@@ -418,55 +494,6 @@ class LocalMetadataUpdater:
             self.log_signal.emit(f"Error updating metadata: {str(e)}")
             import traceback
             self.log_signal.emit(f"Detailed error: {traceback.format_exc()}")
-
-    def _parse_analysis_response(self, response_text):
-        """Parse the AI response into structured metadata."""
-        try:
-            # Extract headline
-            headline_match = re.search(r'Headline:\s*(.+?)(?:\n|$)', response_text)
-            headline = headline_match.group(1).strip() if headline_match else ''
-
-            # Extract keywords and ensure they're comma-separated
-            keywords_match = re.search(r'Keywords:\s*(.+?)(?:\n|$)', response_text)
-            if keywords_match:
-                # Split on both comma and semicolon to handle both cases
-                keywords = [k.strip() for k in re.split('[,;]', keywords_match.group(1))]
-                # Filter out empty strings
-                keywords = [k for k in keywords if k]
-            else:
-                keywords = []
-
-            # Extract categories
-            cat1_match = re.search(r'Category 1:\s*(.+?)(?:\n|$)', response_text)
-            cat2_match = re.search(r'Category 2:\s*(.+?)(?:\n|$)', response_text)
-            categories = []
-            if cat1_match: categories.append(cat1_match.group(1).strip())
-            if cat2_match: categories.append(cat2_match.group(1).strip())
-
-            # Extract biblical reference
-            bible_match = re.search(r'Biblical Reference:\s*(.+?)(?:\n|$)', response_text)
-            biblical_ref = bible_match.group(1).strip() if bible_match else ''
-
-            metadata = {
-                'headline': headline[:70],  # Ensure headline doesn't exceed 70 chars
-                'keywords': keywords[:15],  # Limit to 15 keywords
-                'categories': categories[:2],
-                'location': 'Golan Heights',
-                'type': 'Photo',
-                'biblical_reference': biblical_ref
-            }
-
-            # Log the parsed metadata for debugging
-            self.log_signal.emit(f"Parsed metadata:")
-            self.log_signal.emit(f"Headline: {metadata['headline']}")
-            self.log_signal.emit(f"Keywords: {', '.join(metadata['keywords'])}")
-            self.log_signal.emit(f"Categories: {', '.join(metadata['categories'])}")
-            self.log_signal.emit(f"Biblical Reference: {metadata['biblical_reference']}")
-
-            return metadata
-        except Exception as e:
-            self.log_signal.emit(f"Error parsing AI response: {str(e)}")
-            return None
     
 def main():
     app = QApplication(sys.argv)
