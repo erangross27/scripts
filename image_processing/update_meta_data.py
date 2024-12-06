@@ -17,6 +17,15 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QProgressBar,
                            QFileDialog, QLabel, QHBoxLayout)
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
 from PyQt5.QtGui import QTextCursor
+import subprocess
+import shlex
+# Add at the top of your file with other imports
+HAS_WIN32 = False
+try:
+    from win32file import SetFileAttributes
+    HAS_WIN32 = True
+except ImportError:
+    pass
 
 # Set up logging
 logging.basicConfig(
@@ -225,30 +234,42 @@ class LocalMetadataUpdater:
         """Resize image to meet API requirements while maintaining aspect ratio."""
         try:
             with Image.open(image_path) as img:
-                # Calculate aspect ratio
-                width, height = img.size
-                ratio = min(5000/width, 5000/height)
-                new_size = (int(width * ratio), int(height * ratio))
-                
                 # Convert to RGB if needed
                 if img.mode in ('RGBA', 'P'):
                     img = img.convert('RGB')
                 
-                # Resize image
-                resized_img = img.resize(new_size, Image.Resampling.LANCZOS)
-                
-                # Save to buffer with quality adjustment
-                buffered = BytesIO()
-                resized_img.save(buffered, format="JPEG", quality=85, optimize=True)
-                
-                # If still too large, reduce quality until under 5MB
-                while buffered.tell() > 5 * 1024 * 1024:
-                    quality = int(quality * 0.9)
+                # Initial resize if image is very large
+                width, height = img.size
+                max_dimension = 2000  # Reduced from 5000 to ensure smaller file size
+                if width > max_dimension or height > max_dimension:
+                    ratio = min(max_dimension/width, max_dimension/height)
+                    new_size = (int(width * ratio), int(height * ratio))
+                    img = img.resize(new_size, Image.Resampling.LANCZOS)
+
+                # Start with high quality and gradually reduce until under 5MB
+                quality = 95
+                while True:
                     buffered = BytesIO()
-                    resized_img.save(buffered, format="JPEG", quality=quality, optimize=True)
+                    img.save(buffered, format="JPEG", quality=quality, optimize=True)
+                    file_size = buffered.tell()
                     
-                return base64.b64encode(buffered.getvalue()).decode()
-                
+                    if file_size <= 5 * 1024 * 1024:  # 5MB in bytes
+                        self.log_signal.emit(f"Successfully resized image to {file_size/1024/1024:.2f}MB with quality {quality}")
+                        buffered.seek(0)
+                        return base64.b64encode(buffered.getvalue()).decode()
+                    
+                    quality -= 5
+                    if quality < 30:  # If quality gets too low, reduce size further
+                        width, height = img.size
+                        ratio = 0.8  # Reduce dimensions by 20%
+                        new_size = (int(width * ratio), int(height * ratio))
+                        img = img.resize(new_size, Image.Resampling.LANCZOS)
+                        quality = 95  # Reset quality and try again
+                    
+                    if width < 800 or height < 800:  # Prevent images from becoming too small
+                        self.log_signal.emit("Warning: Could not reduce image size enough while maintaining quality")
+                        return None
+
         except Exception as e:
             self.log_signal.emit(f"Error resizing image: {str(e)}")
             return None
@@ -259,41 +280,20 @@ class LocalMetadataUpdater:
             return None
             
         try:
-            # Create a temporary copy for AI analysis
-            with Image.open(image_path) as img:
-                # Convert to RGB if needed
-                if img.mode in ('RGBA', 'P'):
-                    img = img.convert('RGB')
-                
-                # Calculate new dimensions while maintaining aspect ratio
-                width, height = img.size
-                ratio = min(5000/width, 5000/height, 1.0)  # Won't upscale
-                new_size = (int(width * ratio), int(height * ratio))
-                
-                # Create smaller version only for AI analysis
-                temp_img = img.resize(new_size, Image.Resampling.LANCZOS)
-                
-                # Save to memory buffer
-                buffered = BytesIO()
-                temp_img.save(buffered, format="JPEG", quality=85, optimize=True)
-                
-                # Reduce quality if still too large
-                quality = 85
-                while buffered.tell() > 5 * 1024 * 1024 and quality > 30:
-                    buffered = BytesIO()
-                    quality -= 10
-                    temp_img.save(buffered, format="JPEG", quality=quality, optimize=True)
-                
-                img_str = base64.b64encode(buffered.getvalue()).decode()
+            # Use the existing resize function to get base64 string under 5MB
+            img_str = self._resize_image_for_api(image_path)
+            
+            if not img_str:
+                self.log_signal.emit(f"Failed to process image - could not resize properly")
+                return None
 
             message = self.anthropic.messages.create(
                 model="claude-3-sonnet-20240229",
                 max_tokens=1000,
                 temperature=0,
                 system="""You are a professional image analyst providing metadata for stock photos from the Golan Heights region. 
-                 IMPORTANT: Headlines must be VERY short - maximum 30 characters.
-                 Write headlines like newspaper headlines - brief and clear.
-                 Consider both secular and Christian religious significance when relevant.""",
+                        CRITICAL: Headlines must be EXACTLY 6 words.
+                        Consider both secular and Christian religious significance when relevant.""",
                 messages=[
                     {
                         "role": "user",
@@ -309,7 +309,7 @@ class LocalMetadataUpdater:
                             {
                                 "type": "text",
                                 "text": """Analyze this image and provide exactly in this format:
-    1. Headline: [write a clear, concise headline in maximum 30 chars]
+    1. Headline: [EXACTLY 6 words. Example: "Beautiful Sunset Illuminates Ancient Golan Heights Path"]
     2. Keywords: [provide 10-15 relevant comma-separated keywords, include relevant biblical/Christian terms if applicable]
     3. Category 1: [select one category from this list:
     - Backgrounds/Textures
@@ -353,32 +353,22 @@ class LocalMetadataUpdater:
 
     
     def _parse_analysis_response(self, response_text):
+        """Parse the AI response into structured metadata."""
         try:
-            # Extract headline and ensure it's short
+            # Extract headline and ensure it's exactly 6 words
             headline_match = re.search(r'Headline:\s*(.+?)(?:\n|$)', response_text)
             headline = headline_match.group(1).strip() if headline_match else ''
-            
-            # Strictly enforce 30 character limit
-            if len(headline) > 30:
-                # Try to find a natural break point
-                break_point = headline[:30].rfind(' ')
-                if break_point > 0:
-                    headline = headline[:break_point].strip()
-                else:
-                    headline = headline[:27] + '...'
-                    
-            self.log_signal.emit(f"Headline length: {len(headline)} chars: '{headline}'")
+            words = headline.split()
+            headline = ' '.join(words[:6])  # Always take exactly 6 words
 
             # Extract keywords and ensure they're comma-separated
             keywords_match = re.search(r'Keywords:\s*(.+?)(?:\n|$)', response_text)
             if keywords_match:
-                # First split by semicolons if present, then by commas
                 keywords_text = keywords_match.group(1)
                 if ';' in keywords_text:
                     keywords = [k.strip() for k in keywords_text.split(';')]
                 else:
                     keywords = [k.strip() for k in keywords_text.split(',')]
-                # Clean up keywords
                 keywords = [k.strip('., ') for k in keywords if k.strip()]
             else:
                 keywords = []
@@ -395,8 +385,8 @@ class LocalMetadataUpdater:
             biblical_ref = bible_match.group(1).strip() if bible_match else ''
 
             metadata = {
-                'headline': headline,  # Already limited to 40 chars
-                'keywords': keywords[:15],  # Limit to 15 keywords
+                'headline': headline,
+                'keywords': keywords[:15],
                 'categories': categories[:2],
                 'location': 'Golan Heights',
                 'type': 'Photo',
@@ -405,7 +395,6 @@ class LocalMetadataUpdater:
                 'copyright': '© Eran Gross'
             }
 
-            # Log the parsed metadata for debugging
             self.log_signal.emit(f"Parsed metadata:")
             self.log_signal.emit(f"Headline: {metadata['headline']}")
             self.log_signal.emit(f"Keywords: {', '.join(metadata['keywords'])}")
@@ -431,69 +420,75 @@ class LocalMetadataUpdater:
             except:
                 exif_dict = {'0th': {}, 'Exif': {}, 'GPS': {}, '1st': {}, 'thumbnail': None}
 
-            # Clean up problematic EXIF tags
-            if 'Exif' in exif_dict and 41729 in exif_dict['Exif']:
-                del exif_dict['Exif'][41729]
-                
             # Ensure all required dictionaries exist
             for ifd in ('0th', 'Exif', 'GPS', '1st'):
                 if ifd not in exif_dict:
                     exif_dict[ifd] = {}
 
-            # Prepare metadata strings
-            headline = metadata['headline']
-            keywords = ', '.join(k.strip() for k in metadata['keywords'])
+            # Remove problematic tags if they exist
+            if 'Exif' in exif_dict and 41729 in exif_dict['Exif']:
+                del exif_dict['Exif'][41729]
+
+            # Convert metadata to Windows-compatible format (UTF-16LE)
+            title = metadata['headline']
+            keywords = ', '.join(metadata['keywords'])
             categories = ', '.join(metadata['categories'])
             location = f"{metadata['location']} - {metadata.get('biblical_reference', '')}"
             creator = metadata['creator']
             copyright_notice = metadata['copyright']
 
-            # Convert to bytes with Windows encoding (UTF-16LE)
-            headline_bytes = headline.encode('utf-16le')
-            keywords_bytes = keywords.encode('utf-16le')
-            categories_bytes = categories.encode('utf-16le')
-            location_bytes = location.encode('utf-16le')
-            creator_bytes = creator.encode('utf-16le')
-            copyright_bytes = copyright_notice.encode('utf-16le')
+            # Update Windows XP tags (UTF-16LE encoding)
+            exif_dict['0th'][piexif.ImageIFD.XPTitle] = title.encode('utf-16le')
+            exif_dict['0th'][piexif.ImageIFD.XPKeywords] = keywords.encode('utf-16le')
+            exif_dict['0th'][piexif.ImageIFD.XPSubject] = categories.encode('utf-16le')
+            exif_dict['0th'][piexif.ImageIFD.XPComment] = location.encode('utf-16le')
+            exif_dict['0th'][piexif.ImageIFD.XPAuthor] = creator.encode('utf-16le')
 
-            # Update EXIF fields
-            exif_dict['0th'][piexif.ImageIFD.XPTitle] = headline_bytes
-            exif_dict['0th'][piexif.ImageIFD.XPKeywords] = keywords_bytes
-            exif_dict['0th'][piexif.ImageIFD.XPSubject] = categories_bytes
-            exif_dict['0th'][piexif.ImageIFD.XPComment] = location_bytes
-            exif_dict['0th'][piexif.ImageIFD.XPAuthor] = creator_bytes
-            exif_dict['0th'][piexif.ImageIFD.Copyright] = copyright_notice.encode('utf-8')
-            
-            # Add standard IPTC fields with UTF-8 encoding
-            exif_dict['0th'][piexif.ImageIFD.ImageDescription] = headline.encode('utf-8')
+            # Update standard IPTC tags (UTF-8 encoding)
+            exif_dict['0th'][piexif.ImageIFD.ImageDescription] = title.encode('utf-8')
             exif_dict['0th'][piexif.ImageIFD.Artist] = creator.encode('utf-8')
+            exif_dict['0th'][piexif.ImageIFD.Copyright] = copyright_notice.encode('utf-8')
 
-            # Save updated EXIF data
+            # Convert EXIF dict to bytes
+            exif_bytes = piexif.dump(exif_dict)
+
+            # Save metadata using PIL
+            with Image.open(image_path) as img:
+                # Create new image with metadata
+                new_image = Image.new(img.mode, img.size)
+                new_image.putdata(list(img.getdata()))
+                new_image.save(image_path, 'JPEG', 
+                            quality=100,  # Preserve quality
+                            exif=exif_bytes,
+                            optimize=False)  # Don't compress
+
+            # Log success
+            self.log_signal.emit(f"Updated metadata for {os.path.basename(image_path)}")
+            self.log_signal.emit(f"Written metadata:")
+            self.log_signal.emit(f"Title: {title}")
+            self.log_signal.emit(f"Keywords: {keywords}")
+            self.log_signal.emit(f"Categories: {categories}")
+            self.log_signal.emit(f"Location: {location}")
+            self.log_signal.emit(f"Creator: {creator}")
+            self.log_signal.emit(f"Copyright: {copyright_notice}")
+
+            # Force Windows to refresh the file
             try:
-                exif_bytes = piexif.dump(exif_dict)
-                piexif.insert(exif_bytes, image_path)
-                self.log_signal.emit(f"Updated metadata for {os.path.basename(image_path)}")
+                # Update file timestamp to force refresh
+                os.utime(image_path, None)
                 
-                # Log the actual metadata being written
-                self.log_signal.emit(f"Written metadata:")
-                self.log_signal.emit(f"Title: {headline}")
-                self.log_signal.emit(f"Keywords: {keywords}")
-                self.log_signal.emit(f"Categories: {categories}")
-                self.log_signal.emit(f"Location: {location}")
-                self.log_signal.emit(f"Creator: {creator}")
-                self.log_signal.emit(f"Copyright: {copyright_notice}")
-                
+                # Force a final read to verify metadata
+                with Image.open(image_path) as img:
+                    img.load()
+                    
             except Exception as e:
-                self.log_signal.emit(f"Failed to write EXIF data: {str(e)}")
-                # Try alternative method
-                img = Image.open(image_path)
-                img.save(image_path, exif=exif_bytes)
-                self.log_signal.emit(f"Updated metadata using alternative method for {os.path.basename(image_path)}")
+                self.log_signal.emit(f"Warning: File refresh error: {str(e)}")
                 
         except Exception as e:
             self.log_signal.emit(f"Error updating metadata: {str(e)}")
             import traceback
             self.log_signal.emit(f"Detailed error: {traceback.format_exc()}")
+
     
 def main():
     app = QApplication(sys.argv)
