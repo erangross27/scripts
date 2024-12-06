@@ -362,40 +362,6 @@ class LocalMetadataUpdater:
             self.log_signal.emit(f"Detailed error: {traceback.format_exc()}")
             return None
 
-    def _parse_analysis_response(self, response_text):
-        """Parse the AI response into structured metadata."""
-        try:
-            # Extract headline
-            headline_match = re.search(r'Headline:\s*(.+?)(?:\n|$)', response_text)
-            headline = headline_match.group(1) if headline_match else ''
-
-            # Extract keywords
-            keywords_match = re.search(r'Keywords:\s*(.+?)(?:\n|$)', response_text)
-            keywords = [k.strip() for k in keywords_match.group(1).split(',')] if keywords_match else []
-
-            # Extract categories
-            cat1_match = re.search(r'Category 1:\s*(.+?)(?:\n|$)', response_text)
-            cat2_match = re.search(r'Category 2:\s*(.+?)(?:\n|$)', response_text)
-            categories = []
-            if cat1_match: categories.append(cat1_match.group(1).strip())
-            if cat2_match: categories.append(cat2_match.group(1).strip())
-
-            # Extract biblical reference
-            bible_match = re.search(r'Biblical Reference:\s*(.+?)(?:\n|$)', response_text)
-            biblical_ref = bible_match.group(1) if bible_match else ''
-
-            return {
-                'headline': headline[:70],
-                'keywords': keywords[:15],
-                'categories': categories[:2],
-                'location': 'Golan Heights',
-                'type': 'Photo',
-                'biblical_reference': biblical_ref
-            }
-        except Exception as e:
-            self.log_signal.emit(f"Error parsing AI response: {str(e)}")
-            return None
-
     def _update_local_metadata(self, image_path, metadata):
         """Update local image EXIF metadata."""
         if not self.worker.is_running:
@@ -419,16 +385,22 @@ class LocalMetadataUpdater:
 
             # Convert metadata to UTF-16 bytes for Windows compatibility
             headline_bytes = metadata['headline'].encode('utf-16le')
-            keywords_bytes = '; '.join(metadata['keywords']).encode('utf-16le')
-            categories_bytes = '; '.join(metadata['categories']).encode('utf-16le')
-            location_bytes = f"{metadata['location']} - {metadata['biblical_reference']}".encode('utf-16le')
+            # Join keywords with commas instead of semicolons
+            keywords_bytes = ', '.join(metadata['keywords']).encode('utf-16le')
+            categories_bytes = ', '.join(metadata['categories']).encode('utf-16le')
+            location_bytes = f"{metadata['location']} - {metadata.get('biblical_reference', '')}".encode('utf-16le')
 
             # Update EXIF fields
             exif_dict['0th'][piexif.ImageIFD.XPTitle] = headline_bytes
             exif_dict['0th'][piexif.ImageIFD.XPKeywords] = keywords_bytes
             exif_dict['0th'][piexif.ImageIFD.XPSubject] = categories_bytes
             exif_dict['0th'][piexif.ImageIFD.XPComment] = location_bytes
+            
+            # Add standard IPTC fields with UTF-8 encoding
             exif_dict['0th'][piexif.ImageIFD.ImageDescription] = metadata['headline'].encode('utf-8')
+            # Also add keywords in standard field if available
+            if piexif.ImageIFD.Keywords in exif_dict['0th']:
+                exif_dict['0th'][piexif.ImageIFD.Keywords] = ', '.join(metadata['keywords']).encode('utf-8')
 
             # Save updated EXIF data
             try:
@@ -446,6 +418,55 @@ class LocalMetadataUpdater:
             self.log_signal.emit(f"Error updating metadata: {str(e)}")
             import traceback
             self.log_signal.emit(f"Detailed error: {traceback.format_exc()}")
+
+    def _parse_analysis_response(self, response_text):
+        """Parse the AI response into structured metadata."""
+        try:
+            # Extract headline
+            headline_match = re.search(r'Headline:\s*(.+?)(?:\n|$)', response_text)
+            headline = headline_match.group(1).strip() if headline_match else ''
+
+            # Extract keywords and ensure they're comma-separated
+            keywords_match = re.search(r'Keywords:\s*(.+?)(?:\n|$)', response_text)
+            if keywords_match:
+                # Split on both comma and semicolon to handle both cases
+                keywords = [k.strip() for k in re.split('[,;]', keywords_match.group(1))]
+                # Filter out empty strings
+                keywords = [k for k in keywords if k]
+            else:
+                keywords = []
+
+            # Extract categories
+            cat1_match = re.search(r'Category 1:\s*(.+?)(?:\n|$)', response_text)
+            cat2_match = re.search(r'Category 2:\s*(.+?)(?:\n|$)', response_text)
+            categories = []
+            if cat1_match: categories.append(cat1_match.group(1).strip())
+            if cat2_match: categories.append(cat2_match.group(1).strip())
+
+            # Extract biblical reference
+            bible_match = re.search(r'Biblical Reference:\s*(.+?)(?:\n|$)', response_text)
+            biblical_ref = bible_match.group(1).strip() if bible_match else ''
+
+            metadata = {
+                'headline': headline[:70],  # Ensure headline doesn't exceed 70 chars
+                'keywords': keywords[:15],  # Limit to 15 keywords
+                'categories': categories[:2],
+                'location': 'Golan Heights',
+                'type': 'Photo',
+                'biblical_reference': biblical_ref
+            }
+
+            # Log the parsed metadata for debugging
+            self.log_signal.emit(f"Parsed metadata:")
+            self.log_signal.emit(f"Headline: {metadata['headline']}")
+            self.log_signal.emit(f"Keywords: {', '.join(metadata['keywords'])}")
+            self.log_signal.emit(f"Categories: {', '.join(metadata['categories'])}")
+            self.log_signal.emit(f"Biblical Reference: {metadata['biblical_reference']}")
+
+            return metadata
+        except Exception as e:
+            self.log_signal.emit(f"Error parsing AI response: {str(e)}")
+            return None
     
 def main():
     app = QApplication(sys.argv)
