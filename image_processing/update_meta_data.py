@@ -221,21 +221,90 @@ class LocalMetadataUpdater:
 
 
 
-    def _analyze_image(self, image_path):
-        """Analyze image using Anthropic API."""
-        if not self.worker.is_running:
-            return None
+    def _resize_image_for_api(self, image_path):
+        """Resize image to meet API requirements while maintaining aspect ratio."""
         try:
             with Image.open(image_path) as img:
+                # Calculate aspect ratio
+                width, height = img.size
+                ratio = min(5000/width, 5000/height)
+                new_size = (int(width * ratio), int(height * ratio))
+                
+                # Convert to RGB if needed
+                if img.mode in ('RGBA', 'P'):
+                    img = img.convert('RGB')
+                
+                # Resize image
+                resized_img = img.resize(new_size, Image.Resampling.LANCZOS)
+                
+                # Save to buffer with quality adjustment
                 buffered = BytesIO()
-                img.save(buffered, format="JPEG")
+                resized_img.save(buffered, format="JPEG", quality=85, optimize=True)
+                
+                # If still too large, reduce quality until under 5MB
+                while buffered.tell() > 5 * 1024 * 1024:
+                    quality = int(quality * 0.9)
+                    buffered = BytesIO()
+                    resized_img.save(buffered, format="JPEG", quality=quality, optimize=True)
+                    
+                return base64.b64encode(buffered.getvalue()).decode()
+                
+        except Exception as e:
+            self.log_signal.emit(f"Error resizing image: {str(e)}")
+            return None
+
+    def _analyze_image(self, image_path):
+        """Analyze image using Anthropic API without modifying the original image."""
+        if not self.worker.is_running:
+            return None
+            
+        try:
+            # Create a temporary copy for AI analysis
+            with Image.open(image_path) as img:
+                # Convert to RGB if needed
+                if img.mode in ('RGBA', 'P'):
+                    img = img.convert('RGB')
+                
+                # Start with more aggressive size reduction
+                max_dimension = 2000  # Reduce maximum dimension
+                width, height = img.size
+                ratio = min(max_dimension/width, max_dimension/height, 1.0)
+                new_size = (int(width * ratio), int(height * ratio))
+                
+                # Create smaller version only for AI analysis
+                temp_img = img.resize(new_size, Image.Resampling.LANCZOS)
+                
+                # Try different quality settings until we get under 5MB
+                for quality in [85, 70, 60, 50, 40, 30]:
+                    buffered = BytesIO()
+                    temp_img.save(buffered, format="JPEG", quality=quality, optimize=True)
+                    file_size = buffered.tell()
+                    
+                    if file_size <= 5 * 1024 * 1024:  # 5MB in bytes
+                        self.log_signal.emit(f"Compressed image for AI analysis. Size: {file_size/1024/1024:.2f}MB")
+                        break
+                    
+                    # If we're still too big at lowest quality, reduce dimensions
+                    if quality == 30:
+                        max_dimension = int(max_dimension * 0.8)
+                        new_size = (int(width * max_dimension/max(width, height)), 
+                                int(height * max_dimension/max(width, height)))
+                        temp_img = img.resize(new_size, Image.Resampling.LANCZOS)
+                        buffered = BytesIO()
+                        temp_img.save(buffered, format="JPEG", quality=quality, optimize=True)
+
+                if buffered.tell() > 5 * 1024 * 1024:
+                    raise ValueError(f"Unable to compress image below 5MB: {buffered.tell()/1024/1024:.2f}MB")
+                    
                 img_str = base64.b64encode(buffered.getvalue()).decode()
 
             message = self.anthropic.messages.create(
-                model="claude-3-sonnet-20240229",  # Updated model name
+                model="claude-3-sonnet-20240229",
                 max_tokens=1000,
                 temperature=0,
-                system="You are a professional image analyst providing metadata for stock photos from the Golan Heights region",
+                system="""You are a professional image analyst providing metadata for stock photos from the Golan Heights region. 
+                        Consider both secular and Christian religious significance when relevant.
+                        Focus on historical and biblical connections where applicable.""",
                 messages=[
                     {
                         "role": "user",
@@ -252,7 +321,7 @@ class LocalMetadataUpdater:
                                 "type": "text",
                                 "text": """Analyze this image and provide exactly in this format:
     1. Headline: [write a clear, descriptive headline in 70 chars max]
-    2. Keywords: [provide 10-15 relevant comma-separated keywords]
+    2. Keywords: [provide 10-15 relevant comma-separated keywords, include relevant biblical/Christian terms if applicable]
     3. Category 1: [select one category from this list:
     - Backgrounds/Textures
     - Beauty/Fashion
@@ -277,8 +346,7 @@ class LocalMetadataUpdater:
     - Technology
     - Transportation]
     4. Category 2: [select one different category from the same list above]
-
-    Please respond with exactly this structure and select two different categories."""
+    5. Biblical Reference: [if applicable, provide relevant biblical location or story connection]"""
                             }
                         ]
                     }
@@ -306,54 +374,74 @@ class LocalMetadataUpdater:
             keywords = [k.strip() for k in keywords_match.group(1).split(',')] if keywords_match else []
 
             # Extract categories
-            categories_match = re.search(r'Categories:\s*(.+?)(?:\n|$)', response_text)
-            categories = [c.strip() for c in categories_match.group(1).split(',')] if categories_match else []
+            cat1_match = re.search(r'Category 1:\s*(.+?)(?:\n|$)', response_text)
+            cat2_match = re.search(r'Category 2:\s*(.+?)(?:\n|$)', response_text)
+            categories = []
+            if cat1_match: categories.append(cat1_match.group(1).strip())
+            if cat2_match: categories.append(cat2_match.group(1).strip())
+
+            # Extract biblical reference
+            bible_match = re.search(r'Biblical Reference:\s*(.+?)(?:\n|$)', response_text)
+            biblical_ref = bible_match.group(1) if bible_match else ''
 
             return {
                 'headline': headline[:70],
                 'keywords': keywords[:15],
                 'categories': categories[:2],
                 'location': 'Golan Heights',
-                'type': 'Photo'
+                'type': 'Photo',
+                'biblical_reference': biblical_ref
             }
         except Exception as e:
             self.log_signal.emit(f"Error parsing AI response: {str(e)}")
             return None
 
-  
     def _update_local_metadata(self, image_path, metadata):
         """Update local image EXIF metadata."""
         if not self.worker.is_running:
             return
+            
         try:
             # Read existing EXIF data
-            exif_dict = piexif.load(image_path)
-            
-            # If no EXIF data exists, create new EXIF dict
-            if not exif_dict:
+            try:
+                exif_dict = piexif.load(image_path)
+            except:
                 exif_dict = {'0th': {}, 'Exif': {}, 'GPS': {}, '1st': {}, 'thumbnail': None}
+
+            # Clean up problematic EXIF tags
+            if 'Exif' in exif_dict and 41729 in exif_dict['Exif']:
+                del exif_dict['Exif'][41729]
+                
+            # Ensure all required dictionaries exist
+            for ifd in ('0th', 'Exif', 'GPS', '1st'):
+                if ifd not in exif_dict:
+                    exif_dict[ifd] = {}
 
             # Convert metadata to UTF-16 bytes for Windows compatibility
             headline_bytes = metadata['headline'].encode('utf-16le')
             keywords_bytes = '; '.join(metadata['keywords']).encode('utf-16le')
             categories_bytes = '; '.join(metadata['categories']).encode('utf-16le')
-            location_bytes = metadata['location'].encode('utf-16le')
+            location_bytes = f"{metadata['location']} - {metadata['biblical_reference']}".encode('utf-16le')
 
-            # Update EXIF fields with Windows-compatible encoding
+            # Update EXIF fields
             exif_dict['0th'][piexif.ImageIFD.XPTitle] = headline_bytes
             exif_dict['0th'][piexif.ImageIFD.XPKeywords] = keywords_bytes
             exif_dict['0th'][piexif.ImageIFD.XPSubject] = categories_bytes
             exif_dict['0th'][piexif.ImageIFD.XPComment] = location_bytes
-            
-            # Also add standard IPTC fields with UTF-8 encoding
             exif_dict['0th'][piexif.ImageIFD.ImageDescription] = metadata['headline'].encode('utf-8')
-            
+
             # Save updated EXIF data
-            exif_bytes = piexif.dump(exif_dict)
-            piexif.insert(exif_bytes, image_path)
-            
-            self.log_signal.emit(f"Updated metadata for {os.path.basename(image_path)}")
-            
+            try:
+                exif_bytes = piexif.dump(exif_dict)
+                piexif.insert(exif_bytes, image_path)
+                self.log_signal.emit(f"Updated metadata for {os.path.basename(image_path)}")
+            except Exception as e:
+                self.log_signal.emit(f"Failed to write EXIF data: {str(e)}")
+                # Try alternative method
+                img = Image.open(image_path)
+                img.save(image_path, exif=exif_bytes)
+                self.log_signal.emit(f"Updated metadata using alternative method for {os.path.basename(image_path)}")
+                
         except Exception as e:
             self.log_signal.emit(f"Error updating metadata: {str(e)}")
             import traceback
