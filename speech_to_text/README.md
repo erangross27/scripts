@@ -48,6 +48,4 @@ This desktop application provides an easy-to-use interface for transcribing audi
 - Transcription files are saved with RTL support
 - Status updates provided throughout the process
 - Error messages displayed in Hebrew
-
-// ... existing code ...
 ```
