@@ -1,0 +1,2 @@
+speech_to_text/*.exe filter=lfs diff=lfs merge=lfs -text
+speech_to_text/release/*.exe filter=lfs diff=lfs merge=lfs -text
