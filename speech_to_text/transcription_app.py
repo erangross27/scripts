@@ -21,7 +21,8 @@ from PyQt5.QtWidgets import (
     QProgressBar,
     QMessageBox, 
     QFrame, 
-    QPlainTextEdit
+    QPlainTextEdit,
+    QDialog,  # Add this import
 )
 from PyQt5.QtCore import (
     Qt, 
@@ -61,6 +62,57 @@ import re
 import time
 import os
 from PyQt5.QtCore import QThread, pyqtSignal
+
+
+class ProofreadingDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("הצעות הגהה")
+        self.setMinimumSize(600, 400)
+        
+        layout = QVBoxLayout(self)
+        
+        self.suggestions_text = QPlainTextEdit()
+        self.suggestions_text.setReadOnly(True)
+        self.suggestions_text.setLayoutDirection(Qt.RightToLeft)
+        self.suggestions_text.document().setDefaultTextOption(QTextOption(Qt.AlignRight))
+        
+        layout.addWidget(QLabel("הערות והצעות לתיקון:"))
+        layout.addWidget(self.suggestions_text)
+        
+        close_button = QPushButton("סגור")
+        close_button.clicked.connect(self.close)
+        layout.addWidget(close_button)
+
+class ProofreadingWorker(QThread):
+    finished = pyqtSignal(str)
+    error = pyqtSignal(str)
+
+    def __init__(self, text, client):
+        super().__init__()
+        self.text = text
+        self.client = client
+
+    def run(self):
+        try:
+            response = self.client.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": """
+                    אתה עורך לשוני מקצועי. תפקידך:
+                    1. לתקן שגיאות כתיב
+                    2. לתקן ניסוח במידת הצורך
+                    3. להוסיף סימני פיסוק חסרים
+                    4. להחזיר את הטקסט המתוקן בלבד, ללא הערות או הסברים
+                    5. לשמור על המשמעות המקורית של הטקסט
+                    """},
+                    {"role": "user", "content": f"ערוך ותקן את הטקסט הבא:\n{self.text}"}
+                ]
+            )
+            self.finished.emit(response.choices[0].message.content)
+        except Exception as e:
+            self.error.emit(str(e))
+
 
 class TranscriptionWorker(QThread):
     progress = pyqtSignal(str, int)
@@ -184,6 +236,7 @@ class TranscriptionApp(QMainWindow):
             self.showNormal()
         else:
             self.showMaximized()
+
     def copy_text(self):
         if self.current_transcript:
             clipboard = QApplication.clipboard()
@@ -288,7 +341,7 @@ class TranscriptionApp(QMainWindow):
         file_layout.addWidget(self.browse_button)
         layout.addWidget(file_container)
 
-        # Status label (update its container and alignment)
+        # Status label
         status_container = QWidget()
         status_layout = QHBoxLayout(status_container)
         status_layout.setContentsMargins(0, 0, 0, 0)
@@ -319,33 +372,38 @@ class TranscriptionApp(QMainWindow):
         self.copy_button.setEnabled(False)
         self.copy_button.setFixedWidth(100)
 
+        self.proofread_button = QPushButton("הגהה")
+        self.proofread_button.clicked.connect(self.start_proofreading)
+        self.proofread_button.setEnabled(False)
+        self.proofread_button.setFixedWidth(100)
+
         self.transcribe_button = QPushButton("תמלל")
         self.transcribe_button.clicked.connect(self.start_transcription)
         self.transcribe_button.setEnabled(False)
         self.transcribe_button.setFixedWidth(100)
+        buttons_layout.addWidget(self.proofread_button)  
+
 
         buttons_layout.addStretch(1)
         buttons_layout.addWidget(self.save_button)
         buttons_layout.addWidget(self.copy_button)
+        buttons_layout.addWidget(self.proofread_button)
         buttons_layout.addWidget(self.transcribe_button)
         layout.addWidget(buttons_container)
 
-         # Text area with proper RTL alignment
+        # Text area
         text_container = QWidget()
         text_layout = QVBoxLayout(text_container)
         text_layout.setContentsMargins(0, 0, 0, 0)
 
-        # Replace QTextEdit with QPlainTextEdit
         self.text_area = QPlainTextEdit()
         self.text_area.setLayoutDirection(Qt.RightToLeft)
         self.text_area.setReadOnly(True)
         self.text_area.document().setDefaultTextOption(QTextOption(Qt.AlignRight))
         
-        # Set text area properties
         font = QFont('David', 16)
         self.text_area.setFont(font)
         
-        # Updated stylesheet
         self.text_area.setStyleSheet("""
             QPlainTextEdit {
                 padding: 10px;
@@ -375,6 +433,7 @@ class TranscriptionApp(QMainWindow):
             delta = event.globalPos() - self.oldPos
             self.move(self.pos() + delta)
             self.oldPos = event.globalPos()
+
     def update_status(self, text):
         self.status_label.setText(f"סטטוס: {text}")
         self.status_label.setAlignment(Qt.AlignRight)
@@ -395,13 +454,7 @@ class TranscriptionApp(QMainWindow):
             self.save_status.clear()
             self.save_button.setEnabled(False)
             self.copy_button.setEnabled(False)
-
-
-    def copy_text(self):
-        if self.current_transcript:
-            clipboard = QApplication.clipboard()
-            clipboard.setText(self.current_transcript)
-            self.status_label.setText("סטטוס: הטקסט הועתק ללוח")
+            self.proofread_button.setEnabled(False)
 
     def start_transcription(self):
         if not hasattr(self, 'selected_file') or not self.selected_file:
@@ -411,6 +464,7 @@ class TranscriptionApp(QMainWindow):
         self.browse_button.setEnabled(False)
         self.save_button.setEnabled(False)
         self.copy_button.setEnabled(False)
+        self.proofread_button.setEnabled(False)
         self.text_area.clear()
         self.progress_bar.setValue(0)
         
@@ -419,6 +473,40 @@ class TranscriptionApp(QMainWindow):
         self.worker.finished.connect(self.transcription_complete)
         self.worker.error.connect(self.transcription_error)
         self.worker.start()
+
+    def start_proofreading(self):
+        if not self.current_transcript:
+            return
+            
+        self.proofread_button.setEnabled(False)
+        self.update_status("מבצע הגהה...")
+        
+        self.proofreading_worker = ProofreadingWorker(self.current_transcript, self.worker.client)
+        self.proofreading_worker.finished.connect(self.proofreading_complete)
+        self.proofreading_worker.error.connect(self.proofreading_error)
+        self.proofreading_worker.start()
+
+    def proofreading_complete(self, corrected_text):
+        self.proofread_button.setEnabled(True)
+        self.update_status("הגהה הושלמה")
+        
+        # Update the text area with the corrected text
+        self.current_transcript = corrected_text
+        self.text_area.clear()
+        self.text_area.document().setDefaultTextOption(QTextOption(Qt.AlignRight))
+        self.text_area.setPlainText(corrected_text)
+        
+        # Move cursor to start
+        cursor = self.text_area.textCursor()
+        cursor.movePosition(QTextCursor.Start)
+        self.text_area.setTextCursor(cursor)
+        
+        QMessageBox.information(self, "הצלחה", "ההגהה הושלמה!\nהטקסט המתוקן מוצג בחלון")
+
+    def proofreading_error(self, error_message):
+        self.proofread_button.setEnabled(True)
+        self.update_status("שגיאה בהגהה")
+        QMessageBox.critical(self, "שגיאה", f"אירעה שגיאה בתהליך ההגהה:\n{error_message}")
 
     def update_progress(self, status, value):
         self.status_label.setText(f"סטטוס: {status}")
@@ -430,21 +518,20 @@ class TranscriptionApp(QMainWindow):
         self.browse_button.setEnabled(True)
         self.save_button.setEnabled(True)
         self.copy_button.setEnabled(True)
+        self.proofread_button.setEnabled(True)
         
-        # Clear and set alignment
         self.text_area.clear()
         self.text_area.document().setDefaultTextOption(QTextOption(Qt.AlignRight))
         
-        # Insert the text
         self.text_area.setPlainText(transcript)
         
-        # Move cursor to start
         cursor = self.text_area.textCursor()
         cursor.movePosition(QTextCursor.Start)
         self.text_area.setTextCursor(cursor)
         
         self.status_label.setText("סטטוס: התמלול הושלם")
         QMessageBox.information(self, "הצלחה", "התמלול הושלם!\nלחץ על כפתור השמירה כדי לשמור את הקובץ.")    
+
     def save_transcript(self):
         if not self.current_transcript:
             return
@@ -469,16 +556,18 @@ class TranscriptionApp(QMainWindow):
                 QMessageBox.information(self, "הצלחה", f"הקובץ נשמר בהצלחה:\n{file_name}")
             except Exception as e:
                 QMessageBox.critical(self, "שגיאה", f"שגיאה בשמירת הקובץ:\n{str(e)}")
+
     def transcription_error(self, error_message):
         self.transcribe_button.setEnabled(True)
         self.browse_button.setEnabled(True)
         self.save_button.setEnabled(False)
         self.copy_button.setEnabled(False)
+        self.proofread_button.setEnabled(False)
         
         self.status_label.setText("סטטוס: אירעה שגיאה")
         QMessageBox.critical(self, "שגיאה", f"אירעה שגיאה:\n{error_message}")
         self.progress_bar.setValue(0)
-        
+
 def main():
     app = QApplication(sys.argv)
     app.setStyle('Fusion')
