@@ -1,3 +1,6 @@
+# Script to analyze Python files and generate documentation
+# Handles docstring extraction, import analysis, and README generation
+
 import os
 import ast
 import re
@@ -6,11 +9,12 @@ from typing import Dict, List, Set, Tuple
 
 class ScriptAnalyzer:
     def __init__(self, base_dir: str):
+        # Initialize analyzer with base directory path
         self.base_dir = Path(base_dir)
         self.scripts: Dict[str, Dict] = {}
-        
+
     def extract_docstring(self, file_path: Path) -> str:
-        """Extract the module docstring from a Python file"""
+        # Parse Python file and extract module-level docstring
         try:
             with open(file_path, 'r', encoding='utf-8') as file:
                 tree = ast.parse(file.read())
@@ -20,15 +24,17 @@ class ScriptAnalyzer:
             return "Could not parse file for description"
 
     def extract_imports(self, file_path: Path) -> Set[str]:
-        """Extract import statements from a Python file"""
+        # Parse Python file and extract all import statements
         imports = set()
         try:
             with open(file_path, 'r', encoding='utf-8') as file:
                 tree = ast.parse(file.read())
                 for node in ast.walk(tree):
+                    # Handle regular imports
                     if isinstance(node, ast.Import):
                         for name in node.names:
                             imports.add(name.name.split('.')[0])
+                    # Handle from imports
                     elif isinstance(node, ast.ImportFrom):
                         if node.module:
                             imports.add(node.module.split('.')[0])
@@ -37,13 +43,14 @@ class ScriptAnalyzer:
         return imports
 
     def analyze_scripts(self):
-        """Analyze all Python scripts in the directory structure"""
+        # Walk through directory tree and analyze all Python files
         for root, _, files in os.walk(self.base_dir):
             for file in files:
                 if file.endswith('.py'):
                     file_path = Path(root) / file
                     relative_path = file_path.relative_to(self.base_dir)
-                    
+
+                    # Store analysis results for each script
                     self.scripts[str(relative_path)] = {
                         'path': str(relative_path),
                         'description': self.extract_docstring(file_path),
@@ -51,9 +58,10 @@ class ScriptAnalyzer:
                     }
 
     def generate_readme_content(self, scripts_list: List[Dict], is_root: bool = False) -> str:
-        """Generate README content for a specific directory"""
+        # Generate markdown content for README files
         content = []
-        
+
+        # Add header content for root README
         if is_root:
             content.extend([
                 "# Scripts Directory Documentation",
@@ -61,7 +69,7 @@ class ScriptAnalyzer:
                 "\n## Table of Contents\n"
             ])
 
-            # Group scripts by directory for TOC
+            # Organize scripts by directory for table of contents
             scripts_by_dir: Dict[str, List[Dict]] = {}
             for script_info in self.scripts.values():
                 dir_name = os.path.dirname(script_info['path']) or 'Root'
@@ -69,7 +77,7 @@ class ScriptAnalyzer:
                     scripts_by_dir[dir_name] = []
                 scripts_by_dir[dir_name].append(script_info)
 
-            # Generate Table of Contents
+            # Generate directory links for table of contents
             for dir_name in sorted(scripts_by_dir.keys()):
                 clean_name = dir_name.replace('\\', '/')
                 if clean_name == 'Root':
@@ -79,11 +87,13 @@ class ScriptAnalyzer:
 
             content.append("\n## Root Scripts\n")
         else:
+            # Add header content for subdirectory READMEs
             content.extend([
                 "# Directory Scripts Documentation",
                 "\n## Available Scripts\n"
             ])
 
+        # Add content for each script
         for script_info in sorted(scripts_list, key=lambda x: x['path']):
             script_name = os.path.basename(script_info['path'])
             content.extend([
@@ -91,7 +101,8 @@ class ScriptAnalyzer:
                 f"\n**Path:** `{script_info['path']}`",
                 f"\n**Description:**\n{script_info['description']}",
             ])
-            
+
+            # Add non-standard library dependencies
             if script_info['requirements']:
                 content.append("\n**Dependencies:**")
                 for req in sorted(script_info['requirements']):
@@ -101,7 +112,7 @@ class ScriptAnalyzer:
         return '\n'.join(content)
 
     def generate_readme(self):
-        """Generate README.md files in root and subdirectories"""
+        # Generate README files for root and subdirectories
         # Group scripts by directory
         scripts_by_dir: Dict[str, List[Dict]] = {}
         for script_info in self.scripts.values():
@@ -110,7 +121,7 @@ class ScriptAnalyzer:
                 scripts_by_dir[dir_name] = []
             scripts_by_dir[dir_name].append(script_info)
 
-        # Generate README for root directory with all scripts
+        # Generate main README with all scripts
         root_readme_content = self.generate_readme_content(list(self.scripts.values()), is_root=True)
         root_readme_path = self.base_dir / 'README.md'
         with open(root_readme_path, 'w', encoding='utf-8') as f:
@@ -128,9 +139,9 @@ class ScriptAnalyzer:
                     f.write(readme_content)
                 print(f"Generated README.md at {readme_path}")
 
-# List of Python standard library modules
+# Common Python standard library modules to exclude from dependencies list
 stdlib_modules = {
-    'abc', 'argparse', 'ast', 'asyncio', 'base64', 'collections', 
+    'abc', 'argparse', 'ast', 'asyncio', 'base64', 'collections',
     'contextlib', 'copy', 'csv', 'datetime', 'decimal', 'enum',
     'functools', 'glob', 'hashlib', 'hmac', 'io', 'itertools', 'json',
     'logging', 'math', 'multiprocessing', 'os', 'pathlib', 'pickle',
@@ -139,6 +150,7 @@ stdlib_modules = {
 }
 
 if __name__ == '__main__':
+    # Example usage
     scripts_dir = "C:/Users/EranGross/scripts"
     analyzer = ScriptAnalyzer(scripts_dir)
     analyzer.analyze_scripts()
