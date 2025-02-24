@@ -1,55 +1,41 @@
-# Image processing library Pillow
-# GUI framework for Python
+GPUtil
+Pillow
 PyQt5
-# Google API client library
-google
-# PDF manipulation library
-PyMuPDF
-# HTTP client library
-httpx
-# Computer vision library
-opencv-python
-# Audio processing library
-pydub
-# Library for creating and updating Microsoft Word documents
-python-docx
-# YouTube video downloader library
-pytube
-# Video editing library
-moviepy
-# Quantum computing framework
-qiskit
-# IBM Quantum runtime for Qiskit
-qiskit-ibm-runtime
-# Plotting library
-matplotlib
-# Windows Management Instrumentation library
-wmi
-# Cross-platform library for retrieving information on running processes and system utilization
-psutil
-# Google Cloud Vision API client library
-google-cloud-vision
-# Azure Active Directory authentication library
-azure-identity
-# Library for retrieving network interface information
-netifaces
-# Packet manipulation program
-scapy
-# Bidirectional text support for Python
-python-bidi
-# Library for retrieving system performance and process information
-psutil
-# Library for cryptography and security operations
-cryptography
-# Library for displaying progress bars in Python applications
-tqdm
-# Library for working with AI models and data
-pandas
-# Library for working with large datasets and matrices
-joblib
-# Library for machine learning
-scikit-learn
-# Numerical computing library for Python
 numpy
-# Library for converting python script to exe file
-pyinstaller
+opencv-python
+python-dotenv
+fastapi
+httpx
+matplotlib
+moviepy
+pandas
+psutil
+pydantic
+requests
+scikit-learn
+torch
+torchvision
+tqdm
+yt-dlp
+PyYAML
+python-multipart
+uvicorn
+cryptography
+bcrypt
+pyjwt
+redis
+SQLAlchemy
+psycopg2-binary
+huggingface-hub
+diffusers
+openai
+anthropic
+scapy
+netifaces
+PyMuPDF
+python-docx
+pydub
+qiskit
+qiskit-ibm-runtime
+pywin32; platform_system == "Windows"
+WMI; platform_system == "Windows"

@@ -1,37 +1,108 @@
 import sys
 from PyQt5.QtWidgets import (
-    QApplication, QWidget, QGridLayout, QLineEdit, QPushButton
+    QApplication, QWidget, QGridLayout, QLineEdit, QPushButton, QMessageBox
 )
 
 def parse_time(time_str):
     """
-    ממיר מחרוזת 'שעות:דקות' או 'שעות' למספר שלם של דקות.
+    Convert a string 'hours:minutes' or 'hours' into total minutes as a float.
     """
     time_str = time_str.strip()
-    if ':' in time_str:
-        h_str, m_str = time_str.split(':')
-        h = int(h_str) if h_str else 0
-        m = int(m_str) if m_str else 0
-        total_minutes = h * 60 + m
-    else:
-        total_minutes = int(time_str) * 60
-    return total_minutes
+    try:
+        if ':' in time_str:
+            parts = time_str.split(':')
+            if len(parts) != 2:
+                raise ValueError("Invalid time format.")
+            h_str, m_str = parts
+            h = int(h_str) if h_str else 0
+            m = int(m_str) if m_str else 0
+            total_minutes = h * 60 + m
+        else:
+            total_minutes = int(time_str) * 60
+    except ValueError:
+        raise ValueError("Please enter a valid time (e.g., 12, 12:30, or 0:45).")
+    return float(total_minutes)
 
 def format_hours(total_minutes):
     """
-    ממיר מספר שלם של דקות לפורמט של 'שעות:דקות',
-    למשל 4500 דקות -> 75:00
+    Converts total minutes into 'hours:minutes' string, with rounding to nearest minute.
     """
-    # מאפשר התמודדות עם ערכים שליליים (אם צריך)
-    sign = -1 if total_minutes < 0 else 1
+    total_minutes = round(total_minutes)
+    sign = '-' if total_minutes < 0 else ''
     total_minutes = abs(total_minutes)
-
-    # חישוב שעות ודקות
     hours = total_minutes // 60
     minutes = total_minutes % 60
+    return f"{sign}{hours}:{minutes:02d}"
 
-    # החזרה עם סימן אם הערך שלילי
-    result = f"{sign * hours}:{minutes:02d}"
+def evaluate_expression(tokens):
+    """
+    Given a list of tokens in the form [time_in_minutes, operator, time_in_minutes, operator, ...],
+    evaluate them with standard operator precedence (*, / before +, -).
+
+    Returns the final result in minutes (float).
+    """
+
+    # First pass: handle * and /
+    # We'll build a new list (temp) that collapses multiplication/division immediately.
+    temp = []
+    i = 0
+    while i < len(tokens):
+        token = tokens[i]
+        if isinstance(token, float):
+            # Just push the number into temp, but watch for next operator if it's * or /
+            if i + 1 < len(tokens) and tokens[i+1] in ('*', '/'):
+                operator = tokens[i+1]
+                # Next token after operator
+                if i+2 < len(tokens):
+                    next_value = tokens[i+2]
+                    if not isinstance(next_value, float):
+                        raise ValueError("Invalid expression structure.")
+
+                    if operator == '*':
+                        # Multiply by hours factor
+                        # e.g. (time_in_minutes) * (next_value/60)
+                        # but we handle it as integer minutes times decimal multiplier
+                        factor = next_value / 60.0
+                        merged = round(token * factor)
+                    else:  # operator == '/'
+                        factor = next_value / 60.0
+                        if factor == 0:
+                            raise ValueError("Division by zero is not allowed.")
+                        merged = round(token / factor)
+
+                    # Put merged result into temp
+                    temp.append(float(merged))
+                    # Skip ahead past the operator & next value
+                    i += 3
+                else:
+                    raise ValueError("Invalid expression: operator at the end.")
+            else:
+                # No multiplication or division next; just push the time
+                temp.append(token)
+                i += 1
+        else:
+            # If it's an operator + or -, just push it for second pass
+            # If it's * or /, that means there's no valid time before/after it, which is an error
+            if token in ('*', '/'):
+                raise ValueError("Invalid position for '*' or '/'.")
+            temp.append(token)
+            i += 1
+
+    # Second pass: handle + and -
+    # Now temp should contain minutes or + or - only.
+    if not temp:
+        return 0.0
+    result = temp[0]
+    i = 1
+    while i < len(temp):
+        operator = temp[i]
+        next_value = temp[i+1]
+        if operator == '+':
+            result += next_value
+        elif operator == '-':
+            result -= next_value
+        i += 2
+
     return result
 
 class TimeCalculator(QWidget):
@@ -39,42 +110,43 @@ class TimeCalculator(QWidget):
         super().__init__()
         self.setWindowTitle("מחשבון שעות (עשרוני)")
 
-        # תצוגה
-        self.display = QLineEdit()
-        self.display.setReadOnly(True)
-        self.display.setStyleSheet("font-size: 18px; height: 40px;")
+        # Display for showing the expression (not just the current value).
+        # We'll keep the "expression_display" to show what the user typed so far (tokens).
+        self.expression_display = QLineEdit()
+        self.expression_display.setReadOnly(True)
+        self.expression_display.setStyleSheet("font-size: 14px; height: 25px;")
 
-        self.current_value = 0
-        self.current_operator = None
-        self.waiting_for_new_value = True
+        # Display for the current input (where user types hours:minutes or partial numbers)
+        self.current_input = QLineEdit()
+        self.current_input.setStyleSheet("font-size: 18px; height: 40px;")
 
-        # סידור גריד
+        # We store tokens in a list: [float_minutes, operator, float_minutes, operator, ...]
+        self.tokens = []
+
         grid = QGridLayout()
-        grid.addWidget(self.display, 0, 0, 1, 4)
+        grid.addWidget(self.expression_display, 0, 0, 1, 4)
+        grid.addWidget(self.current_input,     1, 0, 1, 4)
 
-        # הגדרת כפתורים
+        # Button definitions
         buttons = {
-            '7': (1,0), '8': (1,1), '9': (1,2), 
-            '4': (2,0), '5': (2,1), '6': (2,2),
-            '1': (3,0), '2': (3,1), '3': (3,2),
-            '0': (4,0),
-            ':': (4,1),
-            'נקה': (4,2),
-            '+': (1,3), '-': (2,3), '*': (3,3), '/': (4,3),
-            'שווה': (5,0,1,4)
+            '7': (2, 0), '8': (2, 1), '9': (2, 2),
+            '4': (3, 0), '5': (3, 1), '6': (3, 2),
+            '1': (4, 0), '2': (4, 1), '3': (4, 2),
+            '0': (5, 0),
+            ':': (5, 1),
+            'נקה': (5, 2),
+            '+': (2, 3), '-': (3, 3), '*': (4, 3), '/': (5, 3),
+            'שווה': (6, 0, 1, 4)
         }
 
         for btn_text, pos in buttons.items():
+            button = QPushButton(btn_text)
+            button.setStyleSheet("font-size: 16px; height: 40px;")
+            button.clicked.connect(self.on_button_clicked)
             if len(pos) == 2:
-                button = QPushButton(btn_text)
-                button.setStyleSheet("font-size: 16px; height: 40px;")
-                button.clicked.connect(self.on_button_clicked)
                 grid.addWidget(button, pos[0], pos[1])
             else:
                 row, col, rowspan, colspan = pos
-                button = QPushButton(btn_text)
-                button.setStyleSheet("font-size: 16px; height: 40px;")
-                button.clicked.connect(self.on_button_clicked)
                 grid.addWidget(button, row, col, rowspan, colspan)
 
         self.setLayout(grid)
@@ -84,57 +156,115 @@ class TimeCalculator(QWidget):
         text = sender.text()
 
         if text.isdigit() or text == ':':
-            if self.waiting_for_new_value:
-                self.display.setText("")
-                self.waiting_for_new_value = False
-            self.display.setText(self.display.text() + text)
+            # Append digit or ':' to current input
+            self.current_input.setText(self.current_input.text() + text)
+            return
 
-        elif text in ['+', '-', '*', '/']:
-            new_value_str = self.display.text().strip()
-            if new_value_str:
-                new_val_minutes = parse_time(new_value_str)
-                if self.current_operator is not None:
-                    self.calculate(new_val_minutes)
-                else:
-                    self.current_value = new_val_minutes
+        if text == 'נקה':
+            self.clear_all()
+            return
 
-            self.current_operator = text
-            self.waiting_for_new_value = True
+        if text in ['+', '-', '*', '/']:
+            self.process_operator(text)
+            return
 
-        elif text == 'שווה':
-            new_value_str = self.display.text().strip()
-            if new_value_str:
-                new_val_minutes = parse_time(new_value_str)
-                self.calculate(new_val_minutes)
-                self.current_operator = None
+        if text == 'שווה':
+            self.process_equals()
+            return
 
-        elif text == 'נקה':
-            self.current_value = 0
-            self.current_operator = None
-            self.display.setText("")
-            self.waiting_for_new_value = True
+    def clear_all(self):
+        """Reset everything."""
+        self.tokens = []
+        self.current_input.clear()
+        self.expression_display.clear()
 
-    def calculate(self, new_val_minutes):
-        if self.current_operator == '+':
-            self.current_value += new_val_minutes
-        elif self.current_operator == '-':
-            self.current_value -= new_val_minutes
-        elif self.current_operator == '*':
-            # For multiplication, we convert the second operand to decimal hours
-            decimal_multiplier = new_val_minutes / 60
-            self.current_value = int(self.current_value * decimal_multiplier)
-        elif self.current_operator == '/':
-            if new_val_minutes != 0:
-                self.current_value //= new_val_minutes
+    def process_operator(self, operator):
+        """
+        1. Parse whatever is in `current_input` to minutes and store it in tokens.
+        2. Store the operator in tokens.
+        3. Clear the input field.
+        4. Update the expression_display to show the user the ongoing expression.
+        """
+        val_str = self.current_input.text().strip()
+        if val_str:
+            try:
+                minutes_val = parse_time(val_str)
+            except ValueError as e:
+                self.show_error(str(e))
+                return
+            self.tokens.append(minutes_val)
+            self.current_input.clear()
+            # Update expression display
+            self.update_expression_display(val_str)
 
-        # הצגת התוצאה בפורמט שעות עשרוני
-        self.display.setText(format_hours(self.current_value))
-        self.waiting_for_new_value = True
+        # Now store the operator
+        # But don't store an operator if the last token was also an operator (avoid duplicates)
+        if self.tokens and not isinstance(self.tokens[-1], str):
+            self.tokens.append(operator)
+            # For expression display
+            self.expression_display.setText(self.expression_display.text() + f" {operator} ")
+
+    def process_equals(self):
+        """
+        1. Parse the last input (if any).
+        2. Evaluate the list of tokens with operator precedence.
+        3. Display the final result.
+        """
+        val_str = self.current_input.text().strip()
+        if val_str:
+            try:
+                minutes_val = parse_time(val_str)
+            except ValueError as e:
+                self.show_error(str(e))
+                return
+            self.tokens.append(minutes_val)
+            self.update_expression_display(val_str)
+            self.current_input.clear()
+
+        if not self.tokens:
+            return
+
+        # If the last token is an operator, remove it to avoid error
+        if isinstance(self.tokens[-1], str):
+            self.tokens.pop()
+
+        try:
+            result_minutes = evaluate_expression(self.tokens)
+        except ValueError as e:
+            self.show_error(str(e))
+            self.clear_all()
+            return
+
+        self.expression_display.setText(self.expression_display.text() + " =")
+        self.current_input.setText(format_hours(result_minutes))
+        # Clear tokens so next operation starts fresh (or you could keep them, depending on preference)
+        self.tokens = []
+
+    def update_expression_display(self, new_part):
+        """
+        Updates the expression display with the newly entered time or operator.
+        If the last character was '=' from a previous calculation, clear first.
+        """
+        txt = self.expression_display.text()
+        # If previous expression ended with "=", start fresh
+        if txt.endswith('='):
+            txt = ""
+        if txt and not txt.endswith(' '):
+            txt += " "
+        txt += new_part
+        self.expression_display.setText(txt)
+
+    def show_error(self, message):
+        error_dialog = QMessageBox()
+        error_dialog.setIcon(QMessageBox.Warning)
+        error_dialog.setText(message)
+        error_dialog.setWindowTitle("Error")
+        error_dialog.exec_()
 
 def main():
     app = QApplication(sys.argv)
     window = TimeCalculator()
-    window.resize(300, 300)
+    window.resize(350, 400)
     window.show()
     sys.exit(app.exec_())
 
