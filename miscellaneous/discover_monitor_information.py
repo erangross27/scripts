@@ -1,3 +1,7 @@
+"""
+This script handles discover monitor information.
+"""
+
 import wmi
 import sys
 import subprocess

@@ -40,11 +40,17 @@ from PyQt5.QtCore import Qt
 
 # Function to compress a single image
 def compress_image(image_path, output_path, quality):
+    """
+    Compress image based on image path, output path, quality.
+    """
     with Image.open(image_path) as img:
         img.save(output_path, "JPEG", quality=quality, optimize=True)
 
 # Function to compress all images in a folder
 def compress_images_in_folder(folder_path, output_folder_path, quality=90):
+    """
+    Compress images in folder based on folder path, output folder path, quality.
+    """
     os.makedirs(output_folder_path, exist_ok=True)
     compressed_files = []
     for filename in os.listdir(folder_path):
@@ -59,12 +65,21 @@ def compress_images_in_folder(folder_path, output_folder_path, quality=90):
 
 # Main GUI class for the Image Compressor
 class ImageCompressorGUI(QWidget):
+    """
+    Represents a image compressor g u i.
+    """
     def __init__(self):
+        """
+        Special method __init__.
+        """
         super().__init__()
         self.initUI()
 
     # Initialize the user interface
     def initUI(self):
+        """
+        Initui.
+        """
         layout = QVBoxLayout()
 
         self.setup_radio_buttons(layout)
@@ -79,6 +94,9 @@ class ImageCompressorGUI(QWidget):
 
     # Set up radio buttons for single file or folder selection
     def setup_radio_buttons(self, layout):
+        """
+        Setup radio buttons based on layout.
+        """
         radio_layout = QHBoxLayout()
         self.single_file_radio = QRadioButton("Single File")
         self.folder_radio = QRadioButton("Folder")
@@ -94,6 +112,9 @@ class ImageCompressorGUI(QWidget):
 
     # Set up input and output fields with browse buttons
     def setup_input_output(self, layout):
+        """
+        Setup input output based on layout.
+        """
         for label_text, attr_name in [("Input:", "input_edit"), ("Output:", "output_edit")]:
             io_layout = QHBoxLayout()
             io_layout.addWidget(QLabel(label_text))
@@ -106,6 +127,9 @@ class ImageCompressorGUI(QWidget):
 
     # Set up quality slider
     def setup_quality_slider(self, layout):
+        """
+        Setup quality slider based on layout.
+        """
         quality_layout = QHBoxLayout()
         quality_layout.addWidget(QLabel("Quality:"))
         self.quality_slider = QSlider(Qt.Horizontal)
@@ -119,23 +143,35 @@ class ImageCompressorGUI(QWidget):
 
     # Set up compress button
     def setup_compress_button(self, layout):
+        """
+        Setup compress button based on layout.
+        """
         self.compress_button = QPushButton("Compress")
         self.compress_button.clicked.connect(self.compress_images)
         layout.addWidget(self.compress_button)
 
     # Set up output text area
     def setup_output_text(self, layout):
+        """
+        Setup output text based on layout.
+        """
         self.output_text = QTextEdit()
         self.output_text.setReadOnly(True)
         layout.addWidget(self.output_text)
 
     # Clear input and output paths when radio button selection changes
     def clear_paths(self):
+        """
+        Clear paths.
+        """
         self.input_edit.clear()
         self.output_edit.clear()
 
     # Open file dialog for input selection
     def browse_input(self):
+        """
+        Browse input.
+        """
         if self.single_file_radio.isChecked():
             file, _ = QFileDialog.getOpenFileName(self, "Select Input File", "", "Image files (*.jpg *.jpeg)")
             if file:
@@ -147,6 +183,9 @@ class ImageCompressorGUI(QWidget):
 
     # Open file dialog for output selection
     def browse_output(self):
+        """
+        Browse output.
+        """
         if self.single_file_radio.isChecked():
             file, _ = QFileDialog.getSaveFileName(self, "Save Output File", "", "JPEG (*.jpg)")
             if file:
@@ -158,10 +197,16 @@ class ImageCompressorGUI(QWidget):
 
     # Update quality label when slider value changes
     def update_quality_label(self, value):
+        """
+        Updates quality label based on value.
+        """
         self.quality_label.setText(str(value))
 
     # Compress images based on user input
     def compress_images(self):
+        """
+        Compress images.
+        """
         input_path = self.input_edit.text()
         output_path = self.output_edit.text()
         quality = self.quality_slider.value()

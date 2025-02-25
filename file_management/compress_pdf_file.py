@@ -30,6 +30,9 @@ import threading
 import time
 # Function to compress the PDF
 def compress_pdf(input_file_path, output_file_path, power=3):
+    """
+    Compress pdf based on input file path, output file path, power.
+    """
     quality = ['/default', '/prepress', '/printer', '/ebook', '/screen']
     return subprocess.Popen([
         'gswin64c', '-sDEVICE=pdfwrite', '-dCompatibilityLevel=1.4',
@@ -38,10 +41,16 @@ def compress_pdf(input_file_path, output_file_path, power=3):
     ], creationflags=CREATE_NO_WINDOW)
 # Function to estimate the time required for compression based on file size
 def estimate_time(file_size):
+    """
+    Estimate time based on file size.
+    """
     return max(5, min(file_size / (1024 * 1024) * 0.5, 300))
 
 # Function to update the progress bar during compression
 def update_progress(process, input_file, output_file, progress_bar, compress_button):
+    """
+    Updates progress based on process, input file, output file, progress bar, compress button.
+    """
     input_size = os.path.getsize(input_file)
     estimated_time = estimate_time(input_size)
     start_time = time.time()
@@ -58,6 +67,9 @@ def update_progress(process, input_file, output_file, progress_bar, compress_but
 
 # Function to handle file selection
 def select_file(entry, save=False):
+    """
+    Select file based on entry, save.
+    """
     if save:
         filename = filedialog.asksaveasfilename(defaultextension=".pdf", filetypes=[("PDF files", "*.pdf")])
     else:
@@ -67,6 +79,9 @@ def select_file(entry, save=False):
 
 # Function to handle the compression process
 def compress_file():
+    """
+    Compress file.
+    """
     input_file = input_file_entry.get()
     output_file = output_file_entry.get()
     
@@ -93,6 +108,9 @@ def compress_file():
 
 # Main function to create and run the GUI
 def main():
+    """
+    Main.
+    """
     global input_file_entry, output_file_entry, progress_bar, compress_button
     root = tk.Tk()
     root.title("PDF Compressor")

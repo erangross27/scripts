@@ -41,6 +41,9 @@ from dataclasses import dataclass
 
 # Function to check if all required modules are installed
 def check_dependencies() -> bool:
+    """
+    Check dependencies.
+    """
     required_modules = ['psutil', 'win32event', 'win32service', 'win32serviceutil', 'servicemanager', 'winreg', 'cryptography']
     missing_modules = [module for module in required_modules if not check_module(module)]
     
@@ -55,6 +58,9 @@ def check_dependencies() -> bool:
 
 # Helper function to check if a single module is installed
 def check_module(module: str) -> bool:
+    """
+    Check module based on module.
+    """
     try:
         __import__(module)
         return True
@@ -96,6 +102,9 @@ CONFIG_FILE = os.path.join(script_dir, "config.json")
 # Define a dataclass to hold configuration settings
 @dataclass
 class Config:
+    """
+    Represents a config.
+    """
     check_interval: int = 3600  # Default check interval: 1 hour
     min_free_space_gb: float = 10.0  # Default minimum free space: 10 GB
     registry_key: str = r'SOFTWARE\DiskSpaceAlertService'
@@ -105,6 +114,9 @@ class Config:
 
 # Function to load configuration from file or return default values
 def load_config() -> Config:
+    """
+    Load config.
+    """
     try:
         with open(CONFIG_FILE, 'r') as f:
             config_dict = json.load(f)
@@ -117,11 +129,17 @@ config = load_config()
 
 # Define the Windows service class
 class DiskSpaceAlertService(win32serviceutil.ServiceFramework):
+    """
+    Provides disk space alert functionality.
+    """
     _svc_name_ = "DiskSpaceAlertService"
     _svc_display_name_ = "Disk Space Alert Service"
     _svc_description_ = "Checks local disks' free space and sends an email alert if any disk has less than the configured free space."
 
     def __init__(self, args):
+        """
+        Special method __init__.
+        """
         try:
             win32serviceutil.ServiceFramework.__init__(self, args)
             self.hWaitStop = win32event.CreateEvent(None, 0, 0, None)
@@ -133,6 +151,9 @@ class DiskSpaceAlertService(win32serviceutil.ServiceFramework):
 
     # Method called when the service is being stopped
     def SvcStop(self):
+        """
+        Svcstop.
+        """
         self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
         win32event.SetEvent(self.hWaitStop)
         self.is_alive = False
@@ -140,6 +161,9 @@ class DiskSpaceAlertService(win32serviceutil.ServiceFramework):
 
     # Main service loop
     def SvcDoRun(self):
+        """
+        Svcdorun.
+        """
         try:
             servicemanager.LogMsg(
                 servicemanager.EVENTLOG_INFORMATION_TYPE,
@@ -153,6 +177,9 @@ class DiskSpaceAlertService(win32serviceutil.ServiceFramework):
 
     # Main loop of the service
     def main(self):
+        """
+        Main.
+        """
         logger.info("Service started")
         while self.is_alive:
             try:
@@ -165,6 +192,9 @@ class DiskSpaceAlertService(win32serviceutil.ServiceFramework):
 
     # Method to check disk space and send alerts if necessary
     def check_disk_space(self):
+        """
+        Check disk space.
+        """
         disks = self.get_disks()
         for disk in disks:
             if disk["FreeSpaceGB"] < config.min_free_space_gb:
@@ -173,6 +203,9 @@ class DiskSpaceAlertService(win32serviceutil.ServiceFramework):
     # Static method to get disk information
     @staticmethod
     def get_disks() -> List[Dict[str, float]]:
+        """
+        Retrieves disks.
+        """
         try:
             # Filter out CD-ROM drives and empty drives on Windows
             nt_filter = lambda p: 'cdrom' not in p.opts and p.fstype != ''
@@ -191,6 +224,9 @@ class DiskSpaceAlertService(win32serviceutil.ServiceFramework):
 
     # Method to send alert emails
     def send_alert(self, disk: Dict[str, float]):
+        """
+        Send alert based on disk.
+        """
         try:
             creds = self.get_email_credentials()
             computer_name = os.environ.get('COMPUTERNAME', 'Unknown Computer')
@@ -217,6 +253,9 @@ class DiskSpaceAlertService(win32serviceutil.ServiceFramework):
     # Static method to retrieve email credentials from Windows Registry
     @staticmethod
     def get_email_credentials() -> Dict[str, str]:
+        """
+        Retrieves email credentials.
+        """
         try:
             with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, config.registry_key) as key:
                 encrypted_email_username = winreg.QueryValueEx(key, "EmailUsername")[0]
@@ -238,6 +277,9 @@ class DiskSpaceAlertService(win32serviceutil.ServiceFramework):
     # Static method to configure email settings
     @staticmethod
     def configure_email():
+        """
+        Configure email.
+        """
         email_username = input("Enter your email address (sender): ")
         email_password = getpass.getpass("Enter your email password: ")
         config.recipient_email = input("Enter recipient email address: ")
@@ -268,6 +310,9 @@ class DiskSpaceAlertService(win32serviceutil.ServiceFramework):
 
 # Main function to handle command-line arguments
 def main():
+    """
+    Main.
+    """
     if os.name != 'nt':
         print("This script is designed to run as a Windows service. Please modify the code to run on other operating systems.")
         sys.exit(1)

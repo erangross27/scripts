@@ -1,3 +1,7 @@
+"""
+This script handles hour calculator.
+"""
+
 import sys
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QGridLayout, QLineEdit, QPushButton, QMessageBox
@@ -106,7 +110,13 @@ def evaluate_expression(tokens):
     return result
 
 class TimeCalculator(QWidget):
+    """
+    Represents a time calculator.
+    """
     def __init__(self):
+        """
+        Special method __init__.
+        """
         super().__init__()
         self.setWindowTitle("מחשבון שעות (עשרוני)")
 
@@ -152,6 +162,9 @@ class TimeCalculator(QWidget):
         self.setLayout(grid)
 
     def on_button_clicked(self):
+        """
+        On button clicked.
+        """
         sender = self.sender()
         text = sender.text()
 
@@ -255,6 +268,9 @@ class TimeCalculator(QWidget):
         self.expression_display.setText(txt)
 
     def show_error(self, message):
+        """
+        Show error based on message.
+        """
         error_dialog = QMessageBox()
         error_dialog.setIcon(QMessageBox.Warning)
         error_dialog.setText(message)
@@ -262,6 +278,9 @@ class TimeCalculator(QWidget):
         error_dialog.exec_()
 
 def main():
+    """
+    Main.
+    """
     app = QApplication(sys.argv)
     window = TimeCalculator()
     window.resize(350, 400)

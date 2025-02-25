@@ -8,16 +8,16 @@
 **Path:** `miscellaneous\cuda_matrix_multiplication.py`
 
 **Description:**
-No description available
+This script handles cuda matrix multiplication that performs numerical operations.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 4.0 KB
-- Lines of code: 88 (of 133 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 4.3 KB
+- Lines of code: 97 (of 143 total)
 
 **Functions:**
-- `cpu_matrix_mul`: No documentation
-- `gpu_matrix_mul`: No documentation
+- `cpu_matrix_mul`: Cpu matrix mul based on a, b
+- `gpu_matrix_mul`: Gpu matrix mul based on a, b, a gpu, b gpu, c gpu
 
 **Dependencies:**
 - numpy
@@ -28,12 +28,12 @@ No description available
 **Path:** `miscellaneous\cuda_vector_add.py`
 
 **Description:**
-No description available
+This script handles cuda vector add that performs numerical operations.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 2.2 KB
-- Lines of code: 48 (of 81 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 2.3 KB
+- Lines of code: 51 (of 85 total)
 
 **Dependencies:**
 - numpy
@@ -44,12 +44,12 @@ No description available
 **Path:** `miscellaneous\discover_gpu_memory.py`
 
 **Description:**
-No description available
+This script handles discover gpu memory.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
+- Last modified: 2025-02-25 08:16:29
 - Size: 1.9 KB
-- Lines of code: 29 (of 51 total)
+- Lines of code: 32 (of 55 total)
 
 **Functions:**
 - `get_intel_gpu_info`: Retrieves and displays information about the Intel GPU installed on the system
@@ -62,12 +62,12 @@ No description available
 **Path:** `miscellaneous\discover_monitor_information.py`
 
 **Description:**
-No description available
+This script handles discover monitor information.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
+- Last modified: 2025-02-25 08:16:29
 - Size: 3.8 KB
-- Lines of code: 80 (of 104 total)
+- Lines of code: 83 (of 108 total)
 
 **Functions:**
 - `get_monitor_info_wmi`: Retrieve monitor information using Windows Management Instrumentation (WMI)
@@ -101,17 +101,17 @@ Run this script in the directory containing the Python files you want to analyze
 The generated requirements.txt file will be saved in the same directory.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 4.1 KB
-- Lines of code: 78 (of 105 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 4.5 KB
+- Lines of code: 96 (of 123 total)
 
 **Functions:**
-- `get_imports`: No documentation
-- `normalize_package_name`: No documentation
-- `get_stdlib_modules`: No documentation
-- `is_windows_specific`: No documentation
-- `get_all_requirements`: No documentation
-- `main`: No documentation
+- `get_imports`: Retrieves imports based on file path
+- `normalize_package_name`: Normalize package name based on package
+- `get_stdlib_modules`: Retrieves stdlib modules
+- `is_windows_specific`: Checks if windows specific based on package
+- `get_all_requirements`: Retrieves all requirements based on output file
+- `main`: Main
 
 **Dependencies:**
 - pkgutil
@@ -154,16 +154,16 @@ Requirements:
 Note: GPU operations require CUDA-capable hardware and appropriate CUDA setup.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 4.1 KB
-- Lines of code: 90 (of 123 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 4.4 KB
+- Lines of code: 105 (of 138 total)
 
 **Functions:**
-- `print_gpu_memory`: No documentation
-- `print_cpu_memory`: No documentation
-- `cpu_gaussian_blur`: No documentation
-- `gpu_gaussian_blur`: No documentation
-- `run_comparison`: No documentation
+- `print_gpu_memory`: Print gpu memory
+- `print_cpu_memory`: Print cpu memory
+- `cpu_gaussian_blur`: Cpu gaussian blur based on image, kernel size
+- `gpu_gaussian_blur`: Gpu gaussian blur based on image, kernel size
+- `run_comparison`: Run comparison based on image path, runs
 
 **Dependencies:**
 - GPUtil
@@ -178,12 +178,12 @@ Note: GPU operations require CUDA-capable hardware and appropriate CUDA setup.
 **Path:** `miscellaneous\organize_scripts.py`
 
 **Description:**
-No description available
+This script handles organize scripts.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 3.0 KB
-- Lines of code: 68 (of 81 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 3.1 KB
+- Lines of code: 71 (of 85 total)
 
 ### password_hashing_comparison.py
 
@@ -214,16 +214,16 @@ Run this script directly to perform the comparison with default parameters.
 You can modify the parameters in the run_comparison() function call if needed.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 4.1 KB
-- Lines of code: 82 (of 116 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 4.4 KB
+- Lines of code: 97 (of 131 total)
 
 **Functions:**
-- `print_gpu_memory`: No documentation
-- `print_cpu_memory`: No documentation
-- `cpu_hash_passwords`: No documentation
-- `gpu_hash_passwords`: No documentation
-- `run_comparison`: No documentation
+- `print_gpu_memory`: Print gpu memory
+- `print_cpu_memory`: Print cpu memory
+- `cpu_hash_passwords`: Cpu hash passwords based on passwords
+- `gpu_hash_passwords`: Gpu hash passwords based on passwords
+- `run_comparison`: Run comparison based on num passwords, password length, runs
 
 **Dependencies:**
 - GPUtil
@@ -257,18 +257,18 @@ The comparison parameters (number size, maximum number, and number of runs)
 can be adjusted in the run_comparison() function call at the end of the script.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 4.6 KB
-- Lines of code: 101 (of 140 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 5.0 KB
+- Lines of code: 122 (of 161 total)
 
 **Functions:**
-- `is_prime`: No documentation
-- `cpu_find_primes`: No documentation
-- `gpu_is_prime`: No documentation
-- `gpu_find_primes`: No documentation
-- `print_gpu_memory`: No documentation
-- `print_cpu_memory`: No documentation
-- `run_comparison`: No documentation
+- `is_prime`: Checks if prime based on n
+- `cpu_find_primes`: Cpu find primes based on numbers
+- `gpu_is_prime`: Gpu is prime based on n
+- `gpu_find_primes`: Gpu find primes based on numbers
+- `print_gpu_memory`: Print gpu memory
+- `print_cpu_memory`: Print cpu memory
+- `run_comparison`: Run comparison based on size, max num, runs
 
 **Dependencies:**
 - GPUtil
@@ -281,12 +281,12 @@ can be adjusted in the run_comparison() function call at the end of the script.
 **Path:** `miscellaneous\remove_versions_from_requirements.py`
 
 **Description:**
-No description available
+This script handles remove versions from requirements.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
+- Last modified: 2025-02-25 08:16:29
 - Size: 2.3 KB
-- Lines of code: 34 (of 54 total)
+- Lines of code: 37 (of 58 total)
 
 **Functions:**
 - `remove_versions`: Remove version specifiers and comments from a requirements file
@@ -296,20 +296,20 @@ No description available
 **Path:** `miscellaneous\setup_env.py`
 
 **Description:**
-No description available
+This script handles setup env.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 6.9 KB
-- Lines of code: 141 (of 187 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 7.0 KB
+- Lines of code: 153 (of 200 total)
 
 **Functions:**
-- `main`: No documentation
+- `main`: Main
 
 **Classes:**
-- `EnvironmentManager`: No documentation
+- `EnvironmentManager`: Manages environment
   - Methods:
-    - `__init__`: No documentation
+    - `__init__`: Special method __init__
     - `set_windows_env_variable`: Set Windows environment variable using registry and broadcast change
     - `load_existing_config`: Load existing configuration if available
     - `save_config`: Save configuration to file
@@ -326,12 +326,12 @@ No description available
 **Path:** `miscellaneous\setup_requirements.py`
 
 **Description:**
-No description available
+This script handles setup requirements.
 
 **File Info:**
-- Last modified: 2025-02-20 08:52:01
-- Size: 2.4 KB
-- Lines of code: 49 (of 67 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 2.5 KB
+- Lines of code: 52 (of 71 total)
 
 **Functions:**
 - `extract_imports`: Extract import statements from a Python file
@@ -367,16 +367,16 @@ Requirements:
 Note: GPU sorting will only be performed if CUDA is available.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 3.3 KB
-- Lines of code: 79 (of 107 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 3.5 KB
+- Lines of code: 94 (of 122 total)
 
 **Functions:**
-- `cpu_sort`: No documentation
-- `gpu_sort`: No documentation
-- `print_gpu_memory`: No documentation
-- `print_cpu_memory`: No documentation
-- `run_comparison`: No documentation
+- `cpu_sort`: Cpu sort based on arr
+- `gpu_sort`: Gpu sort based on arr
+- `print_gpu_memory`: Print gpu memory
+- `print_cpu_memory`: Print cpu memory
+- `run_comparison`: Run comparison based on size, runs
 
 **Dependencies:**
 - GPUtil

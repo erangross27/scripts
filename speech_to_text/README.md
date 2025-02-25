@@ -8,64 +8,64 @@
 **Path:** `speech_to_text\build_app.py`
 
 **Description:**
-No description available
+This script handles build app.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 4.2 KB
-- Lines of code: 106 (of 143 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 4.3 KB
+- Lines of code: 112 (of 150 total)
 
 **Functions:**
-- `build_executable`: No documentation
+- `build_executable`: Build executable
 
 ### transcription_app.py
 
 **Path:** `speech_to_text\transcription_app.py`
 
 **Description:**
-No description available
+This script handles transcription app.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 21.0 KB
-- Lines of code: 445 (of 579 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 22.7 KB
+- Lines of code: 535 (of 670 total)
 
 **Functions:**
-- `get_embedded_api_key`: No documentation
-- `main`: No documentation
+- `get_embedded_api_key`: Retrieves embedded api key
+- `main`: Main
 
 **Classes:**
-- `ProofreadingDialog`: No documentation
+- `ProofreadingDialog`: Represents a proofreading dialog
   - Methods:
-    - `__init__`: No documentation
-- `ProofreadingWorker`: No documentation
+    - `__init__`: Special method __init__
+- `ProofreadingWorker`: Represents a proofreading worker
   - Methods:
-    - `__init__`: No documentation
-    - `run`: No documentation
-- `TranscriptionWorker`: No documentation
+    - `__init__`: Special method __init__
+    - `run`: Run
+- `TranscriptionWorker`: Represents a transcription worker
   - Methods:
-    - `__init__`: No documentation
-    - `format_transcript`: No documentation
-    - `split_audio`: No documentation
-    - `run`: No documentation
-- `TranscriptionApp`: No documentation
+    - `__init__`: Special method __init__
+    - `format_transcript`: Format transcript based on text
+    - `split_audio`: Split audio based on audio segment, max size mb
+    - `run`: Run
+- `TranscriptionApp`: Represents a transcription app
   - Methods:
-    - `__init__`: No documentation
-    - `toggle_maximize`: No documentation
-    - `copy_text`: No documentation
-    - `init_ui`: No documentation
-    - `mousePressEvent`: No documentation
-    - `mouseMoveEvent`: No documentation
-    - `update_status`: No documentation
-    - `browse_file`: No documentation
-    - `start_transcription`: No documentation
-    - `start_proofreading`: No documentation
-    - `proofreading_complete`: No documentation
-    - `proofreading_error`: No documentation
-    - `update_progress`: No documentation
-    - `transcription_complete`: No documentation
-    - `save_transcript`: No documentation
-    - `transcription_error`: No documentation
+    - `__init__`: Special method __init__
+    - `toggle_maximize`: Toggle maximize
+    - `copy_text`: Copy text
+    - `init_ui`: Init ui
+    - `mousePressEvent`: Mousepressevent based on event
+    - `mouseMoveEvent`: Mousemoveevent based on event
+    - `update_status`: Updates status based on text
+    - `browse_file`: Browse file
+    - `start_transcription`: Start transcription
+    - `start_proofreading`: Start proofreading
+    - `proofreading_complete`: Proofreading complete based on corrected text
+    - `proofreading_error`: Proofreading error based on error message
+    - `update_progress`: Updates progress based on status, value
+    - `transcription_complete`: Transcription complete based on transcript
+    - `save_transcript`: Save transcript
+    - `transcription_error`: Transcription error based on error message
 
 **Dependencies:**
 - PyQt5

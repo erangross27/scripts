@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+"""
+This script handles shutterstock gui.
+"""
+
 # shutterstock_gui.py
 
 import sys
@@ -10,12 +14,18 @@ from PyQt5.QtCore import Qt, QThread, pyqtSignal
 from shutterstock_uploader import ShutterstockAutoUploader  # Import from second file
 
 class UploaderWorker(QThread):
+    """
+    Represents a uploader worker.
+    """
     progress_updated = pyqtSignal(int, str)
     status_updated = pyqtSignal(str, str, str, str)
     finished = pyqtSignal(dict)
     log_message = pyqtSignal(str)
 
     def __init__(self, directory_path):
+        """
+        Special method __init__.
+        """
         super().__init__()
         self.directory_path = directory_path
         self.uploader = ShutterstockAutoUploader()
@@ -89,7 +99,13 @@ class UploaderWorker(QThread):
         self.finished.emit({"successful": successful, "failed": failed})
 
 class MainWindow(QMainWindow):
+    """
+    Represents a main window.
+    """
     def __init__(self):
+        """
+        Special method __init__.
+        """
         super().__init__()
         self.setWindowTitle("Shutterstock Auto Uploader")
         self.setMinimumSize(800, 600)
@@ -233,6 +249,9 @@ class MainWindow(QMainWindow):
         QMessageBox.information(self, "Upload Complete", message)
 
 def main():
+    """
+    Main.
+    """
     app = QApplication(sys.argv)
     app.setStyle('Fusion')
     window = MainWindow()

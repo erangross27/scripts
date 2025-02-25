@@ -34,22 +34,40 @@ from PyQt5.QtGui import QPixmap, QImage, QColor, QPainter, QFont, QPen
 
 # Custom widget to display the selected color
 class ColorIndicator(QFrame):
+    """
+    Represents a color indicator.
+    """
     def __init__(self, color=Qt.black):
+        """
+        Special method __init__.
+        """
         super().__init__()
         self.color = color
         self.setFixedSize(20, 20)
 
     def setColor(self, color):
+        """
+        Setcolor based on color.
+        """
         self.color = color
         self.update()
 
     def paintEvent(self, event):
+        """
+        Paintevent based on event.
+        """
         painter = QPainter(self)
         painter.fillRect(self.rect(), self.color)
 
 # Main application window
 class PDFNumberer(QMainWindow):
+    """
+    Represents a p d f numberer.
+    """
     def __init__(self):
+        """
+        Special method __init__.
+        """
         super().__init__()
         self.pdf_document = None
         self.number_position = 'right'
@@ -62,6 +80,9 @@ class PDFNumberer(QMainWindow):
         self.showMaximized()
 
     def initUI(self):
+        """
+        Initui.
+        """
         # Set up the main window and layout
         self.setWindowTitle('PDF Page Numberer')
         central_widget = QWidget()
@@ -161,6 +182,9 @@ class PDFNumberer(QMainWindow):
 
     # Method to handle color selection
     def select_color(self):
+        """
+        Select color.
+        """
         color = QColorDialog.getColor()
         if color.isValid():
             self.number_color = color
@@ -169,6 +193,9 @@ class PDFNumberer(QMainWindow):
 
     # Method to open a PDF file
     def open_pdf(self):
+        """
+        Open pdf.
+        """
         file_name, _ = QFileDialog.getOpenFileName(self, 'Open PDF File', '', 'PDF Files (*.pdf)')
         if file_name:
             self.pdf_document = fitz.open(file_name)
@@ -177,6 +204,9 @@ class PDFNumberer(QMainWindow):
 
     # Method to update the preview of the PDF with page numbers
     def update_preview(self):
+        """
+        Updates preview.
+        """
         if not self.pdf_document:
             return
 
@@ -237,6 +267,9 @@ class PDFNumberer(QMainWindow):
 
     # Method to process the PDF and add page numbers
     def process_pdf(self):
+        """
+        Process pdf.
+        """
         if not self.pdf_document:
             QMessageBox.warning(self, 'Warning', 'Please open a PDF file first.')
             return

@@ -1,3 +1,7 @@
+"""
+This script implements captureImage functionality.
+"""
+
 import cv2
 import os
 from datetime import datetime

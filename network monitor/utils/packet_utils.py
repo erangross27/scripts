@@ -1,3 +1,7 @@
+"""
+This script provides utility functions for packets.
+"""
+
 import ipaddress
 from scapy.layers.inet import IP
 

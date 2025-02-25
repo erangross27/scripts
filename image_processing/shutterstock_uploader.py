@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+"""
+This script handles shutterstock uploader that makes HTTP requests.
+"""
+
 # shutterstock_uploader.py
 
 import os
@@ -12,7 +16,13 @@ from datetime import datetime
 import logging
 
 class ShutterstockAutoUploader:
+    """
+    Represents a shutterstock auto uploader.
+    """
     def __init__(self):
+        """
+        Special method __init__.
+        """
         load_dotenv()
         self.anthropic = Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
         self.shutterstock_api_token = os.getenv('SHUTTERSTOCK_API_TOKEN')

@@ -1,3 +1,7 @@
+"""
+This script handles setup requirements.
+"""
+
 import os
 import ast
 import re

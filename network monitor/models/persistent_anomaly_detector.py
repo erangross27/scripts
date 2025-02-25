@@ -1,3 +1,7 @@
+"""
+This script handles persistent anomaly detector that processes data.
+"""
+
 import os
 import warnings
 import joblib
@@ -6,7 +10,13 @@ from sklearn.ensemble import IsolationForest
 from sklearn.exceptions import InconsistentVersionWarning
 
 class PersistentAnomalyDetector:
+    """
+    Represents a persistent anomaly detector.
+    """
     def __init__(self, model_path='anomaly_model.joblib', contamination=0.01):
+        """
+        Special method __init__.
+        """
         self.model_path = model_path
         self.contamination = contamination
         self.model = IsolationForest(contamination=contamination, random_state=42)

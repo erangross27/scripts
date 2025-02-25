@@ -1,3 +1,7 @@
+"""
+This script handles cuda vector add that performs numerical operations.
+"""
+
 import numpy as np
 import pycuda.autoinit
 import pycuda.driver as cuda

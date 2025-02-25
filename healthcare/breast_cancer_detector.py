@@ -1,3 +1,7 @@
+"""
+This script handles breast cancer detector that processes data, performs numerical operations.
+"""
+
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
@@ -7,7 +11,13 @@ from sklearn.metrics import accuracy_score, classification_report
 import joblib
 
 class BreastCancerDetector:
+    """
+    Represents a breast cancer detector.
+    """
     def __init__(self):
+        """
+        Special method __init__.
+        """
         self.model = None
         self.scaler = StandardScaler()
         
@@ -90,6 +100,9 @@ class BreastCancerDetector:
             print(f"Error loading model: {str(e)}")
 
 def main():
+    """
+    Main.
+    """
     # Initialize the detector
     detector = BreastCancerDetector()
     

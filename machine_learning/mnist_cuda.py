@@ -37,7 +37,13 @@ print(f"Using device: {device}")
 
 # Define a simple neural network
 class Net(nn.Module):
+    """
+    Represents a net.
+    """
     def __init__(self):
+        """
+        Special method __init__.
+        """
         super(Net, self).__init__()
         # Define the layers of the network
         self.conv1 = nn.Conv2d(1, 32, 3, 1)  # First convolutional layer
@@ -47,6 +53,9 @@ class Net(nn.Module):
         self.fc1 = nn.Linear(9216, 128)  # First fully connected layer
         self.fc2 = nn.Linear(128, 10)  # Output layer (10 classes for MNIST)
     def forward(self, x):
+        """
+        Forward based on x.
+        """
         # Define the forward pass of the network
         x = self.conv1(x)
         x = nn.functional.relu(x)  # Apply ReLU activation
@@ -83,6 +92,9 @@ optimizer = optim.Adam(model.parameters())  # Use Adam optimizer
 
 # Training function
 def train(model, device, train_loader, optimizer, epoch):
+    """
+    Train based on model, device, train loader, optimizer, epoch.
+    """
     model.train()  # Set model to training mode
     for batch_idx, (data, target) in enumerate(train_loader):
         data, target = data.to(device), target.to(device)  # Move data to device
@@ -97,6 +109,9 @@ def train(model, device, train_loader, optimizer, epoch):
 
 # Testing function
 def test(model, device, test_loader):
+    """
+    Test based on model, device, test loader.
+    """
     model.eval()  # Set model to evaluation mode
     test_loss = 0
     correct = 0

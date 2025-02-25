@@ -1,3 +1,7 @@
+"""
+This script handles setup env.
+"""
+
 import os
 import winreg
 import ctypes
@@ -12,7 +16,13 @@ logging.basicConfig(
 )
 
 class EnvironmentManager:
+    """
+    Manages environment.
+    """
     def __init__(self):
+        """
+        Special method __init__.
+        """
         self.config_file = 'env_config.json'
         self.required_vars = {
             'ANTHROPIC_API_KEY': '',
@@ -157,6 +167,9 @@ class EnvironmentManager:
             logging.error(f"Error creating download folder: {e}")
 
 def main():
+    """
+    Main.
+    """
     try:
         manager = EnvironmentManager()
         

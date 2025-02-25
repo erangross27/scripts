@@ -1,3 +1,7 @@
+"""
+This script handles remove versions from requirements.
+"""
+
 import re
 
 def remove_versions(input_file='requirements.txt', output_file='requirements_no_versions.txt'):

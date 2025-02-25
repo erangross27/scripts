@@ -40,11 +40,17 @@ from PyQt5.QtCore import Qt, QThread, pyqtSignal
 
 # FrameExtractor class for extracting frames from videos
 class FrameExtractor(QThread):
+    """
+    Represents a frame extractor.
+    """
     progress_update = pyqtSignal(int)
     file_progress = pyqtSignal(str)
     finished = pyqtSignal()
 
     def __init__(self, video_paths, output_folder, extraction_mode, extraction_value, max_frames):
+        """
+        Special method __init__.
+        """
         super().__init__()
         self.video_paths = video_paths
         self.output_folder = output_folder
@@ -53,6 +59,9 @@ class FrameExtractor(QThread):
         self.max_frames = max_frames
 
     def run(self):
+        """
+        Run.
+        """
         total_saved_count = 0
         total_frames_to_extract = sum(min(self.get_frame_count(video_path), self.max_frames) for video_path in self.video_paths)
 
@@ -90,6 +99,9 @@ class FrameExtractor(QThread):
         self.finished.emit()
 
     def get_frame_count(self, video_path):
+        """
+        Retrieves frame count based on video path.
+        """
         video = cv2.VideoCapture(video_path)
         total_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
         video.release()
@@ -97,11 +109,20 @@ class FrameExtractor(QThread):
 
 # Main application class
 class App(QWidget):
+    """
+    Represents a app.
+    """
     def __init__(self):
+        """
+        Special method __init__.
+        """
         super().__init__()
         self.initUI()
 
     def initUI(self):
+        """
+        Initui.
+        """
         # Set up the main window
         self.setWindowTitle('Multi-Video Frame Extractor')
         self.setGeometry(300, 300, 500, 500)
@@ -168,6 +189,9 @@ class App(QWidget):
         self.setLayout(layout)
 
     def select_videos(self):
+        """
+        Select videos.
+        """
         # Open file dialog to select video files
         file_names, _ = QFileDialog.getOpenFileNames(self, "Select Video Files", "", "Video Files (*.mp4)")
         if file_names:
@@ -175,12 +199,18 @@ class App(QWidget):
             self.video_list.addItems(file_names)
 
     def select_output(self):
+        """
+        Select output.
+        """
         # Open folder dialog to select output folder
         folder_name = QFileDialog.getExistingDirectory(self, "Select Output Folder")
         if folder_name:
             self.output_label.setText(folder_name)
 
     def extract_frames(self):
+        """
+        Extract frames.
+        """
         # Gather input parameters and start frame extraction
         video_paths = [self.video_list.item(i).text() for i in range(self.video_list.count())]
         output_folder = self.output_label.text()
@@ -199,13 +229,22 @@ class App(QWidget):
         self.extract_btn.setEnabled(False)
 
     def update_progress(self, value):
+        """
+        Updates progress based on value.
+        """
         # Update progress bar
         self.progress_bar.setValue(value)
 
     def update_status(self, status):
+        """
+        Updates status based on status.
+        """
         # Update status label
         self.status_label.setText(status)
     def extraction_finished(self):
+        """
+        Extraction finished.
+        """
         # Handle completion of frame extraction
         self.progress_bar.setValue(100)
         self.extract_btn.setEnabled(True)

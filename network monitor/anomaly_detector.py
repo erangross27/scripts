@@ -1,3 +1,7 @@
+"""
+This script handles anomaly detector that performs numerical operations.
+"""
+
 import numpy as np
 from feature_extractor import FeatureExtractor
 

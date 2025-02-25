@@ -28,11 +28,20 @@ import shutil
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QFileDialog, QVBoxLayout, QLabel
 
 class ImageMover(QWidget):
+    """
+    Represents a image mover.
+    """
     def __init__(self):
+        """
+        Special method __init__.
+        """
         super().__init__()
         self.initUI()
         
     def initUI(self):
+        """
+        Initui.
+        """
         # Set up the main window
         self.setWindowTitle('Image Mover')
         self.setGeometry(300, 300, 300, 150)
@@ -65,16 +74,25 @@ class ImageMover(QWidget):
         self.setLayout(layout)
         
     def selectSourceDir(self):
+        """
+        Selectsourcedir.
+        """
         # Open a dialog to select the source directory
         self.sourceDir = QFileDialog.getExistingDirectory(self, "Select Source Directory")
         self.sourceLabel.setText(f'Source Directory: {self.sourceDir}')
         
     def selectDestDir(self):
+        """
+        Selectdestdir.
+        """
         # Open a dialog to select the destination directory
         self.destDir = QFileDialog.getExistingDirectory(self, "Select Destination Directory")
         self.destLabel.setText(f'Destination Directory: {self.destDir}')
         
     def moveImages(self):
+        """
+        Moveimages.
+        """
         # Check if both source and destination directories are selected
         if not hasattr(self, 'sourceDir') or not hasattr(self, 'destDir'):
             print("Please select both source and destination directories.")

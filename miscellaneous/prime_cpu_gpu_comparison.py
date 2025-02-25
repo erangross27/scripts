@@ -40,6 +40,9 @@ if torch.cuda.is_available():
 
 # Function to check if a number is prime
 def is_prime(n):
+    """
+    Checks if prime based on n.
+    """
     if n <= 1:
         return False
     for i in range(2, int(n**0.5) + 1):
@@ -49,11 +52,17 @@ def is_prime(n):
 
 # Function to find prime numbers using CPU
 def cpu_find_primes(numbers):
+    """
+    Cpu find primes based on numbers.
+    """
     return [num for num in numbers if is_prime(num)]
 
 # JIT-compiled function to check if a number is prime using GPU
 @torch.jit.script
 def gpu_is_prime(n):
+    """
+    Gpu is prime based on n.
+    """
     if n <= 1:
         return False
     for i in range(2, int(torch.sqrt(n.float())) + 1):
@@ -63,6 +72,9 @@ def gpu_is_prime(n):
 
 # Function to find prime numbers using GPU
 def gpu_find_primes(numbers):
+    """
+    Gpu find primes based on numbers.
+    """
     results = torch.zeros_like(numbers, dtype=torch.bool)
     for i in range(len(numbers)):
         results[i] = gpu_is_prime(numbers[i])
@@ -70,6 +82,9 @@ def gpu_find_primes(numbers):
 
 # Function to print GPU memory usage
 def print_gpu_memory():
+    """
+    Print gpu memory.
+    """
     if torch.cuda.is_available():
         GPUs = GPUtil.getGPUs()
         gpu = GPUs[0]
@@ -77,10 +92,16 @@ def print_gpu_memory():
 
 # Function to print CPU memory usage
 def print_cpu_memory():
+    """
+    Print cpu memory.
+    """
     print(f"CPU Memory Usage: {psutil.virtual_memory().percent}%")
 
 # Main function to run the comparison between CPU and GPU
 def run_comparison(size=100000, max_num=1000000, runs=5):
+    """
+    Run comparison based on size, max num, runs.
+    """
     print(f"\nFinding primes in {size} numbers up to {max_num}")
     
     cpu_times = []

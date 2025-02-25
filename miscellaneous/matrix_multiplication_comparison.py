@@ -42,6 +42,9 @@ import GPUtil
 
 # Function to print GPU memory usage
 def print_gpu_memory():
+    """
+    Print gpu memory.
+    """
     if torch.cuda.is_available():
         GPUs = GPUtil.getGPUs()
         gpu = GPUs[0]
@@ -49,20 +52,32 @@ def print_gpu_memory():
 
 # Function to print CPU memory usage
 def print_cpu_memory():
+    """
+    Print cpu memory.
+    """
     print(f"CPU Memory Usage: {psutil.virtual_memory().percent}%")
 
 # Function to apply Gaussian blur on CPU
 def cpu_gaussian_blur(image, kernel_size=21):
+    """
+    Cpu gaussian blur based on image, kernel size.
+    """
     blur = transforms.GaussianBlur(kernel_size)
     return blur(image)
 
 # Function to apply Gaussian blur on GPU
 def gpu_gaussian_blur(image, kernel_size=21):
+    """
+    Gpu gaussian blur based on image, kernel size.
+    """
     blur = transforms.GaussianBlur(kernel_size)
     return blur(image.to('cuda')).cpu()
 
 # Main function to compare CPU and GPU performance
 def run_comparison(image_path, runs=3):
+    """
+    Run comparison based on image path, runs.
+    """
     print(f"Applying Gaussian blur to image: {image_path}")
     
     # Load image and convert to tensor

@@ -1,3 +1,7 @@
+"""
+This script handles packet analyzer.
+"""
+
 from collections import defaultdict
 import ipaddress
 import re
@@ -8,7 +12,13 @@ from scapy.layers.inet6 import IPv6
 from scapy.layers.dns import DNS, DNSQR
 
 class PacketAnalyzer:
+    """
+    Represents a packet analyzer.
+    """
     def __init__(self, logger):
+        """
+        Special method __init__.
+        """
         self.logger = logger
         self.whitelist_patterns = [
             r'(?i)User-Agent:',

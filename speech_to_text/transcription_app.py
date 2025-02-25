@@ -1,3 +1,7 @@
+"""
+This script handles transcription app.
+"""
+
 import sys
 import os
 import io
@@ -46,6 +50,9 @@ from pydub import AudioSegment
 from openai import OpenAI
 
 def get_embedded_api_key():
+    """
+    Retrieves embedded api key.
+    """
     # This function will run when creating the executable to embed your key
     if getattr(sys, 'frozen', False):
         # Running as compiled executable
@@ -65,7 +72,13 @@ from PyQt5.QtCore import QThread, pyqtSignal
 
 
 class ProofreadingDialog(QDialog):
+    """
+    Represents a proofreading dialog.
+    """
     def __init__(self, parent=None):
+        """
+        Special method __init__.
+        """
         super().__init__(parent)
         self.setWindowTitle("הצעות הגהה")
         self.setMinimumSize(600, 400)
@@ -85,15 +98,24 @@ class ProofreadingDialog(QDialog):
         layout.addWidget(close_button)
 
 class ProofreadingWorker(QThread):
+    """
+    Represents a proofreading worker.
+    """
     finished = pyqtSignal(str)
     error = pyqtSignal(str)
 
     def __init__(self, text, client):
+        """
+        Special method __init__.
+        """
         super().__init__()
         self.text = text
         self.client = client
 
     def run(self):
+        """
+        Run.
+        """
         try:
             response = self.client.chat.completions.create(
                 model="gpt-4",
@@ -115,23 +137,35 @@ class ProofreadingWorker(QThread):
 
 
 class TranscriptionWorker(QThread):
+    """
+    Represents a transcription worker.
+    """
     progress = pyqtSignal(str, int)
     finished = pyqtSignal(str)
     error = pyqtSignal(str)
 
     def __init__(self, file_path):
+        """
+        Special method __init__.
+        """
         super().__init__()
         self.file_path = file_path
         api_key = get_embedded_api_key()
         self.client = OpenAI(api_key=api_key)
 
     def format_transcript(self, text):
+        """
+        Format transcript based on text.
+        """
         text = re.sub(r'([.!?])\s+', r'\1\n\n', text)
         text = re.sub(r',\s+(?=[^,]{40,})', ',\n', text)
         text = re.sub(r'\n{3,}', '\n\n', text)
         return text.strip()
 
     def split_audio(self, audio_segment, max_size_mb=24):
+        """
+        Split audio based on audio segment, max size mb.
+        """
         chunks = []
         chunk_size_ms = len(audio_segment)
         
@@ -164,6 +198,9 @@ class TranscriptionWorker(QThread):
         return chunks
 
     def run(self):
+        """
+        Run.
+        """
         try:
             self.progress.emit("טוען את קובץ האודיו...", 10)
             
@@ -224,7 +261,13 @@ class TranscriptionWorker(QThread):
             self.error.emit(str(e))
 
 class TranscriptionApp(QMainWindow):
+    """
+    Represents a transcription app.
+    """
     def __init__(self):
+        """
+        Special method __init__.
+        """
         super().__init__()
         self.setWindowFlags(Qt.Window | Qt.FramelessWindowHint)
         self.init_ui()
@@ -232,18 +275,27 @@ class TranscriptionApp(QMainWindow):
         self.oldPos = None
    
     def toggle_maximize(self):
+        """
+        Toggle maximize.
+        """
         if self.isMaximized():
             self.showNormal()
         else:
             self.showMaximized()
 
     def copy_text(self):
+        """
+        Copy text.
+        """
         if self.current_transcript:
             clipboard = QApplication.clipboard()
             clipboard.setText(self.text_area.toPlainText())
             self.status_label.setText("סטטוס: הטקסט הועתק ללוח")
 
     def init_ui(self):
+        """
+        Init ui.
+        """
         self.setMinimumSize(800, 600)
         
         # Main widget and layout
@@ -426,19 +478,31 @@ class TranscriptionApp(QMainWindow):
         title_container.mouseMoveEvent = self.mouseMoveEvent
 
     def mousePressEvent(self, event):
+        """
+        Mousepressevent based on event.
+        """
         self.oldPos = event.globalPos()
 
     def mouseMoveEvent(self, event):
+        """
+        Mousemoveevent based on event.
+        """
         if self.oldPos:
             delta = event.globalPos() - self.oldPos
             self.move(self.pos() + delta)
             self.oldPos = event.globalPos()
 
     def update_status(self, text):
+        """
+        Updates status based on text.
+        """
         self.status_label.setText(f"סטטוס: {text}")
         self.status_label.setAlignment(Qt.AlignRight)
 
     def browse_file(self):
+        """
+        Browse file.
+        """
         file_name, _ = QFileDialog.getOpenFileName(
             self,
             "בחר קובץ אודיו",
@@ -457,6 +521,9 @@ class TranscriptionApp(QMainWindow):
             self.proofread_button.setEnabled(False)
 
     def start_transcription(self):
+        """
+        Start transcription.
+        """
         if not hasattr(self, 'selected_file') or not self.selected_file:
             return
 
@@ -475,6 +542,9 @@ class TranscriptionApp(QMainWindow):
         self.worker.start()
 
     def start_proofreading(self):
+        """
+        Start proofreading.
+        """
         if not self.current_transcript:
             return
             
@@ -487,6 +557,9 @@ class TranscriptionApp(QMainWindow):
         self.proofreading_worker.start()
 
     def proofreading_complete(self, corrected_text):
+        """
+        Proofreading complete based on corrected text.
+        """
         self.proofread_button.setEnabled(True)
         self.update_status("הגהה הושלמה")
         
@@ -504,15 +577,24 @@ class TranscriptionApp(QMainWindow):
         QMessageBox.information(self, "הצלחה", "ההגהה הושלמה!\nהטקסט המתוקן מוצג בחלון")
 
     def proofreading_error(self, error_message):
+        """
+        Proofreading error based on error message.
+        """
         self.proofread_button.setEnabled(True)
         self.update_status("שגיאה בהגהה")
         QMessageBox.critical(self, "שגיאה", f"אירעה שגיאה בתהליך ההגהה:\n{error_message}")
 
     def update_progress(self, status, value):
+        """
+        Updates progress based on status, value.
+        """
         self.status_label.setText(f"סטטוס: {status}")
         self.progress_bar.setValue(value)
 
     def transcription_complete(self, transcript):
+        """
+        Transcription complete based on transcript.
+        """
         self.current_transcript = transcript
         self.transcribe_button.setEnabled(True)
         self.browse_button.setEnabled(True)
@@ -533,6 +615,9 @@ class TranscriptionApp(QMainWindow):
         QMessageBox.information(self, "הצלחה", "התמלול הושלם!\nלחץ על כפתור השמירה כדי לשמור את הקובץ.")    
 
     def save_transcript(self):
+        """
+        Save transcript.
+        """
         if not self.current_transcript:
             return
             
@@ -558,6 +643,9 @@ class TranscriptionApp(QMainWindow):
                 QMessageBox.critical(self, "שגיאה", f"שגיאה בשמירת הקובץ:\n{str(e)}")
 
     def transcription_error(self, error_message):
+        """
+        Transcription error based on error message.
+        """
         self.transcribe_button.setEnabled(True)
         self.browse_button.setEnabled(True)
         self.save_button.setEnabled(False)
@@ -569,6 +657,9 @@ class TranscriptionApp(QMainWindow):
         self.progress_bar.setValue(0)
 
 def main():
+    """
+    Main.
+    """
     app = QApplication(sys.argv)
     app.setStyle('Fusion')
     window = TranscriptionApp()

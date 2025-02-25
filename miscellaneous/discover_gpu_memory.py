@@ -1,3 +1,7 @@
+"""
+This script handles discover gpu memory.
+"""
+
 import wmi
 
 def get_intel_gpu_info():

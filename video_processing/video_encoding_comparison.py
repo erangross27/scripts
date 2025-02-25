@@ -32,16 +32,25 @@ import GPUtil
 
 # Function to print GPU memory usage
 def print_gpu_memory():
+    """
+    Print gpu memory.
+    """
     if GPUtil.getGPUs():
         gpu = GPUtil.getGPUs()[0]
         print(f"GPU Memory Usage: {gpu.memoryUsed}MB / {gpu.memoryTotal}MB")
 
 # Function to print CPU memory usage
 def print_cpu_memory():
+    """
+    Print cpu memory.
+    """
     print(f"CPU Memory Usage: {psutil.virtual_memory().percent}%")
 
 # Function to encode video using either CPU or GPU
 def encode_video(input_file, output_file, use_gpu=False):
+    """
+    Encode video based on input file, output file, use gpu.
+    """
     if use_gpu:
         # NVIDIA GPU encoding command (adjust -preset as needed)
         cmd = [
@@ -68,6 +77,9 @@ def encode_video(input_file, output_file, use_gpu=False):
 
 # Function to run comparison between CPU and GPU encoding
 def run_comparison(input_file, runs=3):
+    """
+    Run comparison based on input file, runs.
+    """
     cpu_times = []
     gpu_times = []
 

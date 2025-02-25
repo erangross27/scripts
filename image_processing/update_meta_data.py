@@ -1,3 +1,7 @@
+"""
+This script handles update meta data that processes images.
+"""
+
 import os
 import sys
 import re
@@ -49,16 +53,25 @@ VALID_CATEGORIES = [
 ]
 
 class MetadataWorker(QThread):
+    """
+    Represents a metadata worker.
+    """
     progress = pyqtSignal(int)
     log = pyqtSignal(str)
     finished = pyqtSignal()
 
     def __init__(self, folder_path, parent=None):
+        """
+        Special method __init__.
+        """
         super().__init__(parent)
         self.folder_path = folder_path
         self.is_running = True
 
     def run(self):
+        """
+        Run.
+        """
         try:
             updater = LocalMetadataUpdater(self.folder_path, self.progress, self.log, self)
             updater.process_folder()
@@ -68,16 +81,28 @@ class MetadataWorker(QThread):
             self.finished.emit()
         
     def stop(self):
+        """
+        Stop.
+        """
         self.is_running = False
         self.log.emit("Stopping process...")
 
 class MainWindow(QMainWindow):
+    """
+    Represents a main window.
+    """
     def __init__(self):
+        """
+        Special method __init__.
+        """
         super().__init__()
         self.folder_path = None
         self.initUI()
 
     def initUI(self):
+        """
+        Initui.
+        """
         self.setWindowTitle('Image Metadata Updater')
         self.setGeometry(100, 100, 900, 700)
 
@@ -119,6 +144,9 @@ class MainWindow(QMainWindow):
         layout.addLayout(button_layout)
 
     def select_folder(self):
+        """
+        Select folder.
+        """
         folder = QFileDialog.getExistingDirectory(self, 'Select Folder')
         if folder:
             self.folder_path = folder
@@ -127,6 +155,9 @@ class MainWindow(QMainWindow):
             self.log_display.append(f"Selected folder: {folder}")
 
     def start_processing(self):
+        """
+        Start processing.
+        """
         if not self.folder_path:
             self.log_display.append("Please select a folder first")
             return
@@ -141,15 +172,24 @@ class MainWindow(QMainWindow):
         self.worker.start()
 
     def stop_processing(self):
+        """
+        Stop processing.
+        """
         if hasattr(self, 'worker'):
             self.worker.stop()
             self.worker.wait()
             self.processing_finished()
 
     def update_progress(self, value):
+        """
+        Updates progress based on value.
+        """
         self.progress_bar.setValue(value)
 
     def update_log(self, message):
+        """
+        Updates log based on message.
+        """
         self.log_display.append(message)
         # Auto-scroll to bottom
         cursor = self.log_display.textCursor()
@@ -157,13 +197,22 @@ class MainWindow(QMainWindow):
         self.log_display.setTextCursor(cursor)
 
     def processing_finished(self):
+        """
+        Processing finished.
+        """
         self.start_button.setEnabled(True)
         self.stop_button.setEnabled(False)
         self.folder_button.setEnabled(True)
         self.update_log("Processing completed!")
 
 class LocalMetadataUpdater:
+    """
+    Represents a local metadata updater.
+    """
     def __init__(self, folder_path, progress_signal, log_signal, worker):
+        """
+        Special method __init__.
+        """
         self.folder_path = folder_path
         self.progress_signal = progress_signal
         self.log_signal = log_signal
@@ -530,6 +579,9 @@ Consider both secular and Christian religious significance when relevant.""",
             self.log_signal.emit(f"Detailed error: {traceback.format_exc()}")
 
 def main():
+    """
+    Main.
+    """
     app = QApplication(sys.argv)
     window = MainWindow()
     window.show()

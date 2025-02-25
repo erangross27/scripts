@@ -50,17 +50,17 @@ Dependencies:
 Note: This script requires Ghostscript to be installed and accessible in the system PATH.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 4.7 KB
-- Lines of code: 93 (of 119 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 5.1 KB
+- Lines of code: 111 (of 137 total)
 
 **Functions:**
-- `compress_pdf`: No documentation
-- `estimate_time`: No documentation
-- `update_progress`: No documentation
-- `select_file`: No documentation
-- `compress_file`: No documentation
-- `main`: No documentation
+- `compress_pdf`: Compress pdf based on input file path, output file path, power
+- `estimate_time`: Estimate time based on file size
+- `update_progress`: Updates progress based on process, input file, output file, progress bar, compress button
+- `select_file`: Select file based on entry, save
+- `compress_file`: Compress file
+- `main`: Main
 
 **Dependencies:**
 - tkinter
@@ -97,24 +97,24 @@ Run the script and use the GUI to open a PDF, adjust settings, and save the numb
 Note: This script requires PyQt5 and PyMuPDF to be installed.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 11.5 KB
-- Lines of code: 205 (of 290 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 12.1 KB
+- Lines of code: 238 (of 323 total)
 
 **Classes:**
-- `ColorIndicator`: No documentation
+- `ColorIndicator`: Represents a color indicator
   - Methods:
-    - `__init__`: No documentation
-    - `setColor`: No documentation
-    - `paintEvent`: No documentation
-- `PDFNumberer`: No documentation
+    - `__init__`: Special method __init__
+    - `setColor`: Setcolor based on color
+    - `paintEvent`: Paintevent based on event
+- `PDFNumberer`: Represents a p d f numberer
   - Methods:
-    - `__init__`: No documentation
-    - `initUI`: No documentation
-    - `select_color`: No documentation
-    - `open_pdf`: No documentation
-    - `update_preview`: No documentation
-    - `process_pdf`: No documentation
+    - `__init__`: Special method __init__
+    - `initUI`: Initui
+    - `select_color`: Select color
+    - `open_pdf`: Open pdf
+    - `update_preview`: Updates preview
+    - `process_pdf`: Process pdf
 
 **Dependencies:**
 - PyQt5
@@ -125,20 +125,20 @@ Note: This script requires PyQt5 and PyMuPDF to be installed.
 **Path:** `healthcare\breast_cancer_detector.py`
 
 **Description:**
-No description available
+This script handles breast cancer detector that processes data, performs numerical operations.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 4.4 KB
-- Lines of code: 85 (of 123 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 4.6 KB
+- Lines of code: 97 (of 136 total)
 
 **Functions:**
-- `main`: No documentation
+- `main`: Main
 
 **Classes:**
-- `BreastCancerDetector`: No documentation
+- `BreastCancerDetector`: Represents a breast cancer detector
   - Methods:
-    - `__init__`: No documentation
+    - `__init__`: Special method __init__
     - `load_and_prepare_data`: Load and prepare the breast cancer dataset
     - `train_model`: Train the machine learning model
     - `predict_single_case`: Predict for a single case
@@ -156,12 +156,12 @@ No description available
 **Path:** `image_processing\captureImage.py`
 
 **Description:**
-No description available
+This script implements captureImage functionality.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
+- Last modified: 2025-02-25 08:16:29
 - Size: 1.5 KB
-- Lines of code: 34 (of 50 total)
+- Lines of code: 37 (of 54 total)
 
 **Functions:**
 - `capture_image`: Captures an image from the default camera and saves it to the specified output directory
@@ -206,29 +206,29 @@ Functions:
 - compress_images_in_folder: Compresses all JPEG images in a folder
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 7.5 KB
-- Lines of code: 149 (of 191 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 8.4 KB
+- Lines of code: 194 (of 236 total)
 
 **Functions:**
-- `compress_image`: No documentation
-- `compress_images_in_folder`: No documentation
+- `compress_image`: Compress image based on image path, output path, quality
+- `compress_images_in_folder`: Compress images in folder based on folder path, output folder path, quality
 
 **Classes:**
-- `ImageCompressorGUI`: No documentation
+- `ImageCompressorGUI`: Represents a image compressor g u i
   - Methods:
-    - `__init__`: No documentation
-    - `initUI`: No documentation
-    - `setup_radio_buttons`: No documentation
-    - `setup_input_output`: No documentation
-    - `setup_quality_slider`: No documentation
-    - `setup_compress_button`: No documentation
-    - `setup_output_text`: No documentation
-    - `clear_paths`: No documentation
-    - `browse_input`: No documentation
-    - `browse_output`: No documentation
-    - `update_quality_label`: No documentation
-    - `compress_images`: No documentation
+    - `__init__`: Special method __init__
+    - `initUI`: Initui
+    - `setup_radio_buttons`: Setup radio buttons based on layout
+    - `setup_input_output`: Setup input output based on layout
+    - `setup_quality_slider`: Setup quality slider based on layout
+    - `setup_compress_button`: Setup compress button based on layout
+    - `setup_output_text`: Setup output text based on layout
+    - `clear_paths`: Clear paths
+    - `browse_input`: Browse input
+    - `browse_output`: Browse output
+    - `update_quality_label`: Updates quality label based on value
+    - `compress_images`: Compress images
 
 **Dependencies:**
 - PIL
@@ -260,13 +260,13 @@ Dependencies:
 Note: This script requires a valid Google Cloud Vision API key (google.json) in the same directory.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 5.0 KB
-- Lines of code: 82 (of 125 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 5.2 KB
+- Lines of code: 94 (of 137 total)
 
 **Functions:**
-- `process_image`: No documentation
-- `create_gui`: No documentation
+- `process_image`: Process image based on image path, progress var, window, progress bar
+- `create_gui`: Creates gui
 
 **Dependencies:**
 - docx
@@ -306,22 +306,22 @@ Classes:
 Note: This script must be run in an environment with PyQt5 installed.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 6.1 KB
-- Lines of code: 112 (of 151 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 6.7 KB
+- Lines of code: 142 (of 181 total)
 
 **Classes:**
-- `SVGConverter`: No documentation
+- `SVGConverter`: Converts s v g
   - Methods:
-    - `__init__`: No documentation
-    - `initUI`: No documentation
-    - `create_input_layout`: No documentation
-    - `create_resolution_layout`: No documentation
-    - `select_input`: No documentation
-    - `select_output`: No documentation
-    - `update_resolution_from_svg`: No documentation
-    - `update_output_suffix`: No documentation
-    - `convert_svg`: No documentation
+    - `__init__`: Special method __init__
+    - `initUI`: Initui
+    - `create_input_layout`: Creates input layout based on label text
+    - `create_resolution_layout`: Creates resolution layout
+    - `select_input`: Select input
+    - `select_output`: Select output
+    - `update_resolution_from_svg`: Updates resolution from svg based on file name
+    - `update_output_suffix`: Updates output suffix
+    - `convert_svg`: Converts svg
 
 **Dependencies:**
 - PyQt5
@@ -331,21 +331,21 @@ Note: This script must be run in an environment with PyQt5 installed.
 **Path:** `image_processing\convertor.py`
 
 **Description:**
-No description available
+This script implements convertor functionality that processes images.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 6.0 KB
-- Lines of code: 87 (of 129 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 6.3 KB
+- Lines of code: 108 (of 151 total)
 
 **Classes:**
-- `ImageConverter`: No documentation
+- `ImageConverter`: Converts image
   - Methods:
-    - `__init__`: No documentation
-    - `select_source`: No documentation
-    - `select_destination`: No documentation
-    - `update_convert_button`: No documentation
-    - `convert_image`: No documentation
+    - `__init__`: Special method __init__
+    - `select_source`: Select source
+    - `select_destination`: Select destination
+    - `update_convert_button`: Updates convert button
+    - `convert_image`: Converts image
 
 **Dependencies:**
 - PIL
@@ -356,15 +356,15 @@ No description available
 **Path:** `image_processing\copy_all_images_from_sub_folders.py`
 
 **Description:**
-No description available
+This script handles copy all images from sub folders.
 
 **File Info:**
-- Last modified: 2025-02-20 08:33:40
-- Size: 1.6 KB
-- Lines of code: 30 (of 49 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 1.7 KB
+- Lines of code: 36 (of 56 total)
 
 **Functions:**
-- `main`: No documentation
+- `main`: Main
 
 ### extract_text_from_image_regular.py
 
@@ -395,16 +395,16 @@ Run the script to open the GUI. Select an image, choose the output file type (TX
 and click 'Convert' to extract and save the text.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 3.9 KB
-- Lines of code: 79 (of 115 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 4.2 KB
+- Lines of code: 94 (of 130 total)
 
 **Functions:**
-- `extract_text_from_image`: No documentation
-- `save_to_file`: No documentation
-- `select_image_path`: No documentation
-- `convert_and_save`: No documentation
-- `main`: No documentation
+- `extract_text_from_image`: Extract text from image based on image path, delimiter
+- `save_to_file`: Save to file based on data, file path, file type
+- `select_image_path`: Select image path based on entry
+- `convert_and_save`: Converts and save based on entry, file type var
+- `main`: Main
 
 **Dependencies:**
 - google
@@ -439,16 +439,16 @@ Run the script and use the GUI to select an image, choose the output file type,
 and convert the image text to a structured format.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 4.8 KB
-- Lines of code: 80 (of 136 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 5.1 KB
+- Lines of code: 95 (of 151 total)
 
 **Functions:**
-- `extract_text_from_image`: No documentation
-- `save_to_file`: No documentation
-- `select_image_path`: No documentation
-- `convert_and_save`: No documentation
-- `main`: No documentation
+- `extract_text_from_image`: Extract text from image based on image path, delimiter
+- `save_to_file`: Save to file based on data, file path, file type
+- `select_image_path`: Select image path based on entry
+- `convert_and_save`: Converts and save based on entry, file type var
+- `main`: Main
 
 **Dependencies:**
 - google
@@ -459,26 +459,26 @@ and convert the image text to a structured format.
 **Path:** `image_processing\image_brightener_gui.py`
 
 **Description:**
-No description available
+This script handles image brightener gui that performs numerical operations.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 5.8 KB
-- Lines of code: 124 (of 168 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 6.3 KB
+- Lines of code: 154 (of 199 total)
 
 **Functions:**
-- `main`: No documentation
+- `main`: Main
 
 **Classes:**
-- `ImageBrightener`: No documentation
+- `ImageBrightener`: Represents a image brightener
   - Methods:
-    - `__init__`: No documentation
-    - `browse_input`: No documentation
-    - `browse_output`: No documentation
-    - `update_brightness`: No documentation
-    - `update_preview`: No documentation
-    - `brighten_image`: No documentation
-    - `process_image`: No documentation
+    - `__init__`: Special method __init__
+    - `browse_input`: Browse input
+    - `browse_output`: Browse output
+    - `update_brightness`: Updates brightness
+    - `update_preview`: Updates preview
+    - `brighten_image`: Brighten image based on img
+    - `process_image`: Process image
 
 **Dependencies:**
 - PyQt5
@@ -513,18 +513,18 @@ Dependencies:
 - shutil
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 4.2 KB
-- Lines of code: 72 (of 111 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 4.5 KB
+- Lines of code: 90 (of 129 total)
 
 **Classes:**
-- `ImageMover`: No documentation
+- `ImageMover`: Represents a image mover
   - Methods:
-    - `__init__`: No documentation
-    - `initUI`: No documentation
-    - `selectSourceDir`: No documentation
-    - `selectDestDir`: No documentation
-    - `moveImages`: No documentation
+    - `__init__`: Special method __init__
+    - `initUI`: Initui
+    - `selectSourceDir`: Selectsourcedir
+    - `selectDestDir`: Selectdestdir
+    - `moveImages`: Moveimages
 
 **Dependencies:**
 - PyQt5
@@ -571,35 +571,35 @@ Note: Ensure all required dependencies are installed and CUDA is available
 for optimal performance when processing large files or videos.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 23.9 KB
-- Lines of code: 391 (of 561 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 25.4 KB
+- Lines of code: 457 (of 627 total)
 
 **Classes:**
-- `WatermarkDetectionApp`: No documentation
+- `WatermarkDetectionApp`: Represents a watermark detection app
   - Methods:
-    - `__init__`: No documentation
-    - `create_widgets`: No documentation
-    - `download_and_load_inpainting_model`: No documentation
-    - `inpaint`: No documentation
-    - `browse_model`: No documentation
-    - `load_watermark_model`: No documentation
-    - `browse_input`: No documentation
-    - `browse_output`: No documentation
-    - `start_processing`: No documentation
-    - `process_file`: No documentation
-    - `process_image`: No documentation
-    - `save_intermediate_frame`: No documentation
-    - `process_video`: No documentation
-    - `detect_and_mark_watermark`: No documentation
-    - `visualize_mask`: No documentation
-    - `inpaint_image`: No documentation
-    - `resize_and_pad`: No documentation
-    - `update_log`: No documentation
-- `GUILogHandler`: No documentation
+    - `__init__`: Special method __init__
+    - `create_widgets`: Creates widgets
+    - `download_and_load_inpainting_model`: Download and load inpainting model
+    - `inpaint`: Inpaint based on prompt, image, mask image
+    - `browse_model`: Browse model
+    - `load_watermark_model`: Load watermark model
+    - `browse_input`: Browse input
+    - `browse_output`: Browse output
+    - `start_processing`: Start processing
+    - `process_file`: Process file
+    - `process_image`: Process image based on input path, output path
+    - `save_intermediate_frame`: Save intermediate frame based on frame, frame number
+    - `process_video`: Process video based on input path, output path
+    - `detect_and_mark_watermark`: Detect and mark watermark based on img
+    - `visualize_mask`: Visualize mask based on img, mask
+    - `inpaint_image`: Inpaint image based on img, mask, prompt, negative prompt, num inference steps, guidance scale, strength, seed
+    - `resize_and_pad`: Resize and pad based on img, mask, size
+    - `update_log`: Updates log based on message
+- `GUILogHandler`: Handles g u i log operations
   - Methods:
-    - `__init__`: No documentation
-    - `emit`: No documentation
+    - `__init__`: Special method __init__
+    - `emit`: Emit based on record
 
 **Dependencies:**
 - PIL
@@ -615,12 +615,12 @@ for optimal performance when processing large files or videos.
 **Path:** `image_processing\organize_dataset.py`
 
 **Description:**
-No description available
+This script handles organize dataset.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
+- Last modified: 2025-02-25 08:16:29
 - Size: 3.3 KB
-- Lines of code: 52 (of 75 total)
+- Lines of code: 55 (of 79 total)
 
 **Functions:**
 - `organize_dataset`: Organize a dataset by splitting it into training and validation sets
@@ -630,25 +630,25 @@ No description available
 **Path:** `image_processing\shutterstock_gui.py`
 
 **Description:**
-No description available
+This script handles shutterstock gui.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 9.1 KB
-- Lines of code: 192 (of 244 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 9.4 KB
+- Lines of code: 210 (of 263 total)
 
 **Functions:**
-- `main`: No documentation
+- `main`: Main
 
 **Classes:**
-- `UploaderWorker`: No documentation
+- `UploaderWorker`: Represents a uploader worker
   - Methods:
-    - `__init__`: No documentation
+    - `__init__`: Special method __init__
     - `process_image`: Process a single image with error handling
     - `run`: Main worker thread execution
-- `MainWindow`: No documentation
+- `MainWindow`: Represents a main window
   - Methods:
-    - `__init__`: No documentation
+    - `__init__`: Special method __init__
     - `initUI`: Initialize the user interface
     - `create_widgets`: Create all UI widgets
     - `setup_status_table`: Setup the status table configuration
@@ -673,17 +673,17 @@ No description available
 **Path:** `image_processing\shutterstock_uploader.py`
 
 **Description:**
-No description available
+This script handles shutterstock uploader that makes HTTP requests.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 10.1 KB
-- Lines of code: 213 (of 263 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 10.3 KB
+- Lines of code: 222 (of 273 total)
 
 **Classes:**
-- `ShutterstockAutoUploader`: No documentation
+- `ShutterstockAutoUploader`: Represents a shutterstock auto uploader
   - Methods:
-    - `__init__`: No documentation
+    - `__init__`: Special method __init__
     - `setup_logging`: Setup logging configuration
     - `load_keyword_blacklist`: Load blacklisted keywords
     - `add_delay`: Add delay for rate limiting
@@ -704,12 +704,12 @@ No description available
 **Path:** `image_processing\test_cuda.py`
 
 **Description:**
-No description available
+This script contains test cases for cuda.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
+- Last modified: 2025-02-25 08:16:29
 - Size: 0.3 KB
-- Lines of code: 8 (of 9 total)
+- Lines of code: 11 (of 13 total)
 
 **Dependencies:**
 - torch
@@ -719,35 +719,35 @@ No description available
 **Path:** `image_processing\update_meta_data.py`
 
 **Description:**
-No description available
+This script handles update meta data that processes images.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 20.9 KB
-- Lines of code: 419 (of 539 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 21.8 KB
+- Lines of code: 470 (of 591 total)
 
 **Functions:**
-- `main`: No documentation
+- `main`: Main
 
 **Classes:**
-- `MetadataWorker`: No documentation
+- `MetadataWorker`: Represents a metadata worker
   - Methods:
-    - `__init__`: No documentation
-    - `run`: No documentation
-    - `stop`: No documentation
-- `MainWindow`: No documentation
+    - `__init__`: Special method __init__
+    - `run`: Run
+    - `stop`: Stop
+- `MainWindow`: Represents a main window
   - Methods:
-    - `__init__`: No documentation
-    - `initUI`: No documentation
-    - `select_folder`: No documentation
-    - `start_processing`: No documentation
-    - `stop_processing`: No documentation
-    - `update_progress`: No documentation
-    - `update_log`: No documentation
-    - `processing_finished`: No documentation
-- `LocalMetadataUpdater`: No documentation
+    - `__init__`: Special method __init__
+    - `initUI`: Initui
+    - `select_folder`: Select folder
+    - `start_processing`: Start processing
+    - `stop_processing`: Stop processing
+    - `update_progress`: Updates progress based on value
+    - `update_log`: Updates log based on message
+    - `processing_finished`: Processing finished
+- `LocalMetadataUpdater`: Represents a local metadata updater
   - Methods:
-    - `__init__`: No documentation
+    - `__init__`: Special method __init__
     - `_setup_apis`: Set up API clients
     - `process_folder`: Process all images in the folder
     - `process_single_image`: Process a single image
@@ -764,6 +764,42 @@ No description available
 - piexif
 - shlex
 - win32file
+
+### update_meta_data_pro.py
+
+**Path:** `image_processing\update_meta_data_pro.py`
+
+**Description:**
+This script handles update meta data pro.
+
+**File Info:**
+- Last modified: 2025-02-25 08:16:29
+- Size: 24.6 KB
+- Lines of code: 470 (of 607 total)
+
+**Functions:**
+- `write_metadata_with_exiftool`: Writes metadata to image file using ExifTool, targeting IPTC and XMP fields for stock agencies
+- `refine_description_with_ai`: Uses Anthropic's Claude to refine or generate a description for the image
+- `suggest_keywords_with_ai`: Uses Anthropic's Claude to suggest additional relevant keywords based on the description
+- `main`: Main
+- `run_cli_version`: Run cli version
+
+**Classes:**
+- `MetadataEditorGUI`: Represents a metadata editor g u i
+  - Methods:
+    - `__init__`: Special method __init__
+    - `browse_image`: Browse image
+    - `load_image_preview`: Load image preview based on image path
+    - `load_existing_metadata`: Load existing metadata based on image path
+    - `toggle_ai_buttons`: Toggle ai buttons based on checked
+    - `refine_description`: Refine description
+    - `suggest_keywords`: Suggest keywords
+    - `check_input_validity`: Check input validity
+    - `save_metadata`: Save metadata
+
+**Dependencies:**
+- PyQt5
+- anthropic
 
 ### watermar_detection.py
 
@@ -799,29 +835,29 @@ Classes:
 Note: This application requires PyTorch, OpenCV, and other dependencies to be installed.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 10.0 KB
-- Lines of code: 180 (of 250 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 10.9 KB
+- Lines of code: 228 (of 298 total)
 
 **Classes:**
-- `WatermarkDetectionApp`: No documentation
+- `WatermarkDetectionApp`: Represents a watermark detection app
   - Methods:
-    - `__init__`: No documentation
-    - `create_widgets`: No documentation
-    - `browse_model`: No documentation
-    - `load_model`: No documentation
-    - `browse_input`: No documentation
-    - `browse_output`: No documentation
-    - `start_processing`: No documentation
-    - `process_file`: No documentation
-    - `process_image`: No documentation
-    - `process_video`: No documentation
-    - `detect_watermark`: No documentation
-    - `update_log`: No documentation
-- `GUILogHandler`: No documentation
+    - `__init__`: Special method __init__
+    - `create_widgets`: Creates widgets
+    - `browse_model`: Browse model
+    - `load_model`: Load model
+    - `browse_input`: Browse input
+    - `browse_output`: Browse output
+    - `start_processing`: Start processing
+    - `process_file`: Process file
+    - `process_image`: Process image based on input path, output path
+    - `process_video`: Process video based on input path, output path
+    - `detect_watermark`: Detect watermark based on img
+    - `update_log`: Updates log based on message
+- `GUILogHandler`: Handles g u i log operations
   - Methods:
-    - `__init__`: No documentation
-    - `emit`: No documentation
+    - `__init__`: Special method __init__
+    - `emit`: Emit based on record
 
 **Dependencies:**
 - PIL
@@ -862,19 +898,19 @@ The script will automatically download the dataset if not already present.
 Note: Adjust hyperparameters like batch size, learning rate, and number of epochs as needed.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 5.2 KB
-- Lines of code: 95 (of 124 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 5.5 KB
+- Lines of code: 110 (of 139 total)
 
 **Functions:**
-- `train`: No documentation
-- `test`: No documentation
+- `train`: Train based on model, device, train loader, optimizer, epoch
+- `test`: Test based on model, device, test loader
 
 **Classes:**
-- `Net`: No documentation
+- `Net`: Represents a net
   - Methods:
-    - `__init__`: No documentation
-    - `forward`: No documentation
+    - `__init__`: Special method __init__
+    - `forward`: Forward based on x
 
 **Dependencies:**
 - torch
@@ -905,20 +941,20 @@ Requirements:
 The script will automatically use CUDA if available, otherwise it will default to CPU.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 5.8 KB
-- Lines of code: 119 (of 156 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 6.1 KB
+- Lines of code: 137 (of 174 total)
 
 **Functions:**
-- `train_and_test`: No documentation
-- `print_gpu_memory`: No documentation
-- `print_cpu_memory`: No documentation
+- `train_and_test`: Train and test based on device, num epochs
+- `print_gpu_memory`: Print gpu memory
+- `print_cpu_memory`: Print cpu memory
 
 **Classes:**
-- `Net`: No documentation
+- `Net`: Represents a net
   - Methods:
-    - `__init__`: No documentation
-    - `forward`: No documentation
+    - `__init__`: Special method __init__
+    - `forward`: Forward based on x
 
 **Dependencies:**
 - GPUtil
@@ -954,12 +990,12 @@ For a full list of available arguments, run:
     python script_name.py --help
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
+- Last modified: 2025-02-25 08:16:29
 - Size: 7.7 KB
-- Lines of code: 116 (of 142 total)
+- Lines of code: 119 (of 145 total)
 
 **Functions:**
-- `main`: No documentation
+- `main`: Main
 
 **Dependencies:**
 - torch
@@ -972,16 +1008,16 @@ For a full list of available arguments, run:
 **Path:** `miscellaneous\cuda_matrix_multiplication.py`
 
 **Description:**
-No description available
+This script handles cuda matrix multiplication that performs numerical operations.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 4.0 KB
-- Lines of code: 88 (of 133 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 4.3 KB
+- Lines of code: 97 (of 143 total)
 
 **Functions:**
-- `cpu_matrix_mul`: No documentation
-- `gpu_matrix_mul`: No documentation
+- `cpu_matrix_mul`: Cpu matrix mul based on a, b
+- `gpu_matrix_mul`: Gpu matrix mul based on a, b, a gpu, b gpu, c gpu
 
 **Dependencies:**
 - numpy
@@ -992,12 +1028,12 @@ No description available
 **Path:** `miscellaneous\cuda_vector_add.py`
 
 **Description:**
-No description available
+This script handles cuda vector add that performs numerical operations.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 2.2 KB
-- Lines of code: 48 (of 81 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 2.3 KB
+- Lines of code: 51 (of 85 total)
 
 **Dependencies:**
 - numpy
@@ -1008,12 +1044,12 @@ No description available
 **Path:** `miscellaneous\discover_gpu_memory.py`
 
 **Description:**
-No description available
+This script handles discover gpu memory.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
+- Last modified: 2025-02-25 08:16:29
 - Size: 1.9 KB
-- Lines of code: 29 (of 51 total)
+- Lines of code: 32 (of 55 total)
 
 **Functions:**
 - `get_intel_gpu_info`: Retrieves and displays information about the Intel GPU installed on the system
@@ -1026,12 +1062,12 @@ No description available
 **Path:** `miscellaneous\discover_monitor_information.py`
 
 **Description:**
-No description available
+This script handles discover monitor information.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
+- Last modified: 2025-02-25 08:16:29
 - Size: 3.8 KB
-- Lines of code: 80 (of 104 total)
+- Lines of code: 83 (of 108 total)
 
 **Functions:**
 - `get_monitor_info_wmi`: Retrieve monitor information using Windows Management Instrumentation (WMI)
@@ -1065,17 +1101,17 @@ Run this script in the directory containing the Python files you want to analyze
 The generated requirements.txt file will be saved in the same directory.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 4.1 KB
-- Lines of code: 78 (of 105 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 4.5 KB
+- Lines of code: 96 (of 123 total)
 
 **Functions:**
-- `get_imports`: No documentation
-- `normalize_package_name`: No documentation
-- `get_stdlib_modules`: No documentation
-- `is_windows_specific`: No documentation
-- `get_all_requirements`: No documentation
-- `main`: No documentation
+- `get_imports`: Retrieves imports based on file path
+- `normalize_package_name`: Normalize package name based on package
+- `get_stdlib_modules`: Retrieves stdlib modules
+- `is_windows_specific`: Checks if windows specific based on package
+- `get_all_requirements`: Retrieves all requirements based on output file
+- `main`: Main
 
 **Dependencies:**
 - pkgutil
@@ -1118,16 +1154,16 @@ Requirements:
 Note: GPU operations require CUDA-capable hardware and appropriate CUDA setup.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 4.1 KB
-- Lines of code: 90 (of 123 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 4.4 KB
+- Lines of code: 105 (of 138 total)
 
 **Functions:**
-- `print_gpu_memory`: No documentation
-- `print_cpu_memory`: No documentation
-- `cpu_gaussian_blur`: No documentation
-- `gpu_gaussian_blur`: No documentation
-- `run_comparison`: No documentation
+- `print_gpu_memory`: Print gpu memory
+- `print_cpu_memory`: Print cpu memory
+- `cpu_gaussian_blur`: Cpu gaussian blur based on image, kernel size
+- `gpu_gaussian_blur`: Gpu gaussian blur based on image, kernel size
+- `run_comparison`: Run comparison based on image path, runs
 
 **Dependencies:**
 - GPUtil
@@ -1142,12 +1178,12 @@ Note: GPU operations require CUDA-capable hardware and appropriate CUDA setup.
 **Path:** `miscellaneous\organize_scripts.py`
 
 **Description:**
-No description available
+This script handles organize scripts.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 3.0 KB
-- Lines of code: 68 (of 81 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 3.1 KB
+- Lines of code: 71 (of 85 total)
 
 ### password_hashing_comparison.py
 
@@ -1178,16 +1214,16 @@ Run this script directly to perform the comparison with default parameters.
 You can modify the parameters in the run_comparison() function call if needed.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 4.1 KB
-- Lines of code: 82 (of 116 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 4.4 KB
+- Lines of code: 97 (of 131 total)
 
 **Functions:**
-- `print_gpu_memory`: No documentation
-- `print_cpu_memory`: No documentation
-- `cpu_hash_passwords`: No documentation
-- `gpu_hash_passwords`: No documentation
-- `run_comparison`: No documentation
+- `print_gpu_memory`: Print gpu memory
+- `print_cpu_memory`: Print cpu memory
+- `cpu_hash_passwords`: Cpu hash passwords based on passwords
+- `gpu_hash_passwords`: Gpu hash passwords based on passwords
+- `run_comparison`: Run comparison based on num passwords, password length, runs
 
 **Dependencies:**
 - GPUtil
@@ -1221,18 +1257,18 @@ The comparison parameters (number size, maximum number, and number of runs)
 can be adjusted in the run_comparison() function call at the end of the script.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 4.6 KB
-- Lines of code: 101 (of 140 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 5.0 KB
+- Lines of code: 122 (of 161 total)
 
 **Functions:**
-- `is_prime`: No documentation
-- `cpu_find_primes`: No documentation
-- `gpu_is_prime`: No documentation
-- `gpu_find_primes`: No documentation
-- `print_gpu_memory`: No documentation
-- `print_cpu_memory`: No documentation
-- `run_comparison`: No documentation
+- `is_prime`: Checks if prime based on n
+- `cpu_find_primes`: Cpu find primes based on numbers
+- `gpu_is_prime`: Gpu is prime based on n
+- `gpu_find_primes`: Gpu find primes based on numbers
+- `print_gpu_memory`: Print gpu memory
+- `print_cpu_memory`: Print cpu memory
+- `run_comparison`: Run comparison based on size, max num, runs
 
 **Dependencies:**
 - GPUtil
@@ -1245,12 +1281,12 @@ can be adjusted in the run_comparison() function call at the end of the script.
 **Path:** `miscellaneous\remove_versions_from_requirements.py`
 
 **Description:**
-No description available
+This script handles remove versions from requirements.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
+- Last modified: 2025-02-25 08:16:29
 - Size: 2.3 KB
-- Lines of code: 34 (of 54 total)
+- Lines of code: 37 (of 58 total)
 
 **Functions:**
 - `remove_versions`: Remove version specifiers and comments from a requirements file
@@ -1260,20 +1296,20 @@ No description available
 **Path:** `miscellaneous\setup_env.py`
 
 **Description:**
-No description available
+This script handles setup env.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 6.9 KB
-- Lines of code: 141 (of 187 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 7.0 KB
+- Lines of code: 153 (of 200 total)
 
 **Functions:**
-- `main`: No documentation
+- `main`: Main
 
 **Classes:**
-- `EnvironmentManager`: No documentation
+- `EnvironmentManager`: Manages environment
   - Methods:
-    - `__init__`: No documentation
+    - `__init__`: Special method __init__
     - `set_windows_env_variable`: Set Windows environment variable using registry and broadcast change
     - `load_existing_config`: Load existing configuration if available
     - `save_config`: Save configuration to file
@@ -1290,12 +1326,12 @@ No description available
 **Path:** `miscellaneous\setup_requirements.py`
 
 **Description:**
-No description available
+This script handles setup requirements.
 
 **File Info:**
-- Last modified: 2025-02-20 08:52:01
-- Size: 2.4 KB
-- Lines of code: 49 (of 67 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 2.5 KB
+- Lines of code: 52 (of 71 total)
 
 **Functions:**
 - `extract_imports`: Extract import statements from a Python file
@@ -1331,16 +1367,16 @@ Requirements:
 Note: GPU sorting will only be performed if CUDA is available.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 3.3 KB
-- Lines of code: 79 (of 107 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 3.5 KB
+- Lines of code: 94 (of 122 total)
 
 **Functions:**
-- `cpu_sort`: No documentation
-- `gpu_sort`: No documentation
-- `print_gpu_memory`: No documentation
-- `print_cpu_memory`: No documentation
-- `run_comparison`: No documentation
+- `cpu_sort`: Cpu sort based on arr
+- `gpu_sort`: Gpu sort based on arr
+- `print_gpu_memory`: Print gpu memory
+- `print_cpu_memory`: Print cpu memory
+- `run_comparison`: Run comparison based on size, runs
 
 **Dependencies:**
 - GPUtil
@@ -1409,24 +1445,24 @@ Run the script directly to process files and update the README.md.
 **Path:** `network monitor\__init__.py`
 
 **Description:**
-No description available
+This script handles   init  .
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
+- Last modified: 2025-02-25 08:16:29
 - Size: 0.0 KB
-- Lines of code: 0 (of 0 total)
+- Lines of code: 3 (of 4 total)
 
 ### anomaly_detector.py
 
 **Path:** `network monitor\anomaly_detector.py`
 
 **Description:**
-No description available
+This script handles anomaly detector that performs numerical operations.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 4.1 KB
-- Lines of code: 73 (of 104 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 4.2 KB
+- Lines of code: 76 (of 108 total)
 
 **Classes:**
 - `AnomalyDetector`: A class for detecting network traffic anomalies using machine learning
@@ -1444,12 +1480,12 @@ No description available
 **Path:** `network monitor\config\__init__.py`
 
 **Description:**
-No description available
+This script handles   init  .
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 0.4 KB
-- Lines of code: 18 (of 19 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 0.5 KB
+- Lines of code: 21 (of 23 total)
 
 **Dependencies:**
 - feature_config
@@ -1460,24 +1496,24 @@ No description available
 **Path:** `network monitor\config\feature_config.py`
 
 **Description:**
-No description available
+This script handles feature config.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
+- Last modified: 2025-02-25 08:16:29
 - Size: 1.1 KB
-- Lines of code: 21 (of 22 total)
+- Lines of code: 24 (of 26 total)
 
 ### whitelist_config.py
 
 **Path:** `network monitor\config\whitelist_config.py`
 
 **Description:**
-No description available
+This script handles whitelist config.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
+- Last modified: 2025-02-25 08:16:29
 - Size: 1.0 KB
-- Lines of code: 28 (of 40 total)
+- Lines of code: 31 (of 44 total)
 
 **Dependencies:**
 - ipaddress
@@ -1487,12 +1523,12 @@ No description available
 **Path:** `network monitor\feature_extractor.py`
 
 **Description:**
-No description available
+This script handles feature extractor that processes data.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
+- Last modified: 2025-02-25 08:16:29
 - Size: 4.1 KB
-- Lines of code: 95 (of 124 total)
+- Lines of code: 98 (of 128 total)
 
 **Classes:**
 - `FeatureExtractor`: A class for extracting features from network packets for machine learning analysis
@@ -1511,17 +1547,17 @@ No description available
 **Path:** `network monitor\interface_manager.py`
 
 **Description:**
-No description available
+This script handles interface manager.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 5.6 KB
-- Lines of code: 92 (of 113 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 5.8 KB
+- Lines of code: 101 (of 123 total)
 
 **Classes:**
-- `InterfaceManager`: No documentation
+- `InterfaceManager`: Manages interface
   - Methods:
-    - `__init__`: No documentation
+    - `__init__`: Special method __init__
     - `get_interfaces`: Retrieve a list of active network interfaces along with their IP addresses and netmasks
     - `get_subnet_mask`: Get the subnet mask for a given interface
     - `choose_interface`: Allow user to choose a network interface
@@ -1538,12 +1574,12 @@ No description available
 **Path:** `network monitor\logger_setup.py`
 
 **Description:**
-No description available
+This script handles logger setup.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
+- Last modified: 2025-02-25 08:16:29
 - Size: 2.4 KB
-- Lines of code: 34 (of 59 total)
+- Lines of code: 37 (of 63 total)
 
 **Classes:**
 - `LoggerSetup`: A class to set up and manage a thread-safe logging system using a queue-based approach
@@ -1559,12 +1595,12 @@ No description available
 **Path:** `network monitor\models\__init__.py`
 
 **Description:**
-No description available
+This script handles   init  .
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 0.1 KB
-- Lines of code: 2 (of 3 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 0.2 KB
+- Lines of code: 5 (of 7 total)
 
 **Dependencies:**
 - persistent_anomaly_detector
@@ -1574,17 +1610,17 @@ No description available
 **Path:** `network monitor\models\persistent_anomaly_detector.py`
 
 **Description:**
-No description available
+This script handles persistent anomaly detector that processes data.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 2.9 KB
-- Lines of code: 61 (of 74 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 3.1 KB
+- Lines of code: 70 (of 84 total)
 
 **Classes:**
-- `PersistentAnomalyDetector`: No documentation
+- `PersistentAnomalyDetector`: Represents a persistent anomaly detector
   - Methods:
-    - `__init__`: No documentation
+    - `__init__`: Special method __init__
     - `partial_fit`: Partially fit the model with new data
     - `predict`: Make predictions using the fitted model
     - `save_model`: Save the fitted model to a file
@@ -1600,12 +1636,12 @@ No description available
 **Path:** `network monitor\network_monitor.py`
 
 **Description:**
-No description available
+This script handles network monitor.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 9.3 KB
-- Lines of code: 130 (of 173 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 9.4 KB
+- Lines of code: 136 (of 180 total)
 
 **Functions:**
 - `main`: Entry point of the script - parse arguments and start monitoring
@@ -1613,7 +1649,7 @@ No description available
 **Classes:**
 - `NetworkMonitor`: Main class for monitoring network traffic and detecting anomalies
   - Methods:
-    - `__init__`: No documentation
+    - `__init__`: Special method __init__
     - `check_root_linux`: Check if script is running with root privileges on Linux systems
     - `run`: Main monitoring loop that captures and analyzes network traffic
     - `_log_results`: Log detected suspicious activities and anomalies
@@ -1632,17 +1668,17 @@ No description available
 **Path:** `network monitor\packet_analyzer.py`
 
 **Description:**
-No description available
+This script handles packet analyzer.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 13.4 KB
-- Lines of code: 233 (of 292 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 13.6 KB
+- Lines of code: 242 (of 302 total)
 
 **Classes:**
-- `PacketAnalyzer`: No documentation
+- `PacketAnalyzer`: Represents a packet analyzer
   - Methods:
-    - `__init__`: No documentation
+    - `__init__`: Special method __init__
     - `_is_binary_or_encrypted`: Check if the data appears to be binary or encrypted
     - `_decode_payload`: Try multiple encodings to decode the payload
     - `analyze_traffic`: Analyze network traffic for suspicious activities
@@ -1659,19 +1695,19 @@ No description available
 **Path:** `network monitor\packet_capture.py`
 
 **Description:**
-No description available
+This script handles packet capture.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 2.4 KB
-- Lines of code: 63 (of 76 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 2.8 KB
+- Lines of code: 81 (of 95 total)
 
 **Classes:**
-- `PacketCapture`: No documentation
+- `PacketCapture`: Represents a packet capture
   - Methods:
-    - `__init__`: No documentation
-    - `capture_packets_worker`: No documentation
-    - `capture_packets`: No documentation
+    - `__init__`: Special method __init__
+    - `capture_packets_worker`: Capture packets worker based on interface, count, result queue
+    - `capture_packets`: Capture packets based on interface, total count
 
 **Dependencies:**
 - scapy
@@ -1682,12 +1718,12 @@ No description available
 **Path:** `network monitor\utils\__init__.py`
 
 **Description:**
-No description available
+This script handles   init  .
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
+- Last modified: 2025-02-25 08:16:29
 - Size: 0.3 KB
-- Lines of code: 9 (of 10 total)
+- Lines of code: 12 (of 14 total)
 
 **Dependencies:**
 - network_utils
@@ -1698,12 +1734,12 @@ No description available
 **Path:** `network monitor\utils\network_utils.py`
 
 **Description:**
-No description available
+This script provides utility functions for networks.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
+- Last modified: 2025-02-25 08:16:29
 - Size: 0.6 KB
-- Lines of code: 18 (of 21 total)
+- Lines of code: 21 (of 25 total)
 
 **Functions:**
 - `resolve_ip`: Resolve an IP address to a hostname
@@ -1714,12 +1750,12 @@ No description available
 **Path:** `network monitor\utils\packet_utils.py`
 
 **Description:**
-No description available
+This script provides utility functions for packets.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 0.9 KB
-- Lines of code: 26 (of 29 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 1.0 KB
+- Lines of code: 29 (of 33 total)
 
 **Functions:**
 - `is_inbound`: Check if a packet is inbound to the local network
@@ -1735,17 +1771,17 @@ No description available
 **Path:** `network monitor\whitelist_manager.py`
 
 **Description:**
-No description available
+This script handles whitelist manager.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 4.4 KB
-- Lines of code: 106 (of 124 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 4.6 KB
+- Lines of code: 115 (of 134 total)
 
 **Classes:**
-- `WhitelistManager`: No documentation
+- `WhitelistManager`: Manages whitelist
   - Methods:
-    - `__init__`: No documentation
+    - `__init__`: Special method __init__
     - `is_whitelisted`: Check if a packet matches any whitelist rules
     - `is_whitelisted_port`: Check if a port is whitelisted
     - `_check_ip_whitelist`: Check if packet IPs are whitelisted
@@ -1790,13 +1826,13 @@ Dependencies:
 Note: This script is designed for educational and demonstrative purposes.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 3.8 KB
-- Lines of code: 75 (of 124 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 3.9 KB
+- Lines of code: 78 (of 127 total)
 
 **Functions:**
 - `deutsch_jozsa_circuit`: Create a Deutsch-Jozsa circuit
-- `balanced_oracle`: No documentation
+- `balanced_oracle`: Balanced oracle
 
 **Dependencies:**
 - matplotlib
@@ -1896,25 +1932,37 @@ established cryptographic libraries and protocols.
 **Path:** `readme_generator.py`
 
 **Description:**
-No description available
+This script handles readme generator.
 
 **File Info:**
-- Last modified: 2025-02-25 07:53:35
-- Size: 19.0 KB
-- Lines of code: 327 (of 425 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 33.3 KB
+- Lines of code: 570 (of 743 total)
 
 **Functions:**
-- `parse_args`: No documentation
+- `parse_args`: Parses args
 
 **Classes:**
-- `ScriptAnalyzer`: No documentation
+- `DocUpdater`: Class responsible for updating Python files with missing documentation
   - Methods:
-    - `__init__`: No documentation
+    - `__init__`: Special method __init__
+    - `get_module_docstring`: Check if a Python file has a module-level docstring
+    - `get_function_docstring`: Get docstring for a function node
+    - `get_class_docstring`: Get docstring for a class node
+    - `infer_file_description`: Infer a description for a Python file based on its content
+    - `_infer_purpose_from_name`: Infer purpose from filename
+    - `infer_function_docstring`: Infer a docstring for a function based on its name and parameters
+    - `infer_class_docstring`: Infer a docstring for a class based on its name and methods
+    - `update_file_with_docstrings`: Update a Python file with inferred docstrings where they're missing
+- `ScriptAnalyzer`: Represents a script analyzer
+  - Methods:
+    - `__init__`: Special method __init__
     - `extract_docstring`: Parse Python file and extract module-level docstring
     - `extract_imports`: Parse Python file and extract all import statements
     - `extract_functions_and_classes`: Parse Python file and extract functions and classes with their docstrings
     - `get_file_stats`: Get file statistics such as size, lines of code, and last modified date
     - `process_notebook`: Process Jupyter notebook (
+    - `update_file_docstrings`: Update docstrings in a Python file if they're missing
     - `analyze_file`: Analyze a single file and return its data
     - `should_exclude`: Check if a path should be excluded based on exclude_dirs
     - `analyze_scripts`: Walk through directory tree and analyze all Python files and Jupyter notebooks
@@ -1929,12 +1977,12 @@ No description available
 **Path:** `setup_requirements.py`
 
 **Description:**
-No description available
+This script handles setup requirements.
 
 **File Info:**
-- Last modified: 2025-02-23 13:11:51
+- Last modified: 2025-02-25 08:16:29
 - Size: 3.8 KB
-- Lines of code: 65 (of 97 total)
+- Lines of code: 68 (of 101 total)
 
 **Functions:**
 - `extract_imports`: Extract import statements from a Python file
@@ -1946,64 +1994,64 @@ No description available
 **Path:** `speech_to_text\build_app.py`
 
 **Description:**
-No description available
+This script handles build app.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 4.2 KB
-- Lines of code: 106 (of 143 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 4.3 KB
+- Lines of code: 112 (of 150 total)
 
 **Functions:**
-- `build_executable`: No documentation
+- `build_executable`: Build executable
 
 ### transcription_app.py
 
 **Path:** `speech_to_text\transcription_app.py`
 
 **Description:**
-No description available
+This script handles transcription app.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 21.0 KB
-- Lines of code: 445 (of 579 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 22.7 KB
+- Lines of code: 535 (of 670 total)
 
 **Functions:**
-- `get_embedded_api_key`: No documentation
-- `main`: No documentation
+- `get_embedded_api_key`: Retrieves embedded api key
+- `main`: Main
 
 **Classes:**
-- `ProofreadingDialog`: No documentation
+- `ProofreadingDialog`: Represents a proofreading dialog
   - Methods:
-    - `__init__`: No documentation
-- `ProofreadingWorker`: No documentation
+    - `__init__`: Special method __init__
+- `ProofreadingWorker`: Represents a proofreading worker
   - Methods:
-    - `__init__`: No documentation
-    - `run`: No documentation
-- `TranscriptionWorker`: No documentation
+    - `__init__`: Special method __init__
+    - `run`: Run
+- `TranscriptionWorker`: Represents a transcription worker
   - Methods:
-    - `__init__`: No documentation
-    - `format_transcript`: No documentation
-    - `split_audio`: No documentation
-    - `run`: No documentation
-- `TranscriptionApp`: No documentation
+    - `__init__`: Special method __init__
+    - `format_transcript`: Format transcript based on text
+    - `split_audio`: Split audio based on audio segment, max size mb
+    - `run`: Run
+- `TranscriptionApp`: Represents a transcription app
   - Methods:
-    - `__init__`: No documentation
-    - `toggle_maximize`: No documentation
-    - `copy_text`: No documentation
-    - `init_ui`: No documentation
-    - `mousePressEvent`: No documentation
-    - `mouseMoveEvent`: No documentation
-    - `update_status`: No documentation
-    - `browse_file`: No documentation
-    - `start_transcription`: No documentation
-    - `start_proofreading`: No documentation
-    - `proofreading_complete`: No documentation
-    - `proofreading_error`: No documentation
-    - `update_progress`: No documentation
-    - `transcription_complete`: No documentation
-    - `save_transcript`: No documentation
-    - `transcription_error`: No documentation
+    - `__init__`: Special method __init__
+    - `toggle_maximize`: Toggle maximize
+    - `copy_text`: Copy text
+    - `init_ui`: Init ui
+    - `mousePressEvent`: Mousepressevent based on event
+    - `mouseMoveEvent`: Mousemoveevent based on event
+    - `update_status`: Updates status based on text
+    - `browse_file`: Browse file
+    - `start_transcription`: Start transcription
+    - `start_proofreading`: Start proofreading
+    - `proofreading_complete`: Proofreading complete based on corrected text
+    - `proofreading_error`: Proofreading error based on error message
+    - `update_progress`: Updates progress based on status, value
+    - `transcription_complete`: Transcription complete based on transcript
+    - `save_transcript`: Save transcript
+    - `transcription_error`: Transcription error based on error message
 
 **Dependencies:**
 - PyQt5
@@ -2015,22 +2063,22 @@ No description available
 **Path:** `system_utilities\ai_security_service.py`
 
 **Description:**
-No description available
+This script handles ai security service.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 5.3 KB
-- Lines of code: 122 (of 169 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 5.7 KB
+- Lines of code: 146 (of 194 total)
 
 **Functions:**
-- `get_current_user`: No documentation
-- `get_db`: No documentation
-- `cache_response`: No documentation
+- `get_current_user`: Retrieves current user based on token
+- `get_db`: Retrieves db
+- `cache_response`: Cache response based on expire time
 
 **Classes:**
-- `User`: No documentation
-- `UserCreate`: No documentation
-- `UserResponse`: No documentation
+- `User`: Represents a user
+- `UserCreate`: Represents a user create
+- `UserResponse`: Represents a user response
 
 **Dependencies:**
 - bcrypt
@@ -2046,242 +2094,24 @@ No description available
 **Path:** `system_utilities\anthropic_claude_chat.py`
 
 **Description:**
-ClaudeChat Application
-
-This application provides a graphical user interface for interacting with the Anthropic Claude AI model. 
-It allows users to have conversations with the AI, upload and analyze files, and manage conversation history.
-
-Key features:
-- Chat interface with Claude AI
-- File upload and analysis (text, PDF, images, Word, Excel)
-- Conversation history management
-- Code block highlighting and copying
-- Multiple Claude model selection
-
-The application uses PyQt5 for the GUI, SQLite for storing conversation history, 
-and integrates with various libraries for file handling and API communication.
-
-Main classes:
-- ClaudeChat: The main application window and logic
-- ConversationHistory: Manages conversation storage and retrieval
-- MessageProcessor: Handles asynchronous API calls to Claude
-- PythonHighlighter: Provides syntax highlighting for code blocks
-
-Usage:
-Run this script to launch the ClaudeChat application. An Anthropic API key is required.
-
-Dependencies:
-- PyQt5
-- anthropic
-- fitz (PyMuPDF)
-- Pillow
-- win32com
-
-Note: This application is designed to run on Windows due to some Windows-specific features.
+Could not parse file for description
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 83.8 KB
-- Lines of code: 1147 (of 1747 total)
-
-**Functions:**
-- `setup_logging`: No documentation
-- `main`: No documentation
-
-**Classes:**
-- `ConversationHistory`: No documentation
-  - Methods:
-    - `__init__`: No documentation
-    - `create_table`: No documentation
-    - `save_conversation_to_db`: No documentation
-    - `load_conversation_history`: No documentation
-    - `load_conversations`: No documentation
-    - `update_conversation_history`: No documentation
-    - `rename_conversation`: No documentation
-    - `delete_conversation`: No documentation
-    - `get_conversation_title`: No documentation
-- `PythonHighlighter`: No documentation
-  - Methods:
-    - `__init__`: No documentation
-    - `highlightBlock`: No documentation
-- `MultiLineInput`: No documentation
-  - Methods:
-    - `__init__`: No documentation
-    - `keyPressEvent`: No documentation
-    - `insertFromMimeData`: No documentation
-    - `is_code_block`: No documentation
-    - `format_code_block`: No documentation
-    - `adjustHeight`: No documentation
-- `MessageProcessor`: No documentation
-  - Methods:
-    - `__init__`: No documentation
-    - `run`: No documentation
-- `APIKeyDialog`: No documentation
-  - Methods:
-    - `__init__`: No documentation
-    - `get_api_key`: No documentation
-- `ClaudeChat`: No documentation
-  - Methods:
-    - `__init__`: No documentation
-    - `set_windows_env_variable`: No documentation
-    - `init_ui`: No documentation
-    - `update_sidebar`: No documentation
-    - `show_context_menu`: No documentation
-    - `rename_conversation`: No documentation
-    - `delete_conversation`: No documentation
-    - `show_code_dialog`: No documentation
-    - `encode_image`: No documentation
-    - `load_conversation`: No documentation
-    - `send_message`: No documentation
-    - `get_the_current_model`: No documentation
-    - `save_conversation`: No documentation
-    - `generate_conversation_title`: No documentation
-    - `set_focus_to_input`: No documentation
-    - `update_chat`: No documentation
-    - `add_new_conversation`: No documentation
-    - `is_code_block`: No documentation
-    - `add_copy_button`: No documentation
-    - `copy_code_to_clipboard`: No documentation
-    - `update_chat_history`: No documentation
-    - `enable_input`: No documentation
-    - `clear_chat`: No documentation
-    - `api_busy`: No documentation
-    - `show_api_error`: No documentation
-    - `upload_file`: No documentation
-    - `close_progress_dialog`: No documentation
-    - `handle_api_error`: No documentation
-
-**Dependencies:**
-- PIL
-- PyQt5
-- anthropic
-- ctypes
-- fitz
-- httpx
-- pyexpat
-- pythoncom
-- requests
-- win32com
-- winreg
+- Last modified: 2025-02-25 08:16:29
+- Size: 87.4 KB
+- Lines of code: 1318 (of 1918 total)
 
 ### anthropic_claude_chat_for_linux.py
 
 **Path:** `system_utilities\anthropic_claude_chat_for_linux.py`
 
 **Description:**
-ClaudeChat Application
-
-This application provides a graphical user interface for interacting with the Claude AI model
-using the Anthropic API. It allows users to have conversations with the AI, upload files for
-analysis, and manage conversation history.
-
-Key features:
-- Chat interface for interacting with Claude AI
-- File upload and analysis (text, PDF, images)
-- Conversation history management
-- Code block detection and syntax highlighting
-- Multiple Claude model selection
-
-The application uses PyQt5 for the GUI, sqlite3 for local storage of conversation history,
-and integrates with the Anthropic API for AI interactions.
-
-Usage:
-Run this script to launch the ClaudeChat application. Users will need to provide their
-Anthropic API key on first run or if it's not set in the environment variables.
-
-Dependencies:
-- PyQt5
-- anthropic
-- fitz (PyMuPDF)
-- Pillow
-- requests
-- logging
-
-Note: Ensure all required dependencies are installed and the Anthropic API key is available
-before running the application.
+Could not parse file for description
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 85.1 KB
-- Lines of code: 1167 (of 1801 total)
-
-**Functions:**
-- `setup_logging`: No documentation
-- `main`: No documentation
-
-**Classes:**
-- `ConversationHistory`: No documentation
-  - Methods:
-    - `__init__`: No documentation
-    - `create_table`: No documentation
-    - `save_conversation_to_db`: No documentation
-    - `load_conversation_history`: No documentation
-    - `load_conversations`: No documentation
-    - `update_conversation_history`: No documentation
-    - `rename_conversation`: No documentation
-    - `delete_conversation`: No documentation
-    - `get_conversation_title`: No documentation
-- `PythonHighlighter`: No documentation
-  - Methods:
-    - `__init__`: No documentation
-    - `highlightBlock`: No documentation
-- `MultiLineInput`: No documentation
-  - Methods:
-    - `__init__`: No documentation
-    - `keyPressEvent`: No documentation
-    - `insertFromMimeData`: No documentation
-    - `is_code_block`: No documentation
-    - `format_code_block`: No documentation
-    - `adjustHeight`: No documentation
-- `MessageProcessor`: No documentation
-  - Methods:
-    - `__init__`: No documentation
-    - `run`: No documentation
-- `APIKeyDialog`: No documentation
-  - Methods:
-    - `__init__`: No documentation
-    - `get_api_key`: No documentation
-- `ClaudeChat`: No documentation
-  - Methods:
-    - `__init__`: No documentation
-    - `set_linux_env_variable`: No documentation
-    - `set_macos_env_variable`: No documentation
-    - `init_ui`: No documentation
-    - `update_sidebar`: No documentation
-    - `show_context_menu`: No documentation
-    - `rename_conversation`: No documentation
-    - `delete_conversation`: No documentation
-    - `show_code_dialog`: No documentation
-    - `encode_image`: No documentation
-    - `load_conversation`: No documentation
-    - `send_message`: No documentation
-    - `get_the_current_model`: No documentation
-    - `save_conversation`: No documentation
-    - `generate_conversation_title`: No documentation
-    - `set_focus_to_input`: No documentation
-    - `update_chat`: No documentation
-    - `add_new_conversation`: No documentation
-    - `is_code_block`: No documentation
-    - `add_copy_button`: No documentation
-    - `copy_code_to_clipboard`: No documentation
-    - `update_chat_history`: No documentation
-    - `enable_input`: No documentation
-    - `clear_chat`: No documentation
-    - `api_busy`: No documentation
-    - `show_api_error`: No documentation
-    - `upload_file`: No documentation
-    - `close_progress_dialog`: No documentation
-    - `handle_api_error`: No documentation
-
-**Dependencies:**
-- PIL
-- PyQt5
-- anthropic
-- ctypes
-- fitz
-- httpx
-- pyexpat
-- requests
+- Last modified: 2025-02-25 08:16:29
+- Size: 88.8 KB
+- Lines of code: 1341 (of 1975 total)
 
 ### convert_audio_to_text.py
 
@@ -2317,17 +2147,17 @@ Usage:
 The script handles audio format conversion (m4a to wav) and channel conversion (stereo to mono) automatically.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 4.6 KB
-- Lines of code: 93 (of 138 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 5.0 KB
+- Lines of code: 111 (of 156 total)
 
 **Functions:**
-- `browse_audio_file`: No documentation
-- `browse_save_location`: No documentation
-- `convert_m4a_to_wav`: No documentation
-- `convert_stereo_to_mono`: No documentation
-- `convert_audio_to_text`: No documentation
-- `main`: No documentation
+- `browse_audio_file`: Browse audio file based on label
+- `browse_save_location`: Browse save location based on label
+- `convert_m4a_to_wav`: Converts m4a to wav based on audio file path
+- `convert_stereo_to_mono`: Converts stereo to mono based on audio file path
+- `convert_audio_to_text`: Converts audio to text based on audio file path, save location, filename
+- `main`: Main
 
 **Dependencies:**
 - audioop
@@ -2372,29 +2202,29 @@ Email credentials are securely stored in the Windows Registry.
 Note: This script is designed to run on Windows systems only.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 11.5 KB
-- Lines of code: 222 (of 290 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 12.2 KB
+- Lines of code: 267 (of 335 total)
 
 **Functions:**
-- `check_dependencies`: No documentation
-- `check_module`: No documentation
-- `load_config`: No documentation
-- `main`: No documentation
+- `check_dependencies`: Check dependencies
+- `check_module`: Check module based on module
+- `load_config`: Load config
+- `main`: Main
 
 **Classes:**
-- `Config`: No documentation
-- `DiskSpaceAlertService`: No documentation
+- `Config`: Represents a config
+- `DiskSpaceAlertService`: Provides disk space alert functionality
   - Methods:
-    - `__init__`: No documentation
-    - `SvcStop`: No documentation
-    - `SvcDoRun`: No documentation
-    - `main`: No documentation
-    - `check_disk_space`: No documentation
-    - `get_disks`: No documentation
-    - `send_alert`: No documentation
-    - `get_email_credentials`: No documentation
-    - `configure_email`: No documentation
+    - `__init__`: Special method __init__
+    - `SvcStop`: Svcstop
+    - `SvcDoRun`: Svcdorun
+    - `main`: Main
+    - `check_disk_space`: Check disk space
+    - `get_disks`: Retrieves disks
+    - `send_alert`: Send alert based on disk
+    - `get_email_credentials`: Retrieves email credentials
+    - `configure_email`: Configure email
 
 **Dependencies:**
 - cryptography
@@ -2444,29 +2274,29 @@ C: and D: drives.
 **Path:** `system_utilities\hour_calculator.py`
 
 **Description:**
-No description available
+This script handles hour calculator.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 9.8 KB
-- Lines of code: 211 (of 272 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 10.1 KB
+- Lines of code: 229 (of 291 total)
 
 **Functions:**
 - `parse_time`: Convert a string 'hours:minutes' or 'hours' into total minutes as a float
 - `format_hours`: Converts total minutes into 'hours:minutes' string, with rounding to nearest minute
 - `evaluate_expression`: Given a list of tokens in the form [time_in_minutes, operator, time_in_minutes, operator,
-- `main`: No documentation
+- `main`: Main
 
 **Classes:**
-- `TimeCalculator`: No documentation
+- `TimeCalculator`: Represents a time calculator
   - Methods:
-    - `__init__`: No documentation
-    - `on_button_clicked`: No documentation
+    - `__init__`: Special method __init__
+    - `on_button_clicked`: On button clicked
     - `clear_all`: Reset everything
     - `process_operator`: 1
     - `process_equals`: 1
     - `update_expression_display`: Updates the expression display with the newly entered time or operator
-    - `show_error`: No documentation
+    - `show_error`: Show error based on message
 
 **Dependencies:**
 - PyQt5
@@ -2538,18 +2368,18 @@ Note: This script is designed to work both as a standalone Python script and
 when bundled with PyInstaller.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 5.5 KB
-- Lines of code: 93 (of 141 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 5.8 KB
+- Lines of code: 114 (of 162 total)
 
 **Functions:**
-- `select_source_file`: No documentation
-- `select_destination_folder`: No documentation
-- `get_duration`: No documentation
-- `update_progress_bar`: No documentation
-- `convert_video`: No documentation
-- `start_conversion`: No documentation
-- `on_closing`: No documentation
+- `select_source_file`: Select source file
+- `select_destination_folder`: Select destination folder
+- `get_duration`: Retrieves duration based on file path
+- `update_progress_bar`: Updates progress bar based on value
+- `convert_video`: Converts video
+- `start_conversion`: Start conversion
+- `on_closing`: On closing
 
 **Dependencies:**
 - tkinter
@@ -2630,26 +2460,26 @@ Date: [30/08/2024]
 Version: 1.0
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 8.4 KB
-- Lines of code: 156 (of 219 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 9.1 KB
+- Lines of code: 195 (of 258 total)
 
 **Classes:**
-- `FrameExtractor`: No documentation
+- `FrameExtractor`: Represents a frame extractor
   - Methods:
-    - `__init__`: No documentation
-    - `run`: No documentation
-    - `get_frame_count`: No documentation
-- `App`: No documentation
+    - `__init__`: Special method __init__
+    - `run`: Run
+    - `get_frame_count`: Retrieves frame count based on video path
+- `App`: Represents a app
   - Methods:
-    - `__init__`: No documentation
-    - `initUI`: No documentation
-    - `select_videos`: No documentation
-    - `select_output`: No documentation
-    - `extract_frames`: No documentation
-    - `update_progress`: No documentation
-    - `update_status`: No documentation
-    - `extraction_finished`: No documentation
+    - `__init__`: Special method __init__
+    - `initUI`: Initui
+    - `select_videos`: Select videos
+    - `select_output`: Select output
+    - `extract_frames`: Extract frames
+    - `update_progress`: Updates progress based on value
+    - `update_status`: Updates status based on status
+    - `extraction_finished`: Extraction finished
 
 **Dependencies:**
 - PyQt5
@@ -2713,15 +2543,15 @@ Note: This script requires FFmpeg to be installed and accessible in the system p
 For GPU encoding, it assumes an NVIDIA GPU with NVENC support.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 3.9 KB
-- Lines of code: 85 (of 116 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 4.1 KB
+- Lines of code: 97 (of 128 total)
 
 **Functions:**
-- `print_gpu_memory`: No documentation
-- `print_cpu_memory`: No documentation
-- `encode_video`: No documentation
-- `run_comparison`: No documentation
+- `print_gpu_memory`: Print gpu memory
+- `print_cpu_memory`: Print cpu memory
+- `encode_video`: Encode video based on input file, output file, use gpu
+- `run_comparison`: Run comparison based on input file, runs
 
 **Dependencies:**
 - GPUtil
@@ -2732,45 +2562,45 @@ For GPU encoding, it assumes an NVIDIA GPU with NVENC support.
 **Path:** `video_processing\youtube_downloader\build_app.py`
 
 **Description:**
-No description available
+This script handles build app.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 3.5 KB
-- Lines of code: 96 (of 127 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 3.6 KB
+- Lines of code: 102 (of 134 total)
 
 **Functions:**
-- `build_executable`: No documentation
+- `build_executable`: Build executable
 
 ### youtube_downloader.py
 
 **Path:** `video_processing\youtube_downloader\youtube_downloader.py`
 
 **Description:**
-No description available
+This script downloads content related to youtube.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 8.8 KB
-- Lines of code: 192 (of 241 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 9.6 KB
+- Lines of code: 231 (of 281 total)
 
 **Functions:**
-- `main`: No documentation
+- `main`: Main
 
 **Classes:**
-- `DownloaderThread`: No documentation
+- `DownloaderThread`: Represents a downloader thread
   - Methods:
-    - `__init__`: No documentation
-    - `progress_hook`: No documentation
-    - `run`: No documentation
-- `YouTubeDownloader`: No documentation
+    - `__init__`: Special method __init__
+    - `progress_hook`: Progress hook based on d
+    - `run`: Run
+- `YouTubeDownloader`: Represents a you tube downloader
   - Methods:
-    - `__init__`: No documentation
-    - `initUI`: No documentation
-    - `browse_location`: No documentation
-    - `start_download`: No documentation
-    - `update_progress`: No documentation
-    - `download_finished`: No documentation
+    - `__init__`: Special method __init__
+    - `initUI`: Initui
+    - `browse_location`: Browse location
+    - `start_download`: Start download
+    - `update_progress`: Updates progress based on percentage, status text
+    - `download_finished`: Download finished based on success, message
 
 **Dependencies:**
 - PyQt5

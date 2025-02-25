@@ -39,7 +39,13 @@ if torch.cuda.is_available():
 
 # Define a simple Convolutional Neural Network (CNN)
 class Net(nn.Module):
+    """
+    Represents a net.
+    """
     def __init__(self):
+        """
+        Special method __init__.
+        """
         super(Net, self).__init__()
         # Define the layers of the CNN
         self.conv1 = nn.Conv2d(1, 32, 3, 1)
@@ -50,6 +56,9 @@ class Net(nn.Module):
         self.fc2 = nn.Linear(128, 10)
 
     def forward(self, x):
+        """
+        Forward based on x.
+        """
         # Define the forward pass of the network
         x = self.conv1(x)
         x = nn.functional.relu(x)
@@ -80,6 +89,9 @@ train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=64, shuffle
 test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=1000, shuffle=False)
 
 def train_and_test(device, num_epochs=5):
+    """
+    Train and test based on device, num epochs.
+    """
     # Initialize the model, optimizer, and loss function
     model = Net().to(device)
     optimizer = optim.Adam(model.parameters())
@@ -123,6 +135,9 @@ def train_and_test(device, num_epochs=5):
 
 # Function to print GPU memory usage
 def print_gpu_memory():
+    """
+    Print gpu memory.
+    """
     if torch.cuda.is_available():
         GPUs = GPUtil.getGPUs()
         gpu = GPUs[0]
@@ -130,6 +145,9 @@ def print_gpu_memory():
 
 # Function to print CPU memory usage
 def print_cpu_memory():
+    """
+    Print cpu memory.
+    """
     print(f"CPU Memory Usage: {psutil.virtual_memory().percent}%")
 
 # Train on CPU

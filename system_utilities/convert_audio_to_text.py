@@ -40,23 +40,35 @@ from pydub import AudioSegment
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "./vitalsignai-394916-29773eaa9905.json"
 
 def browse_audio_file(label):
+    """
+    Browse audio file based on label.
+    """
     # Open a file dialog to select an audio file and update the label
     filename = filedialog.askopenfilename(filetypes=(("Audio Files", "*.m4a"), ("All Files", "*.*")))
     label.config(text=filename)
     return filename
 
 def browse_save_location(label):
+    """
+    Browse save location based on label.
+    """
     # Open a directory dialog to select a save location and update the label
     foldername = filedialog.askdirectory()
     label.config(text=foldername)
     return foldername
 
 def convert_m4a_to_wav(audio_file_path):
+    """
+    Converts m4a to wav based on audio file path.
+    """
     # Convert m4a audio file to wav format
     audio = AudioSegment.from_file(audio_file_path, format="m4a")
     audio.export("temp.wav", format="wav")
 
 def convert_stereo_to_mono(audio_file_path):
+    """
+    Converts stereo to mono based on audio file path.
+    """
     # Convert stereo audio to mono
     with wave.open(audio_file_path, 'rb') as sound_file:
         params = sound_file.getparams()
@@ -69,6 +81,9 @@ def convert_stereo_to_mono(audio_file_path):
         mono_sound_file.writeframes(mono_frames)
 
 def convert_audio_to_text(audio_file_path, save_location, filename):
+    """
+    Converts audio to text based on audio file path, save location, filename.
+    """
     # Convert audio to text using Google Cloud Speech-to-Text API
     convert_m4a_to_wav(audio_file_path)
     convert_stereo_to_mono("temp.wav")
@@ -106,6 +121,9 @@ def convert_audio_to_text(audio_file_path, save_location, filename):
         file.write(text)
 
 def main():
+    """
+    Main.
+    """
     # Create the main window
     window = tk.Tk()
     window.title("Audio to Text Converter")

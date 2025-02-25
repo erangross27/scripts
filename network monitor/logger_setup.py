@@ -1,3 +1,7 @@
+"""
+This script handles logger setup.
+"""
+
 # Import required logging modules and system module
 import logging
 import sys

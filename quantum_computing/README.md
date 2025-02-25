@@ -32,13 +32,13 @@ Dependencies:
 Note: This script is designed for educational and demonstrative purposes.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 3.8 KB
-- Lines of code: 75 (of 124 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 3.9 KB
+- Lines of code: 78 (of 127 total)
 
 **Functions:**
 - `deutsch_jozsa_circuit`: Create a Deutsch-Jozsa circuit
-- `balanced_oracle`: No documentation
+- `balanced_oracle`: Balanced oracle
 
 **Dependencies:**
 - matplotlib

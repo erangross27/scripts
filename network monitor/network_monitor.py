@@ -1,3 +1,7 @@
+"""
+This script handles network monitor.
+"""
+
 # Import required libraries
 import argparse  # For parsing command-line arguments
 import sys      # For system-specific parameters and functions
@@ -14,6 +18,9 @@ from models.persistent_anomaly_detector import PersistentAnomalyDetector  # Modu
 class NetworkMonitor:
     """Main class for monitoring network traffic and detecting anomalies"""
     def __init__(self):
+        """
+        Special method __init__.
+        """
         # Initialize components for logging, interface management, packet capture/analysis, and anomaly detection
         self.logger_setup = LoggerSetup()                    # Create logger setup instance
         self.logger = self.logger_setup.get_logger()         # Get logger instance

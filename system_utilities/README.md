@@ -8,22 +8,22 @@
 **Path:** `system_utilities\ai_security_service.py`
 
 **Description:**
-No description available
+This script handles ai security service.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 5.3 KB
-- Lines of code: 122 (of 169 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 5.7 KB
+- Lines of code: 146 (of 194 total)
 
 **Functions:**
-- `get_current_user`: No documentation
-- `get_db`: No documentation
-- `cache_response`: No documentation
+- `get_current_user`: Retrieves current user based on token
+- `get_db`: Retrieves db
+- `cache_response`: Cache response based on expire time
 
 **Classes:**
-- `User`: No documentation
-- `UserCreate`: No documentation
-- `UserResponse`: No documentation
+- `User`: Represents a user
+- `UserCreate`: Represents a user create
+- `UserResponse`: Represents a user response
 
 **Dependencies:**
 - bcrypt
@@ -39,242 +39,24 @@ No description available
 **Path:** `system_utilities\anthropic_claude_chat.py`
 
 **Description:**
-ClaudeChat Application
-
-This application provides a graphical user interface for interacting with the Anthropic Claude AI model. 
-It allows users to have conversations with the AI, upload and analyze files, and manage conversation history.
-
-Key features:
-- Chat interface with Claude AI
-- File upload and analysis (text, PDF, images, Word, Excel)
-- Conversation history management
-- Code block highlighting and copying
-- Multiple Claude model selection
-
-The application uses PyQt5 for the GUI, SQLite for storing conversation history, 
-and integrates with various libraries for file handling and API communication.
-
-Main classes:
-- ClaudeChat: The main application window and logic
-- ConversationHistory: Manages conversation storage and retrieval
-- MessageProcessor: Handles asynchronous API calls to Claude
-- PythonHighlighter: Provides syntax highlighting for code blocks
-
-Usage:
-Run this script to launch the ClaudeChat application. An Anthropic API key is required.
-
-Dependencies:
-- PyQt5
-- anthropic
-- fitz (PyMuPDF)
-- Pillow
-- win32com
-
-Note: This application is designed to run on Windows due to some Windows-specific features.
+Could not parse file for description
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 83.8 KB
-- Lines of code: 1147 (of 1747 total)
-
-**Functions:**
-- `setup_logging`: No documentation
-- `main`: No documentation
-
-**Classes:**
-- `ConversationHistory`: No documentation
-  - Methods:
-    - `__init__`: No documentation
-    - `create_table`: No documentation
-    - `save_conversation_to_db`: No documentation
-    - `load_conversation_history`: No documentation
-    - `load_conversations`: No documentation
-    - `update_conversation_history`: No documentation
-    - `rename_conversation`: No documentation
-    - `delete_conversation`: No documentation
-    - `get_conversation_title`: No documentation
-- `PythonHighlighter`: No documentation
-  - Methods:
-    - `__init__`: No documentation
-    - `highlightBlock`: No documentation
-- `MultiLineInput`: No documentation
-  - Methods:
-    - `__init__`: No documentation
-    - `keyPressEvent`: No documentation
-    - `insertFromMimeData`: No documentation
-    - `is_code_block`: No documentation
-    - `format_code_block`: No documentation
-    - `adjustHeight`: No documentation
-- `MessageProcessor`: No documentation
-  - Methods:
-    - `__init__`: No documentation
-    - `run`: No documentation
-- `APIKeyDialog`: No documentation
-  - Methods:
-    - `__init__`: No documentation
-    - `get_api_key`: No documentation
-- `ClaudeChat`: No documentation
-  - Methods:
-    - `__init__`: No documentation
-    - `set_windows_env_variable`: No documentation
-    - `init_ui`: No documentation
-    - `update_sidebar`: No documentation
-    - `show_context_menu`: No documentation
-    - `rename_conversation`: No documentation
-    - `delete_conversation`: No documentation
-    - `show_code_dialog`: No documentation
-    - `encode_image`: No documentation
-    - `load_conversation`: No documentation
-    - `send_message`: No documentation
-    - `get_the_current_model`: No documentation
-    - `save_conversation`: No documentation
-    - `generate_conversation_title`: No documentation
-    - `set_focus_to_input`: No documentation
-    - `update_chat`: No documentation
-    - `add_new_conversation`: No documentation
-    - `is_code_block`: No documentation
-    - `add_copy_button`: No documentation
-    - `copy_code_to_clipboard`: No documentation
-    - `update_chat_history`: No documentation
-    - `enable_input`: No documentation
-    - `clear_chat`: No documentation
-    - `api_busy`: No documentation
-    - `show_api_error`: No documentation
-    - `upload_file`: No documentation
-    - `close_progress_dialog`: No documentation
-    - `handle_api_error`: No documentation
-
-**Dependencies:**
-- PIL
-- PyQt5
-- anthropic
-- ctypes
-- fitz
-- httpx
-- pyexpat
-- pythoncom
-- requests
-- win32com
-- winreg
+- Last modified: 2025-02-25 08:16:29
+- Size: 87.4 KB
+- Lines of code: 1318 (of 1918 total)
 
 ### anthropic_claude_chat_for_linux.py
 
 **Path:** `system_utilities\anthropic_claude_chat_for_linux.py`
 
 **Description:**
-ClaudeChat Application
-
-This application provides a graphical user interface for interacting with the Claude AI model
-using the Anthropic API. It allows users to have conversations with the AI, upload files for
-analysis, and manage conversation history.
-
-Key features:
-- Chat interface for interacting with Claude AI
-- File upload and analysis (text, PDF, images)
-- Conversation history management
-- Code block detection and syntax highlighting
-- Multiple Claude model selection
-
-The application uses PyQt5 for the GUI, sqlite3 for local storage of conversation history,
-and integrates with the Anthropic API for AI interactions.
-
-Usage:
-Run this script to launch the ClaudeChat application. Users will need to provide their
-Anthropic API key on first run or if it's not set in the environment variables.
-
-Dependencies:
-- PyQt5
-- anthropic
-- fitz (PyMuPDF)
-- Pillow
-- requests
-- logging
-
-Note: Ensure all required dependencies are installed and the Anthropic API key is available
-before running the application.
+Could not parse file for description
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 85.1 KB
-- Lines of code: 1167 (of 1801 total)
-
-**Functions:**
-- `setup_logging`: No documentation
-- `main`: No documentation
-
-**Classes:**
-- `ConversationHistory`: No documentation
-  - Methods:
-    - `__init__`: No documentation
-    - `create_table`: No documentation
-    - `save_conversation_to_db`: No documentation
-    - `load_conversation_history`: No documentation
-    - `load_conversations`: No documentation
-    - `update_conversation_history`: No documentation
-    - `rename_conversation`: No documentation
-    - `delete_conversation`: No documentation
-    - `get_conversation_title`: No documentation
-- `PythonHighlighter`: No documentation
-  - Methods:
-    - `__init__`: No documentation
-    - `highlightBlock`: No documentation
-- `MultiLineInput`: No documentation
-  - Methods:
-    - `__init__`: No documentation
-    - `keyPressEvent`: No documentation
-    - `insertFromMimeData`: No documentation
-    - `is_code_block`: No documentation
-    - `format_code_block`: No documentation
-    - `adjustHeight`: No documentation
-- `MessageProcessor`: No documentation
-  - Methods:
-    - `__init__`: No documentation
-    - `run`: No documentation
-- `APIKeyDialog`: No documentation
-  - Methods:
-    - `__init__`: No documentation
-    - `get_api_key`: No documentation
-- `ClaudeChat`: No documentation
-  - Methods:
-    - `__init__`: No documentation
-    - `set_linux_env_variable`: No documentation
-    - `set_macos_env_variable`: No documentation
-    - `init_ui`: No documentation
-    - `update_sidebar`: No documentation
-    - `show_context_menu`: No documentation
-    - `rename_conversation`: No documentation
-    - `delete_conversation`: No documentation
-    - `show_code_dialog`: No documentation
-    - `encode_image`: No documentation
-    - `load_conversation`: No documentation
-    - `send_message`: No documentation
-    - `get_the_current_model`: No documentation
-    - `save_conversation`: No documentation
-    - `generate_conversation_title`: No documentation
-    - `set_focus_to_input`: No documentation
-    - `update_chat`: No documentation
-    - `add_new_conversation`: No documentation
-    - `is_code_block`: No documentation
-    - `add_copy_button`: No documentation
-    - `copy_code_to_clipboard`: No documentation
-    - `update_chat_history`: No documentation
-    - `enable_input`: No documentation
-    - `clear_chat`: No documentation
-    - `api_busy`: No documentation
-    - `show_api_error`: No documentation
-    - `upload_file`: No documentation
-    - `close_progress_dialog`: No documentation
-    - `handle_api_error`: No documentation
-
-**Dependencies:**
-- PIL
-- PyQt5
-- anthropic
-- ctypes
-- fitz
-- httpx
-- pyexpat
-- requests
+- Last modified: 2025-02-25 08:16:29
+- Size: 88.8 KB
+- Lines of code: 1341 (of 1975 total)
 
 ### convert_audio_to_text.py
 
@@ -310,17 +92,17 @@ Usage:
 The script handles audio format conversion (m4a to wav) and channel conversion (stereo to mono) automatically.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 4.6 KB
-- Lines of code: 93 (of 138 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 5.0 KB
+- Lines of code: 111 (of 156 total)
 
 **Functions:**
-- `browse_audio_file`: No documentation
-- `browse_save_location`: No documentation
-- `convert_m4a_to_wav`: No documentation
-- `convert_stereo_to_mono`: No documentation
-- `convert_audio_to_text`: No documentation
-- `main`: No documentation
+- `browse_audio_file`: Browse audio file based on label
+- `browse_save_location`: Browse save location based on label
+- `convert_m4a_to_wav`: Converts m4a to wav based on audio file path
+- `convert_stereo_to_mono`: Converts stereo to mono based on audio file path
+- `convert_audio_to_text`: Converts audio to text based on audio file path, save location, filename
+- `main`: Main
 
 **Dependencies:**
 - audioop
@@ -365,29 +147,29 @@ Email credentials are securely stored in the Windows Registry.
 Note: This script is designed to run on Windows systems only.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 11.5 KB
-- Lines of code: 222 (of 290 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 12.2 KB
+- Lines of code: 267 (of 335 total)
 
 **Functions:**
-- `check_dependencies`: No documentation
-- `check_module`: No documentation
-- `load_config`: No documentation
-- `main`: No documentation
+- `check_dependencies`: Check dependencies
+- `check_module`: Check module based on module
+- `load_config`: Load config
+- `main`: Main
 
 **Classes:**
-- `Config`: No documentation
-- `DiskSpaceAlertService`: No documentation
+- `Config`: Represents a config
+- `DiskSpaceAlertService`: Provides disk space alert functionality
   - Methods:
-    - `__init__`: No documentation
-    - `SvcStop`: No documentation
-    - `SvcDoRun`: No documentation
-    - `main`: No documentation
-    - `check_disk_space`: No documentation
-    - `get_disks`: No documentation
-    - `send_alert`: No documentation
-    - `get_email_credentials`: No documentation
-    - `configure_email`: No documentation
+    - `__init__`: Special method __init__
+    - `SvcStop`: Svcstop
+    - `SvcDoRun`: Svcdorun
+    - `main`: Main
+    - `check_disk_space`: Check disk space
+    - `get_disks`: Retrieves disks
+    - `send_alert`: Send alert based on disk
+    - `get_email_credentials`: Retrieves email credentials
+    - `configure_email`: Configure email
 
 **Dependencies:**
 - cryptography
@@ -437,29 +219,29 @@ C: and D: drives.
 **Path:** `system_utilities\hour_calculator.py`
 
 **Description:**
-No description available
+This script handles hour calculator.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 9.8 KB
-- Lines of code: 211 (of 272 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 10.1 KB
+- Lines of code: 229 (of 291 total)
 
 **Functions:**
 - `parse_time`: Convert a string 'hours:minutes' or 'hours' into total minutes as a float
 - `format_hours`: Converts total minutes into 'hours:minutes' string, with rounding to nearest minute
 - `evaluate_expression`: Given a list of tokens in the form [time_in_minutes, operator, time_in_minutes, operator,
-- `main`: No documentation
+- `main`: Main
 
 **Classes:**
-- `TimeCalculator`: No documentation
+- `TimeCalculator`: Represents a time calculator
   - Methods:
-    - `__init__`: No documentation
-    - `on_button_clicked`: No documentation
+    - `__init__`: Special method __init__
+    - `on_button_clicked`: On button clicked
     - `clear_all`: Reset everything
     - `process_operator`: 1
     - `process_equals`: 1
     - `update_expression_display`: Updates the expression display with the newly entered time or operator
-    - `show_error`: No documentation
+    - `show_error`: Show error based on message
 
 **Dependencies:**
 - PyQt5

@@ -1,3 +1,7 @@
+"""
+This script handles feature config.
+"""
+
 # Feature names used for machine learning analysis
 FEATURE_NAMES = [
     'packet_length',    # Total length of the packet

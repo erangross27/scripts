@@ -31,6 +31,9 @@ import GPUtil
 
 # Function to print GPU memory usage
 def print_gpu_memory():
+    """
+    Print gpu memory.
+    """
     if torch.cuda.is_available():
         GPUs = GPUtil.getGPUs()
         gpu = GPUs[0]
@@ -38,14 +41,23 @@ def print_gpu_memory():
 
 # Function to print CPU memory usage
 def print_cpu_memory():
+    """
+    Print cpu memory.
+    """
     print(f"CPU Memory Usage: {psutil.virtual_memory().percent}%")
 
 # Function to hash passwords using CPU
 def cpu_hash_passwords(passwords):
+    """
+    Cpu hash passwords based on passwords.
+    """
     return [hashlib.sha256(p.encode()).digest() for p in passwords]
 
 # Function to hash passwords using GPU
 def gpu_hash_passwords(passwords):
+    """
+    Gpu hash passwords based on passwords.
+    """
     # Convert passwords to tensor and move to GPU
     passwords_tensor = torch.tensor([list(p.encode()) for p in passwords]).cuda()
     # Create a tensor to store hashed passwords
@@ -58,6 +70,9 @@ def gpu_hash_passwords(passwords):
 
 # Main function to run the comparison
 def run_comparison(num_passwords=10000, password_length=10, runs=3):
+    """
+    Run comparison based on num passwords, password length, runs.
+    """
     print(f"Hashing {num_passwords} passwords of length {password_length}")
     
     # Generate sample passwords

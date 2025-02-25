@@ -8,12 +8,12 @@
 **Path:** `image_processing\captureImage.py`
 
 **Description:**
-No description available
+This script implements captureImage functionality.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
+- Last modified: 2025-02-25 08:16:29
 - Size: 1.5 KB
-- Lines of code: 34 (of 50 total)
+- Lines of code: 37 (of 54 total)
 
 **Functions:**
 - `capture_image`: Captures an image from the default camera and saves it to the specified output directory
@@ -58,29 +58,29 @@ Functions:
 - compress_images_in_folder: Compresses all JPEG images in a folder
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 7.5 KB
-- Lines of code: 149 (of 191 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 8.4 KB
+- Lines of code: 194 (of 236 total)
 
 **Functions:**
-- `compress_image`: No documentation
-- `compress_images_in_folder`: No documentation
+- `compress_image`: Compress image based on image path, output path, quality
+- `compress_images_in_folder`: Compress images in folder based on folder path, output folder path, quality
 
 **Classes:**
-- `ImageCompressorGUI`: No documentation
+- `ImageCompressorGUI`: Represents a image compressor g u i
   - Methods:
-    - `__init__`: No documentation
-    - `initUI`: No documentation
-    - `setup_radio_buttons`: No documentation
-    - `setup_input_output`: No documentation
-    - `setup_quality_slider`: No documentation
-    - `setup_compress_button`: No documentation
-    - `setup_output_text`: No documentation
-    - `clear_paths`: No documentation
-    - `browse_input`: No documentation
-    - `browse_output`: No documentation
-    - `update_quality_label`: No documentation
-    - `compress_images`: No documentation
+    - `__init__`: Special method __init__
+    - `initUI`: Initui
+    - `setup_radio_buttons`: Setup radio buttons based on layout
+    - `setup_input_output`: Setup input output based on layout
+    - `setup_quality_slider`: Setup quality slider based on layout
+    - `setup_compress_button`: Setup compress button based on layout
+    - `setup_output_text`: Setup output text based on layout
+    - `clear_paths`: Clear paths
+    - `browse_input`: Browse input
+    - `browse_output`: Browse output
+    - `update_quality_label`: Updates quality label based on value
+    - `compress_images`: Compress images
 
 **Dependencies:**
 - PIL
@@ -112,13 +112,13 @@ Dependencies:
 Note: This script requires a valid Google Cloud Vision API key (google.json) in the same directory.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 5.0 KB
-- Lines of code: 82 (of 125 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 5.2 KB
+- Lines of code: 94 (of 137 total)
 
 **Functions:**
-- `process_image`: No documentation
-- `create_gui`: No documentation
+- `process_image`: Process image based on image path, progress var, window, progress bar
+- `create_gui`: Creates gui
 
 **Dependencies:**
 - docx
@@ -158,22 +158,22 @@ Classes:
 Note: This script must be run in an environment with PyQt5 installed.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 6.1 KB
-- Lines of code: 112 (of 151 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 6.7 KB
+- Lines of code: 142 (of 181 total)
 
 **Classes:**
-- `SVGConverter`: No documentation
+- `SVGConverter`: Converts s v g
   - Methods:
-    - `__init__`: No documentation
-    - `initUI`: No documentation
-    - `create_input_layout`: No documentation
-    - `create_resolution_layout`: No documentation
-    - `select_input`: No documentation
-    - `select_output`: No documentation
-    - `update_resolution_from_svg`: No documentation
-    - `update_output_suffix`: No documentation
-    - `convert_svg`: No documentation
+    - `__init__`: Special method __init__
+    - `initUI`: Initui
+    - `create_input_layout`: Creates input layout based on label text
+    - `create_resolution_layout`: Creates resolution layout
+    - `select_input`: Select input
+    - `select_output`: Select output
+    - `update_resolution_from_svg`: Updates resolution from svg based on file name
+    - `update_output_suffix`: Updates output suffix
+    - `convert_svg`: Converts svg
 
 **Dependencies:**
 - PyQt5
@@ -183,21 +183,21 @@ Note: This script must be run in an environment with PyQt5 installed.
 **Path:** `image_processing\convertor.py`
 
 **Description:**
-No description available
+This script implements convertor functionality that processes images.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 6.0 KB
-- Lines of code: 87 (of 129 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 6.3 KB
+- Lines of code: 108 (of 151 total)
 
 **Classes:**
-- `ImageConverter`: No documentation
+- `ImageConverter`: Converts image
   - Methods:
-    - `__init__`: No documentation
-    - `select_source`: No documentation
-    - `select_destination`: No documentation
-    - `update_convert_button`: No documentation
-    - `convert_image`: No documentation
+    - `__init__`: Special method __init__
+    - `select_source`: Select source
+    - `select_destination`: Select destination
+    - `update_convert_button`: Updates convert button
+    - `convert_image`: Converts image
 
 **Dependencies:**
 - PIL
@@ -208,15 +208,15 @@ No description available
 **Path:** `image_processing\copy_all_images_from_sub_folders.py`
 
 **Description:**
-No description available
+This script handles copy all images from sub folders.
 
 **File Info:**
-- Last modified: 2025-02-20 08:33:40
-- Size: 1.6 KB
-- Lines of code: 30 (of 49 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 1.7 KB
+- Lines of code: 36 (of 56 total)
 
 **Functions:**
-- `main`: No documentation
+- `main`: Main
 
 ### extract_text_from_image_regular.py
 
@@ -247,16 +247,16 @@ Run the script to open the GUI. Select an image, choose the output file type (TX
 and click 'Convert' to extract and save the text.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 3.9 KB
-- Lines of code: 79 (of 115 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 4.2 KB
+- Lines of code: 94 (of 130 total)
 
 **Functions:**
-- `extract_text_from_image`: No documentation
-- `save_to_file`: No documentation
-- `select_image_path`: No documentation
-- `convert_and_save`: No documentation
-- `main`: No documentation
+- `extract_text_from_image`: Extract text from image based on image path, delimiter
+- `save_to_file`: Save to file based on data, file path, file type
+- `select_image_path`: Select image path based on entry
+- `convert_and_save`: Converts and save based on entry, file type var
+- `main`: Main
 
 **Dependencies:**
 - google
@@ -291,16 +291,16 @@ Run the script and use the GUI to select an image, choose the output file type,
 and convert the image text to a structured format.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 4.8 KB
-- Lines of code: 80 (of 136 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 5.1 KB
+- Lines of code: 95 (of 151 total)
 
 **Functions:**
-- `extract_text_from_image`: No documentation
-- `save_to_file`: No documentation
-- `select_image_path`: No documentation
-- `convert_and_save`: No documentation
-- `main`: No documentation
+- `extract_text_from_image`: Extract text from image based on image path, delimiter
+- `save_to_file`: Save to file based on data, file path, file type
+- `select_image_path`: Select image path based on entry
+- `convert_and_save`: Converts and save based on entry, file type var
+- `main`: Main
 
 **Dependencies:**
 - google
@@ -311,26 +311,26 @@ and convert the image text to a structured format.
 **Path:** `image_processing\image_brightener_gui.py`
 
 **Description:**
-No description available
+This script handles image brightener gui that performs numerical operations.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 5.8 KB
-- Lines of code: 124 (of 168 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 6.3 KB
+- Lines of code: 154 (of 199 total)
 
 **Functions:**
-- `main`: No documentation
+- `main`: Main
 
 **Classes:**
-- `ImageBrightener`: No documentation
+- `ImageBrightener`: Represents a image brightener
   - Methods:
-    - `__init__`: No documentation
-    - `browse_input`: No documentation
-    - `browse_output`: No documentation
-    - `update_brightness`: No documentation
-    - `update_preview`: No documentation
-    - `brighten_image`: No documentation
-    - `process_image`: No documentation
+    - `__init__`: Special method __init__
+    - `browse_input`: Browse input
+    - `browse_output`: Browse output
+    - `update_brightness`: Updates brightness
+    - `update_preview`: Updates preview
+    - `brighten_image`: Brighten image based on img
+    - `process_image`: Process image
 
 **Dependencies:**
 - PyQt5
@@ -365,18 +365,18 @@ Dependencies:
 - shutil
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 4.2 KB
-- Lines of code: 72 (of 111 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 4.5 KB
+- Lines of code: 90 (of 129 total)
 
 **Classes:**
-- `ImageMover`: No documentation
+- `ImageMover`: Represents a image mover
   - Methods:
-    - `__init__`: No documentation
-    - `initUI`: No documentation
-    - `selectSourceDir`: No documentation
-    - `selectDestDir`: No documentation
-    - `moveImages`: No documentation
+    - `__init__`: Special method __init__
+    - `initUI`: Initui
+    - `selectSourceDir`: Selectsourcedir
+    - `selectDestDir`: Selectdestdir
+    - `moveImages`: Moveimages
 
 **Dependencies:**
 - PyQt5
@@ -423,35 +423,35 @@ Note: Ensure all required dependencies are installed and CUDA is available
 for optimal performance when processing large files or videos.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 23.9 KB
-- Lines of code: 391 (of 561 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 25.4 KB
+- Lines of code: 457 (of 627 total)
 
 **Classes:**
-- `WatermarkDetectionApp`: No documentation
+- `WatermarkDetectionApp`: Represents a watermark detection app
   - Methods:
-    - `__init__`: No documentation
-    - `create_widgets`: No documentation
-    - `download_and_load_inpainting_model`: No documentation
-    - `inpaint`: No documentation
-    - `browse_model`: No documentation
-    - `load_watermark_model`: No documentation
-    - `browse_input`: No documentation
-    - `browse_output`: No documentation
-    - `start_processing`: No documentation
-    - `process_file`: No documentation
-    - `process_image`: No documentation
-    - `save_intermediate_frame`: No documentation
-    - `process_video`: No documentation
-    - `detect_and_mark_watermark`: No documentation
-    - `visualize_mask`: No documentation
-    - `inpaint_image`: No documentation
-    - `resize_and_pad`: No documentation
-    - `update_log`: No documentation
-- `GUILogHandler`: No documentation
+    - `__init__`: Special method __init__
+    - `create_widgets`: Creates widgets
+    - `download_and_load_inpainting_model`: Download and load inpainting model
+    - `inpaint`: Inpaint based on prompt, image, mask image
+    - `browse_model`: Browse model
+    - `load_watermark_model`: Load watermark model
+    - `browse_input`: Browse input
+    - `browse_output`: Browse output
+    - `start_processing`: Start processing
+    - `process_file`: Process file
+    - `process_image`: Process image based on input path, output path
+    - `save_intermediate_frame`: Save intermediate frame based on frame, frame number
+    - `process_video`: Process video based on input path, output path
+    - `detect_and_mark_watermark`: Detect and mark watermark based on img
+    - `visualize_mask`: Visualize mask based on img, mask
+    - `inpaint_image`: Inpaint image based on img, mask, prompt, negative prompt, num inference steps, guidance scale, strength, seed
+    - `resize_and_pad`: Resize and pad based on img, mask, size
+    - `update_log`: Updates log based on message
+- `GUILogHandler`: Handles g u i log operations
   - Methods:
-    - `__init__`: No documentation
-    - `emit`: No documentation
+    - `__init__`: Special method __init__
+    - `emit`: Emit based on record
 
 **Dependencies:**
 - PIL
@@ -467,12 +467,12 @@ for optimal performance when processing large files or videos.
 **Path:** `image_processing\organize_dataset.py`
 
 **Description:**
-No description available
+This script handles organize dataset.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
+- Last modified: 2025-02-25 08:16:29
 - Size: 3.3 KB
-- Lines of code: 52 (of 75 total)
+- Lines of code: 55 (of 79 total)
 
 **Functions:**
 - `organize_dataset`: Organize a dataset by splitting it into training and validation sets
@@ -482,25 +482,25 @@ No description available
 **Path:** `image_processing\shutterstock_gui.py`
 
 **Description:**
-No description available
+This script handles shutterstock gui.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 9.1 KB
-- Lines of code: 192 (of 244 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 9.4 KB
+- Lines of code: 210 (of 263 total)
 
 **Functions:**
-- `main`: No documentation
+- `main`: Main
 
 **Classes:**
-- `UploaderWorker`: No documentation
+- `UploaderWorker`: Represents a uploader worker
   - Methods:
-    - `__init__`: No documentation
+    - `__init__`: Special method __init__
     - `process_image`: Process a single image with error handling
     - `run`: Main worker thread execution
-- `MainWindow`: No documentation
+- `MainWindow`: Represents a main window
   - Methods:
-    - `__init__`: No documentation
+    - `__init__`: Special method __init__
     - `initUI`: Initialize the user interface
     - `create_widgets`: Create all UI widgets
     - `setup_status_table`: Setup the status table configuration
@@ -525,17 +525,17 @@ No description available
 **Path:** `image_processing\shutterstock_uploader.py`
 
 **Description:**
-No description available
+This script handles shutterstock uploader that makes HTTP requests.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 10.1 KB
-- Lines of code: 213 (of 263 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 10.3 KB
+- Lines of code: 222 (of 273 total)
 
 **Classes:**
-- `ShutterstockAutoUploader`: No documentation
+- `ShutterstockAutoUploader`: Represents a shutterstock auto uploader
   - Methods:
-    - `__init__`: No documentation
+    - `__init__`: Special method __init__
     - `setup_logging`: Setup logging configuration
     - `load_keyword_blacklist`: Load blacklisted keywords
     - `add_delay`: Add delay for rate limiting
@@ -556,12 +556,12 @@ No description available
 **Path:** `image_processing\test_cuda.py`
 
 **Description:**
-No description available
+This script contains test cases for cuda.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
+- Last modified: 2025-02-25 08:16:29
 - Size: 0.3 KB
-- Lines of code: 8 (of 9 total)
+- Lines of code: 11 (of 13 total)
 
 **Dependencies:**
 - torch
@@ -571,35 +571,35 @@ No description available
 **Path:** `image_processing\update_meta_data.py`
 
 **Description:**
-No description available
+This script handles update meta data that processes images.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 20.9 KB
-- Lines of code: 419 (of 539 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 21.8 KB
+- Lines of code: 470 (of 591 total)
 
 **Functions:**
-- `main`: No documentation
+- `main`: Main
 
 **Classes:**
-- `MetadataWorker`: No documentation
+- `MetadataWorker`: Represents a metadata worker
   - Methods:
-    - `__init__`: No documentation
-    - `run`: No documentation
-    - `stop`: No documentation
-- `MainWindow`: No documentation
+    - `__init__`: Special method __init__
+    - `run`: Run
+    - `stop`: Stop
+- `MainWindow`: Represents a main window
   - Methods:
-    - `__init__`: No documentation
-    - `initUI`: No documentation
-    - `select_folder`: No documentation
-    - `start_processing`: No documentation
-    - `stop_processing`: No documentation
-    - `update_progress`: No documentation
-    - `update_log`: No documentation
-    - `processing_finished`: No documentation
-- `LocalMetadataUpdater`: No documentation
+    - `__init__`: Special method __init__
+    - `initUI`: Initui
+    - `select_folder`: Select folder
+    - `start_processing`: Start processing
+    - `stop_processing`: Stop processing
+    - `update_progress`: Updates progress based on value
+    - `update_log`: Updates log based on message
+    - `processing_finished`: Processing finished
+- `LocalMetadataUpdater`: Represents a local metadata updater
   - Methods:
-    - `__init__`: No documentation
+    - `__init__`: Special method __init__
     - `_setup_apis`: Set up API clients
     - `process_folder`: Process all images in the folder
     - `process_single_image`: Process a single image
@@ -616,6 +616,42 @@ No description available
 - piexif
 - shlex
 - win32file
+
+### update_meta_data_pro.py
+
+**Path:** `image_processing\update_meta_data_pro.py`
+
+**Description:**
+This script handles update meta data pro.
+
+**File Info:**
+- Last modified: 2025-02-25 08:16:29
+- Size: 24.6 KB
+- Lines of code: 470 (of 607 total)
+
+**Functions:**
+- `write_metadata_with_exiftool`: Writes metadata to image file using ExifTool, targeting IPTC and XMP fields for stock agencies
+- `refine_description_with_ai`: Uses Anthropic's Claude to refine or generate a description for the image
+- `suggest_keywords_with_ai`: Uses Anthropic's Claude to suggest additional relevant keywords based on the description
+- `main`: Main
+- `run_cli_version`: Run cli version
+
+**Classes:**
+- `MetadataEditorGUI`: Represents a metadata editor g u i
+  - Methods:
+    - `__init__`: Special method __init__
+    - `browse_image`: Browse image
+    - `load_image_preview`: Load image preview based on image path
+    - `load_existing_metadata`: Load existing metadata based on image path
+    - `toggle_ai_buttons`: Toggle ai buttons based on checked
+    - `refine_description`: Refine description
+    - `suggest_keywords`: Suggest keywords
+    - `check_input_validity`: Check input validity
+    - `save_metadata`: Save metadata
+
+**Dependencies:**
+- PyQt5
+- anthropic
 
 ### watermar_detection.py
 
@@ -651,29 +687,29 @@ Classes:
 Note: This application requires PyTorch, OpenCV, and other dependencies to be installed.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 10.0 KB
-- Lines of code: 180 (of 250 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 10.9 KB
+- Lines of code: 228 (of 298 total)
 
 **Classes:**
-- `WatermarkDetectionApp`: No documentation
+- `WatermarkDetectionApp`: Represents a watermark detection app
   - Methods:
-    - `__init__`: No documentation
-    - `create_widgets`: No documentation
-    - `browse_model`: No documentation
-    - `load_model`: No documentation
-    - `browse_input`: No documentation
-    - `browse_output`: No documentation
-    - `start_processing`: No documentation
-    - `process_file`: No documentation
-    - `process_image`: No documentation
-    - `process_video`: No documentation
-    - `detect_watermark`: No documentation
-    - `update_log`: No documentation
-- `GUILogHandler`: No documentation
+    - `__init__`: Special method __init__
+    - `create_widgets`: Creates widgets
+    - `browse_model`: Browse model
+    - `load_model`: Load model
+    - `browse_input`: Browse input
+    - `browse_output`: Browse output
+    - `start_processing`: Start processing
+    - `process_file`: Process file
+    - `process_image`: Process image based on input path, output path
+    - `process_video`: Process video based on input path, output path
+    - `detect_watermark`: Detect watermark based on img
+    - `update_log`: Updates log based on message
+- `GUILogHandler`: Handles g u i log operations
   - Methods:
-    - `__init__`: No documentation
-    - `emit`: No documentation
+    - `__init__`: Special method __init__
+    - `emit`: Emit based on record
 
 **Dependencies:**
 - PIL

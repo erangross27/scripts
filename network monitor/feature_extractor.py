@@ -1,3 +1,7 @@
+"""
+This script handles feature extractor that processes data.
+"""
+
 # Import necessary libraries
 import pandas as pd
 from scapy.layers.inet import IP, TCP, UDP

@@ -8,12 +8,12 @@
 **Path:** `network monitor\utils\__init__.py`
 
 **Description:**
-No description available
+This script handles   init  .
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
+- Last modified: 2025-02-25 08:16:29
 - Size: 0.3 KB
-- Lines of code: 9 (of 10 total)
+- Lines of code: 12 (of 14 total)
 
 **Dependencies:**
 - network_utils
@@ -24,12 +24,12 @@ No description available
 **Path:** `network monitor\utils\network_utils.py`
 
 **Description:**
-No description available
+This script provides utility functions for networks.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
+- Last modified: 2025-02-25 08:16:29
 - Size: 0.6 KB
-- Lines of code: 18 (of 21 total)
+- Lines of code: 21 (of 25 total)
 
 **Functions:**
 - `resolve_ip`: Resolve an IP address to a hostname
@@ -40,12 +40,12 @@ No description available
 **Path:** `network monitor\utils\packet_utils.py`
 
 **Description:**
-No description available
+This script provides utility functions for packets.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 0.9 KB
-- Lines of code: 26 (of 29 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 1.0 KB
+- Lines of code: 29 (of 33 total)
 
 **Functions:**
 - `is_inbound`: Check if a packet is inbound to the local network

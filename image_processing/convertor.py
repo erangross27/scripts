@@ -1,3 +1,7 @@
+"""
+This script implements convertor functionality that processes images.
+"""
+
 # Import required libraries
 import sys
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QPushButton, QFileDialog,
@@ -7,7 +11,13 @@ from PIL import Image
 
 # Main window class
 class ImageConverter(QMainWindow):
+    """
+    Converts image.
+    """
     def __init__(self):
+        """
+        Special method __init__.
+        """
         # Initialize the main window
         super().__init__()
         self.setWindowTitle("WebP Image Converter")  # Set window title
@@ -56,6 +66,9 @@ class ImageConverter(QMainWindow):
         self.selected_format = None
         
     def select_source(self):
+        """
+        Select source.
+        """
         # Open file dialog for selecting WebP file
         file_path, _ = QFileDialog.getOpenFileName(
             self,
@@ -69,6 +82,9 @@ class ImageConverter(QMainWindow):
             self.update_convert_button()  # Update convert button state
             
     def select_destination(self):
+        """
+        Select destination.
+        """
         # Create filter string for Save As dialog
         filters = "JPEG Image (*.jpg *.jpeg);;PNG Image (*.png);;All Files (*.*)"
         
@@ -98,10 +114,16 @@ class ImageConverter(QMainWindow):
             self.update_convert_button()  # Update convert button state
             
     def update_convert_button(self):
+        """
+        Updates convert button.
+        """
         # Enable/disable convert button based on selection state
         self.convert_button.setEnabled(bool(self.source_path and self.dest_path))
             
     def convert_image(self):
+        """
+        Converts image.
+        """
         try:
             # Open and convert the image
             with Image.open(self.source_path) as img:

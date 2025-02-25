@@ -40,21 +40,36 @@ if torch.cuda.is_available():
     print(f"CUDA Version: {torch.version.cuda}")
 
 def cpu_sort(arr):
+    """
+    Cpu sort based on arr.
+    """
     return np.sort(arr)
 
 def gpu_sort(arr):
+    """
+    Gpu sort based on arr.
+    """
     return torch.sort(arr)[0]
 
 def print_gpu_memory():
+    """
+    Print gpu memory.
+    """
     if torch.cuda.is_available():
         GPUs = GPUtil.getGPUs()
         gpu = GPUs[0]
         print(f"GPU Memory Usage: {gpu.memoryUsed}MB / {gpu.memoryTotal}MB")
 
 def print_cpu_memory():
+    """
+    Print cpu memory.
+    """
     print(f"CPU Memory Usage: {psutil.virtual_memory().percent}%")
 
 def run_comparison(size=10_000_000, runs=5):
+    """
+    Run comparison based on size, runs.
+    """
     print(f"\nSorting array of size {size}")
     
     cpu_times = []

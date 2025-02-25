@@ -64,6 +64,9 @@ if sys.stdout is not None:
 
 
 def setup_logging():
+    """
+    Setup logging.
+    """
     # Check if the script is running as a compiled executable
     if getattr(sys, 'frozen', False):
         # If so, get the directory of the executable
@@ -113,7 +116,13 @@ def setup_logging():
     
 
 class ConversationHistory:
+    """
+    Represents a conversation history.
+    """
     def __init__(self, db_name):
+        """
+        Special method __init__.
+        """
         # Store the database name
         self.db_name = db_name
         try:
@@ -130,6 +139,9 @@ class ConversationHistory:
             logging.error(f"Error connecting to the database: {e}")
 
     def create_table(self):
+        """
+        Creates table.
+        """
         try:
             # Create a cursor object
             cursor = self.conn.cursor()
@@ -152,6 +164,9 @@ class ConversationHistory:
             logging.error(f"Error creating the conversations table: {e}")
 
     def save_conversation_to_db(self, conversation_id, title, history):
+        """
+        Save conversation to db based on conversation id, title, history.
+        """
         try:
             # Create a cursor object
             cursor = self.conn.cursor()
@@ -192,6 +207,9 @@ class ConversationHistory:
             raise
 
     def load_conversation_history(self, conversation_id):
+        """
+        Load conversation history based on conversation id.
+        """
         # Create a cursor object
         cursor = self.conn.cursor()
         # Execute the SQL command to select the history of the conversation with the given ID
@@ -206,6 +224,9 @@ class ConversationHistory:
         return result[0] if result else None
 
     def load_conversations(self):
+        """
+        Load conversations.
+        """
         # Create a cursor object
         cursor = self.conn.cursor()
         # Log the attempt to load conversations from the database
@@ -222,6 +243,9 @@ class ConversationHistory:
         return conversations
 
     def update_conversation_history(self, conversation_id, history):
+        """
+        Updates conversation history based on conversation id, history.
+        """
         # Create a cursor object
         cursor = self.conn.cursor()
         # Log the attempt to update the conversation history in the database for the given conversation ID
@@ -238,6 +262,9 @@ class ConversationHistory:
         logging.info("Conversation history updated in the database")
 
     def rename_conversation(self, conversation_id, new_title):
+        """
+        Rename conversation based on conversation id, new title.
+        """
         try:
             # Create a cursor object
             cursor = self.conn.cursor()
@@ -260,6 +287,9 @@ class ConversationHistory:
             raise
 
     def delete_conversation(self, conversation_id):
+        """
+        Deletes conversation based on conversation id.
+        """
         try:
             # Create a cursor object
             cursor = self.conn.cursor()
@@ -281,6 +311,9 @@ class ConversationHistory:
             raise
 
     def get_conversation_title(self, conversation_id):
+        """
+        Retrieves conversation title based on conversation id.
+        """
         # Create a cursor object
         cursor = self.conn.cursor()
         # Execute the SQL command to select the title of the conversation with the given ID
@@ -295,7 +328,13 @@ class ConversationHistory:
         return result[0] if result else None
 
 class PythonHighlighter(QSyntaxHighlighter):
+    """
+    Represents a python highlighter.
+    """
     def __init__(self, parent=None):
+        """
+        Special method __init__.
+        """
         # Call the parent class's constructor
         super().__init__(parent)
         # Initialize the list of highlight rules
@@ -340,6 +379,9 @@ class PythonHighlighter(QSyntaxHighlighter):
         logging.info("PythonHighlighter initialized")
 
     def highlightBlock(self, text):
+        """
+        Highlightblock based on text.
+        """
         # Check if the current block is a code block
         if self.currentBlock().userState() == 1:
             # Iterate over all highlight rules
@@ -360,10 +402,16 @@ class PythonHighlighter(QSyntaxHighlighter):
 
 
 class MultiLineInput(QTextEdit):
+    """
+    Represents a multi line input.
+    """
     # Define a signal that will be emitted when the return key is pressed
     returnPressed = pyqtSignal()
 
     def __init__(self, parent=None):
+        """
+        Special method __init__.
+        """
         super().__init__(parent)
         self.setAcceptRichText(False)
         self.setLineWrapMode(QTextEdit.WidgetWidth)
@@ -375,6 +423,9 @@ class MultiLineInput(QTextEdit):
         # self.document().documentLayout().documentSizeChanged.connect(self.adjustHeight)
 
     def keyPressEvent(self, event):
+        """
+        Keypressevent based on event.
+        """
         # Check if the pressed key is the return key and the control modifier is also pressed
         if event.key() == Qt.Key_Return and event.modifiers() & Qt.ControlModifier:
             # Emit the returnPressed signal
@@ -389,6 +440,9 @@ class MultiLineInput(QTextEdit):
             logging.info(f"Key pressed: {event.text()}")
 
     def insertFromMimeData(self, source):
+        """
+        Insertfrommimedata based on source.
+        """
         # Check if the source has text
         if source.hasText():
             # Get the text from the source
@@ -408,11 +462,17 @@ class MultiLineInput(QTextEdit):
             logging.info(f"Text inserted from mime data: {text}")
 
     def is_code_block(self, text):
+        """
+        Checks if code block based on text.
+        """
         # This function checks if the given text appears to be a code block.
         # It does this by checking if the text starts with "def ", "import ", or "class ", which are common Python code block starters.
         return text.startswith("def ") or text.startswith("import ") or text.startswith("class ")
 
     def format_code_block(self, code_block):
+        """
+        Format code block based on code block.
+        """
         # This function formats the given code block by adding indentation and line breaks.
         # It first splits the code block into individual lines.
         lines = code_block.split("\n")
@@ -425,11 +485,17 @@ class MultiLineInput(QTextEdit):
         return formatted_code_block
 
     def adjustHeight(self):
+        """
+        Adjustheight.
+        """
         doc_height = self.document().size().height()
         self.setFixedHeight(int(doc_height) + 10)
 
 
 class MessageProcessor(QThread):
+    """
+    Represents a message processor.
+    """
     # Define a signal that will be emitted when a new message is received
     new_message = pyqtSignal(str)
     # Define a signal that will be emitted when the API is busy
@@ -438,6 +504,9 @@ class MessageProcessor(QThread):
     api_error = pyqtSignal(str)
 
     def __init__(self, client, conversation_history, selected_model):
+        """
+        Special method __init__.
+        """
         # Call the parent class's constructor
         super().__init__()
         # Store the client object
@@ -448,6 +517,9 @@ class MessageProcessor(QThread):
         self.selected_model = selected_model
 
     def run(self):
+        """
+        Run.
+        """
         # Initialize a flag to indicate whether a message has been sent
         message_sent = False
         # Keep trying to send a message until successful
@@ -525,8 +597,14 @@ class MessageProcessor(QThread):
 
 
 class APIKeyDialog(QDialog):
+    """
+    Represents a a p i key dialog.
+    """
     # Initialize the APIKeyDialog class
     def __init__(self, parent=None):
+        """
+        Special method __init__.
+        """
         # Call the parent class's constructor
         super().__init__(parent)
         # Set the window title
@@ -565,10 +643,19 @@ class APIKeyDialog(QDialog):
 
     # Method to get the entered API key
     def get_api_key(self):
+        """
+        Retrieves api key.
+        """
         return self.api_key_input.text()
 
 class ClaudeChat(QWidget):
+    """
+    Represents a claude chat.
+    """
     def __init__(self):
+        """
+        Special method __init__.
+        """
         # Call the parent class's constructor
         super().__init__()
         # Get the Anthropic API key from the environment variables
@@ -603,6 +690,9 @@ class ClaudeChat(QWidget):
         logging.info(f"Chat history: {self.chat_history}")
 
     def set_windows_env_variable(self, name, value):
+        """
+        Sets windows env variable based on name, value.
+        """
         
         try:
             # Update for the current process
@@ -645,6 +735,9 @@ class ClaudeChat(QWidget):
 
 
     def init_ui(self):
+        """
+        Init ui.
+        """
         # Set the window title and size
         self.setWindowTitle("Chat with Claude")
         self.showMaximized()  # Open the window in full screen mode
@@ -876,6 +969,9 @@ class ClaudeChat(QWidget):
         self.user_input.setFocus()
 
     def update_sidebar(self):
+        """
+        Updates sidebar.
+        """
             # Clear the sidebar
             self.sidebar.clear()
             # Load the conversations from the database
@@ -923,6 +1019,9 @@ class ClaudeChat(QWidget):
             self.sidebar.customContextMenuRequested.connect(self.show_context_menu)
 
     def show_context_menu(self, pos):
+        """
+        Show context menu based on pos.
+        """
             # Get the item at the position where the context menu was requested
             item = self.sidebar.itemAt(pos)
             if item is not None:
@@ -950,12 +1049,18 @@ class ClaudeChat(QWidget):
                             self.delete_conversation(conversation_id)
 
     def rename_conversation(self, conversation_id, new_title):
+        """
+        Rename conversation based on conversation id, new title.
+        """
         # Rename the conversation in the database
         self.conversation_history_db.rename_conversation(conversation_id, new_title)
         # Update the sidebar to reflect the new title
         self.update_sidebar()
 
     def delete_conversation(self, conversation_id):
+        """
+        Deletes conversation based on conversation id.
+        """
         # Delete the conversation from the database
         self.conversation_history_db.delete_conversation(conversation_id)
         # If the deleted conversation is the currently active one
@@ -970,6 +1075,9 @@ class ClaudeChat(QWidget):
         self.update_sidebar()
         
     def show_code_dialog(self, code_block):
+        """
+        Show code dialog based on code block.
+        """
             # Create a new dialog
             dialog = QDialog(self)
             # Set the title of the dialog
@@ -1019,6 +1127,9 @@ class ClaudeChat(QWidget):
             dialog.exec_()
 
     def encode_image(self, image_path):
+        """
+        Encode image based on image path.
+        """
             try:
                 # Open the image file in binary mode
                 with open(image_path, "rb") as image_file:
@@ -1042,6 +1153,9 @@ class ClaudeChat(QWidget):
                 return None
 
     def load_conversation(self, item):
+        """
+        Load conversation based on item.
+        """
         conversation_id = item.data(Qt.UserRole)
         if conversation_id is None:
             self.clear_chat()
@@ -1118,6 +1232,9 @@ class ClaudeChat(QWidget):
                 logging.warning(f"Conversation history not found for ID: {conversation_id}")
     
     def send_message(self):
+        """
+        Send message.
+        """
         # Get the user's message from the input field and strip any leading/trailing whitespace
         user_message = self.user_input.toPlainText().strip()
         # If the user's message is not empty
@@ -1174,6 +1291,9 @@ class ClaudeChat(QWidget):
             logging.warning("Empty user message. Message not sent.")
 
     def get_the_current_model(self):
+        """
+        Retrieves the current model.
+        """
         # Get the selected model from the combo box
             selected_model = self.model_combo_box.currentText()
             if selected_model == "Claude-3-Opus":
@@ -1189,6 +1309,9 @@ class ClaudeChat(QWidget):
             return model_name
     
     def save_conversation(self):
+        """
+        Save conversation.
+        """
             # If the conversation history is not empty
             if self.conversation_history:
                 # Log that the conversation is being updated
@@ -1206,6 +1329,9 @@ class ClaudeChat(QWidget):
                 logging.warning("Conversation history is empty. Skipping save.")
 
     def generate_conversation_title(self, conversation_id):
+        """
+        Generate conversation title based on conversation id.
+        """
         # If the conversation history is too short
         if len(self.conversation_history) < 2:
             # Log that the conversation history is too short
@@ -1287,12 +1413,18 @@ class ClaudeChat(QWidget):
                     return existing_title
         
     def set_focus_to_input(self):
+        """
+        Sets focus to input.
+        """
         # Set the focus to the user input field
         self.user_input.setFocus()
         # Log that the focus was set to the user input field
         logging.info("Focus set to user input")
 
     def update_chat(self, message):
+        """
+        Updates chat based on message.
+        """
             # If the message contains multiple lines
             if "\n" in message:
                 # Split the message into lines
@@ -1393,6 +1525,9 @@ class ClaudeChat(QWidget):
             logging.info(f"Chat updated with message: {message}")
 
     def add_new_conversation(self):
+        """
+        Add new conversation.
+        """
         # Clear the current chat history
         self.clear_chat()
         # Reset the conversation history
@@ -1413,6 +1548,9 @@ class ClaudeChat(QWidget):
         self.update_sidebar()
 
     def is_code_block(self, text):
+        """
+        Checks if code block based on text.
+        """
         # Determine if the text is a code block by checking if it starts with "def ", "import ", or "class "
         is_code = text.startswith("def ") or text.startswith("import ") or text.startswith("class ")
         # Log the text that is being checked
@@ -1423,6 +1561,9 @@ class ClaudeChat(QWidget):
         return is_code
 
     def add_copy_button(self, code_block_content):
+        """
+        Add copy button based on code block content.
+        """
             # Generate a unique identifier for the code block based on the current number of code blocks
             code_block_id = f"code_block_{len(self.code_blocks)}"
             # Store the code block content in the code_blocks dictionary, using the unique identifier as the key
@@ -1468,6 +1609,9 @@ class ClaudeChat(QWidget):
             self.chat_history_layout.addSpacing(10)
 
     def copy_code_to_clipboard(self, code_block_id):
+        """
+        Copy code to clipboard based on code block id.
+        """
             # Check if the provided code block ID exists in the code_blocks dictionary
             if code_block_id in self.code_blocks:
                 # Retrieve the code block associated with the provided ID
@@ -1478,6 +1622,9 @@ class ClaudeChat(QWidget):
                 self.status_bar.showMessage("Code block copied to clipboard", 2000)
 
     def update_chat_history(self, message):
+        """
+        Updates chat history based on message.
+        """
         # Append the provided message to the chat history
         self.chat_history.append(message)
         # Close the progress dialog
@@ -1491,6 +1638,9 @@ class ClaudeChat(QWidget):
         logging.info(f"Current chat history: {self.chat_history}")
 
     def enable_input(self):
+        """
+        Enable input.
+        """
         # Enable the user input field, send button, clear button, and upload button
         self.user_input.setEnabled(True)
         self.send_button.setEnabled(True)
@@ -1509,6 +1659,9 @@ class ClaudeChat(QWidget):
         logging.info(f"Upload button enabled: {self.upload_button.isEnabled()}")
 
     def clear_chat(self):
+        """
+        Clear chat.
+        """
         # While there are items in the chat history layout
         while self.chat_history_layout.count():
             # Take the first item from the layout
@@ -1533,6 +1686,9 @@ class ClaudeChat(QWidget):
         logging.info(f"Conversation history reset: {self.conversation_history}")
 
     def api_busy(self):
+        """
+        Api busy.
+        """
         # Display a message on the status bar indicating that the API is busy
         # The message will be displayed for 60000 milliseconds (60 seconds)
         self.status_bar.showMessage("API is busy. Trying again in 60 seconds...", 60000)
@@ -1545,6 +1701,9 @@ class ClaudeChat(QWidget):
         logging.info("Status bar message timeout: 60000 ms")
 
     def show_api_error(self, error_message):
+        """
+        Show api error based on error message.
+        """
         # Display a critical error message box with the title "API Error" and the provided error message
         QMessageBox.critical(self, "API Error", error_message)
 
@@ -1554,6 +1713,9 @@ class ClaudeChat(QWidget):
         logging.info("API error message box shown")
 
     def upload_file(self):
+        """
+        Upload file.
+        """
             # Open a file dialog and get the selected file name
             file_name, _ = QFileDialog.getOpenFileName(self, 'Open File')
             
@@ -1673,6 +1835,9 @@ class ClaudeChat(QWidget):
                     logging.info("No file selected")
 
     def close_progress_dialog(self):
+        """
+        Close progress dialog.
+        """
             # If a progress dialog exists
             if self.progress_dialog:
                 # Close the progress dialog
@@ -1685,6 +1850,9 @@ class ClaudeChat(QWidget):
                 logging.info("Progress dialog closed")
 
     def handle_api_error(self, error_message):
+        """
+        Handles api error based on error message.
+        """
         # Create a new message box
         msg = QMessageBox()
         
@@ -1711,6 +1879,9 @@ class ClaudeChat(QWidget):
 
 
 def main():
+    """
+    Main.
+    """
     # Create a new QApplication instance
     app = QApplication(sys.argv)
     

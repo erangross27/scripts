@@ -1,3 +1,7 @@
+"""
+This script handles packet capture.
+"""
+
 from scapy.all import sniff
 import time
 import multiprocessing
@@ -6,14 +10,26 @@ from queue import Empty
 from tqdm import tqdm
 
 class PacketCapture:
+    """
+    Represents a packet capture.
+    """
     def __init__(self, logger):
+        """
+        Special method __init__.
+        """
         self.logger = logger
         self.num_cores = multiprocessing.cpu_count()
 
     def capture_packets_worker(self, interface, count, result_queue):
+        """
+        Capture packets worker based on interface, count, result queue.
+        """
         packets_captured = 0
         
         def packet_handler(pkt):
+            """
+            Packet handler based on pkt.
+            """
             nonlocal packets_captured
             if packets_captured < count:
                 result_queue.put((pkt.time, bytes(pkt)))
@@ -33,6 +49,9 @@ class PacketCapture:
             result_queue.put(None)
 
     def capture_packets(self, interface, total_count):
+        """
+        Capture packets based on interface, total count.
+        """
         try:
             result_queue = Queue()
             processes = []

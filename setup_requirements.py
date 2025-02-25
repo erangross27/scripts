@@ -1,3 +1,7 @@
+"""
+This script handles setup requirements.
+"""
+
 # This script generates a requirements.txt file by analyzing Python imports in a directory
 
 # Import required standard library modules

@@ -66,6 +66,9 @@ def deutsch_jozsa_circuit(n, oracle):
 
 # Define a balanced oracle for 3 qubits
 def balanced_oracle():
+    """
+    Balanced oracle.
+    """
     qc = QuantumCircuit(4)
     qc.cx(0, 3)
     qc.cx(1, 3)

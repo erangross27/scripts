@@ -36,18 +36,18 @@ Note: This script is designed to work both as a standalone Python script and
 when bundled with PyInstaller.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 5.5 KB
-- Lines of code: 93 (of 141 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 5.8 KB
+- Lines of code: 114 (of 162 total)
 
 **Functions:**
-- `select_source_file`: No documentation
-- `select_destination_folder`: No documentation
-- `get_duration`: No documentation
-- `update_progress_bar`: No documentation
-- `convert_video`: No documentation
-- `start_conversion`: No documentation
-- `on_closing`: No documentation
+- `select_source_file`: Select source file
+- `select_destination_folder`: Select destination folder
+- `get_duration`: Retrieves duration based on file path
+- `update_progress_bar`: Updates progress bar based on value
+- `convert_video`: Converts video
+- `start_conversion`: Start conversion
+- `on_closing`: On closing
 
 **Dependencies:**
 - tkinter
@@ -128,26 +128,26 @@ Date: [30/08/2024]
 Version: 1.0
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 8.4 KB
-- Lines of code: 156 (of 219 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 9.1 KB
+- Lines of code: 195 (of 258 total)
 
 **Classes:**
-- `FrameExtractor`: No documentation
+- `FrameExtractor`: Represents a frame extractor
   - Methods:
-    - `__init__`: No documentation
-    - `run`: No documentation
-    - `get_frame_count`: No documentation
-- `App`: No documentation
+    - `__init__`: Special method __init__
+    - `run`: Run
+    - `get_frame_count`: Retrieves frame count based on video path
+- `App`: Represents a app
   - Methods:
-    - `__init__`: No documentation
-    - `initUI`: No documentation
-    - `select_videos`: No documentation
-    - `select_output`: No documentation
-    - `extract_frames`: No documentation
-    - `update_progress`: No documentation
-    - `update_status`: No documentation
-    - `extraction_finished`: No documentation
+    - `__init__`: Special method __init__
+    - `initUI`: Initui
+    - `select_videos`: Select videos
+    - `select_output`: Select output
+    - `extract_frames`: Extract frames
+    - `update_progress`: Updates progress based on value
+    - `update_status`: Updates status based on status
+    - `extraction_finished`: Extraction finished
 
 **Dependencies:**
 - PyQt5
@@ -211,15 +211,15 @@ Note: This script requires FFmpeg to be installed and accessible in the system p
 For GPU encoding, it assumes an NVIDIA GPU with NVENC support.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 3.9 KB
-- Lines of code: 85 (of 116 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 4.1 KB
+- Lines of code: 97 (of 128 total)
 
 **Functions:**
-- `print_gpu_memory`: No documentation
-- `print_cpu_memory`: No documentation
-- `encode_video`: No documentation
-- `run_comparison`: No documentation
+- `print_gpu_memory`: Print gpu memory
+- `print_cpu_memory`: Print cpu memory
+- `encode_video`: Encode video based on input file, output file, use gpu
+- `run_comparison`: Run comparison based on input file, runs
 
 **Dependencies:**
 - GPUtil

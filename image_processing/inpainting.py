@@ -58,7 +58,13 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 class WatermarkDetectionApp:
+    """
+    Represents a watermark detection app.
+    """
     def __init__(self, master):
+        """
+        Special method __init__.
+        """
         # Initialize the main application window
         self.master = master
         self.master.title("Watermark Detection and Inpainting")
@@ -84,6 +90,9 @@ class WatermarkDetectionApp:
         self.create_widgets()
         
     def create_widgets(self):
+        """
+        Creates widgets.
+        """
         # Create and arrange GUI elements
         # Model selection
         tk.Label(self.master, text="YOLOv5 Model:").grid(row=0, column=0, padx=5, pady=5, sticky="e")
@@ -118,6 +127,9 @@ class WatermarkDetectionApp:
         self.master.grid_rowconfigure(5, weight=1)
 
     def download_and_load_inpainting_model(self):
+        """
+        Download and load inpainting model.
+        """
         model_id = "stabilityai/stable-diffusion-xl-base-1.0"
         
         try:
@@ -187,6 +199,9 @@ class WatermarkDetectionApp:
 
 
     def inpaint(self, prompt, image, mask_image):
+        """
+        Inpaint based on prompt, image, mask image.
+        """
         try:
             with torch.no_grad():
                 result = self.inpainting_pipeline(
@@ -206,6 +221,9 @@ class WatermarkDetectionApp:
 
 
     def browse_model(self):
+        """
+        Browse model.
+        """
         # Open file dialog to select the YOLOv5 model
         filename = filedialog.askopenfilename(filetypes=[("PyTorch Model", "*.pt")])
         if filename:
@@ -214,6 +232,9 @@ class WatermarkDetectionApp:
             self.load_watermark_model()
 
     def load_watermark_model(self):
+        """
+        Load watermark model.
+        """
         # Load the selected YOLOv5 model for watermark detection
         try:
             self.watermark_model = torch.hub.load('ultralytics/yolov5', 'custom', path=self.model_path.get(), force_reload=True)
@@ -229,6 +250,9 @@ class WatermarkDetectionApp:
             self.watermark_model = None
 
     def browse_input(self):
+        """
+        Browse input.
+        """
         # Open file dialog to select input file (video or image)
         filename = filedialog.askopenfilename(filetypes=[("Video files", "*.mp4"), ("Image files", "*.jpg *.jpeg *.png *.bmp *.gif")])
         if filename:
@@ -236,6 +260,9 @@ class WatermarkDetectionApp:
             logger.info(f"Input file selected: {filename}")
 
     def browse_output(self):
+        """
+        Browse output.
+        """
         # Open file dialog to select output file location
         filename = filedialog.asksaveasfilename(defaultextension=".mp4", filetypes=[("MP4 files", "*.mp4"), ("JPEG files", "*.jpg")])
         if filename:
@@ -243,6 +270,9 @@ class WatermarkDetectionApp:
             logger.info(f"Output path selected: {filename}")
 
     def start_processing(self):
+        """
+        Start processing.
+        """
         # Start the processing of the input file
         if not self.processing:
             self.processing = True
@@ -261,6 +291,9 @@ class WatermarkDetectionApp:
                 messagebox.showerror("Error", "Failed to load the inpainting model. Cannot process file.")
 
     def process_file(self):
+        """
+        Process file.
+        """
         # Process the input file (either image or video)
         if self.watermark_model is None:
             messagebox.showerror("Error", "Please load a watermark detection model first.")
@@ -293,6 +326,9 @@ class WatermarkDetectionApp:
             self.progress_var.set(0)
 
     def process_image(self, input_path, output_path):
+        """
+        Process image based on input path, output path.
+        """
         # Process a single image
         img = cv2.imread(input_path)
         logger.info(f"Image read successfully: {input_path}")
@@ -307,6 +343,9 @@ class WatermarkDetectionApp:
         messagebox.showinfo("Success", "Image processing completed successfully!")
        
     def save_intermediate_frame(self, frame, frame_number):
+        """
+        Save intermediate frame based on frame, frame number.
+        """
         # Save intermediate frames during video processing
         output_dir = os.path.join(os.path.dirname(self.output_path.get()), "intermediate_frames")
         os.makedirs(output_dir, exist_ok=True)
@@ -315,6 +354,9 @@ class WatermarkDetectionApp:
         logger.info(f"Saved intermediate frame: {output_path}")
 
     def process_video(self, input_path, output_path):
+        """
+        Process video based on input path, output path.
+        """
         cap = cv2.VideoCapture(input_path)
         if not cap.isOpened():
             raise ValueError("Error opening video file")
@@ -411,6 +453,9 @@ class WatermarkDetectionApp:
 
 
     def detect_and_mark_watermark(self, img):
+        """
+        Detect and mark watermark based on img.
+        """
         results = self.watermark_model(img)
         height, width = img.shape[:2]
         mask = np.zeros((height, width), dtype=np.uint8)
@@ -443,6 +488,9 @@ class WatermarkDetectionApp:
 
 
     def visualize_mask(self, img, mask):
+        """
+        Visualize mask based on img, mask.
+        """
         vis = img.copy()
         if mask is not None and np.any(mask > 0):
             vis[mask > 0] = cv2.addWeighted(img[mask > 0], 0.5, np.full_like(img[mask > 0], [0, 255, 0]), 0.5, 0)
@@ -452,6 +500,9 @@ class WatermarkDetectionApp:
         
 
     def inpaint_image(self, img, mask, prompt="", negative_prompt="", num_inference_steps=50, guidance_scale=7.5, strength=1.0, seed=None):
+        """
+        Inpaint image based on img, mask, prompt, negative prompt, num inference steps, guidance scale, strength, seed.
+        """
         if mask is None or np.sum(mask) == 0:
             return img, img
         
@@ -526,6 +577,9 @@ class WatermarkDetectionApp:
         return result, vis
 
     def resize_and_pad(self, img, mask, size=512):
+        """
+        Resize and pad based on img, mask, size.
+        """
         # Resize image and mask, maintaining aspect ratio
         img.thumbnail((size, size))
         mask.thumbnail((size, size))
@@ -541,15 +595,27 @@ class WatermarkDetectionApp:
         return new_img, new_mask
 
     def update_log(self, message):
+        """
+        Updates log based on message.
+        """
         self.log_text.insert(tk.END, message + '\n')
         self.log_text.see(tk.END)
 
 class GUILogHandler(logging.Handler):
+    """
+    Handles g u i log operations.
+    """
     def __init__(self, callback):
+        """
+        Special method __init__.
+        """
         super().__init__()
         self.callback = callback
 
     def emit(self, record):
+        """
+        Emit based on record.
+        """
         log_entry = self.format(record)
         self.callback(log_entry)
 

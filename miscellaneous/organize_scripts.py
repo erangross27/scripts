@@ -1,3 +1,7 @@
+"""
+This script handles organize scripts.
+"""
+
 import os
 import shutil
 

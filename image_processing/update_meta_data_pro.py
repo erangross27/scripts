@@ -1,3 +1,7 @@
+"""
+This script handles update meta data pro.
+"""
+
 import os
 import subprocess
 import sys
@@ -192,7 +196,13 @@ def suggest_keywords_with_ai(description: str) -> list:
         return []
 
 class MetadataEditorGUI(QMainWindow):
+    """
+    Represents a metadata editor g u i.
+    """
     def __init__(self):
+        """
+        Special method __init__.
+        """
         super().__init__()
         self.setWindowTitle("Stock Photo Metadata Editor")
         self.setMinimumSize(800, 600)
@@ -315,6 +325,9 @@ class MetadataEditorGUI(QMainWindow):
         self.title_edit.textChanged.connect(self.check_input_validity)
         
     def browse_image(self):
+        """
+        Browse image.
+        """
         file_path, _ = QFileDialog.getOpenFileName(
             self, "Select Image", "", "Image Files (*.jpg *.jpeg *.png *.tif *.tiff)"
         )
@@ -324,6 +337,9 @@ class MetadataEditorGUI(QMainWindow):
             self.load_existing_metadata(file_path)
     
     def load_image_preview(self, image_path):
+        """
+        Load image preview based on image path.
+        """
         pixmap = QPixmap(image_path)
         if not pixmap.isNull():
             pixmap = pixmap.scaled(400, 200, Qt.KeepAspectRatio, Qt.SmoothTransformation)
@@ -332,6 +348,9 @@ class MetadataEditorGUI(QMainWindow):
             self.preview_label.setText("Unable to load image preview")
     
     def load_existing_metadata(self, image_path):
+        """
+        Load existing metadata based on image path.
+        """
         # Use exiftool to get existing metadata
         try:
             cmd = ["exiftool", "-j", image_path]
@@ -387,10 +406,16 @@ class MetadataEditorGUI(QMainWindow):
             print(f"Error loading existing metadata: {e}")
     
     def toggle_ai_buttons(self, checked):
+        """
+        Toggle ai buttons based on checked.
+        """
         self.refine_desc_button.setEnabled(checked)
         self.suggest_keywords_button.setEnabled(checked)
     
     def refine_description(self):
+        """
+        Refine description.
+        """
         current_desc = self.desc_edit.toPlainText().strip()
         keywords = [k.strip() for k in self.keywords_edit.toPlainText().split(',') if k.strip()]
         categories = [c.strip() for c in self.categories_edit.text().split(',') if c.strip()]
@@ -416,6 +441,9 @@ class MetadataEditorGUI(QMainWindow):
             QMessageBox.critical(self, "AI Error", f"Error refining description: {str(e)}")
     
     def suggest_keywords(self):
+        """
+        Suggest keywords.
+        """
         description = self.desc_edit.toPlainText().strip()
         if not description:
             QMessageBox.warning(self, "Input Needed", 
@@ -459,10 +487,16 @@ class MetadataEditorGUI(QMainWindow):
             QMessageBox.critical(self, "AI Error", f"Error suggesting keywords: {str(e)}")
     
     def check_input_validity(self):
+        """
+        Check input validity.
+        """
         has_image = bool(self.image_path_edit.text().strip())
         self.save_button.setEnabled(has_image)
     
     def save_metadata(self):
+        """
+        Save metadata.
+        """
         image_path = self.image_path_edit.text().strip()
         title = self.title_edit.text().strip()
         description = self.desc_edit.toPlainText().strip()
@@ -483,6 +517,9 @@ class MetadataEditorGUI(QMainWindow):
             QMessageBox.critical(self, "Error", "Failed to save metadata. Check console for details.")
 
 def main():
+    """
+    Main.
+    """
     if QT_AVAILABLE:
         app = QApplication(sys.argv)
         window = MetadataEditorGUI()
@@ -493,6 +530,9 @@ def main():
         run_cli_version()
 
 def run_cli_version():
+    """
+    Run cli version.
+    """
     print("=== Shutterstock Metadata Embedding Script ===")
 
     # Get user inputs

@@ -37,11 +37,20 @@ from PyQt5.QtGui import QImage, QPainter
 from PyQt5.QtCore import QRectF, Qt
 
 class SVGConverter(QMainWindow):
+    """
+    Converts s v g.
+    """
     def __init__(self):
+        """
+        Special method __init__.
+        """
         super().__init__()
         self.initUI()
 
     def initUI(self):
+        """
+        Initui.
+        """
         # Set up the main window
         self.setWindowTitle('SVG Converter')
         self.setGeometry(100, 100, 400, 250)
@@ -74,6 +83,9 @@ class SVGConverter(QMainWindow):
         layout.addWidget(convert_button)
 
     def create_input_layout(self, label_text, *widgets):
+        """
+        Creates input layout based on label text.
+        """
         # Create a horizontal layout for input fields
         layout = QHBoxLayout()
         layout.addWidget(QLabel(label_text))
@@ -82,6 +94,9 @@ class SVGConverter(QMainWindow):
         return layout
 
     def create_resolution_layout(self):
+        """
+        Creates resolution layout.
+        """
         # Create a horizontal layout for resolution input
         layout = QHBoxLayout()
         layout.addWidget(QLabel('Resolution:'))
@@ -90,6 +105,9 @@ class SVGConverter(QMainWindow):
         layout.addWidget(self.height_spin)
         return layout
     def select_input(self):
+        """
+        Select input.
+        """
         # Open file dialog to select input SVG file
         file_name, _ = QFileDialog.getOpenFileName(self, 'Select SVG File', '', 'SVG Files (*.svg)')
         if file_name:
@@ -97,6 +115,9 @@ class SVGConverter(QMainWindow):
             self.update_resolution_from_svg(file_name)
 
     def select_output(self):
+        """
+        Select output.
+        """
         # Open file dialog to select output file location and name
         output_format = self.format_combo.currentText().lower()
         file_name, _ = QFileDialog.getSaveFileName(self, 'Save Output File', '', 
@@ -105,6 +126,9 @@ class SVGConverter(QMainWindow):
             self.output_line.setText(file_name)
 
     def update_resolution_from_svg(self, file_name):
+        """
+        Updates resolution from svg based on file name.
+        """
         # Update resolution spinboxes based on the input SVG file
         renderer = QSvgRenderer(file_name)
         default_size = renderer.defaultSize()
@@ -112,6 +136,9 @@ class SVGConverter(QMainWindow):
         self.height_spin.setValue(default_size.height())
 
     def update_output_suffix(self):
+        """
+        Updates output suffix.
+        """
         # Update the output file suffix when the format is changed
         current_output = self.output_line.text()
         if current_output:
@@ -120,6 +147,9 @@ class SVGConverter(QMainWindow):
             self.output_line.setText(f"{base}.{new_suffix}")
 
     def convert_svg(self):
+        """
+        Converts svg.
+        """
         # Convert the SVG file to the selected format
         input_file = self.input_line.text()
         output_file = self.output_line.text()

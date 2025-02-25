@@ -1,3 +1,7 @@
+"""
+This script handles cuda matrix multiplication that performs numerical operations.
+"""
+
 import numpy as np
 import pycuda.autoinit
 import pycuda.driver as cuda
@@ -51,10 +55,16 @@ matrix_mul = mod.get_function("matrix_mul")
 
 # CPU matrix multiplication function
 def cpu_matrix_mul(a, b):
+    """
+    Cpu matrix mul based on a, b.
+    """
     return np.dot(a, b)
 
 # GPU matrix multiplication function
 def gpu_matrix_mul(a, b, a_gpu, b_gpu, c_gpu):
+    """
+    Gpu matrix mul based on a, b, a gpu, b gpu, c gpu.
+    """
     n = a.shape[0]
     c = np.zeros((n, n), dtype=np.float32)
     

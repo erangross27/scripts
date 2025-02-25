@@ -53,24 +53,39 @@ process = None
 
 # Function to open a file dialog and set the source file path
 def select_source_file():
+    """
+    Select source file.
+    """
     source_file_path.set(filedialog.askopenfilename())
 
 # Function to open a folder dialog and set the destination folder path
 def select_destination_folder():
+    """
+    Select destination folder.
+    """
     destination_folder_path.set(filedialog.askdirectory())
 
 # Function to get the duration of a video file using ffprobe
 def get_duration(file_path):
+    """
+    Retrieves duration based on file path.
+    """
     output = subprocess.check_output(('ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', file_path)).decode('utf-8')
     return float(output)
 
 # Function to update the progress bar
 def update_progress_bar(value):
+    """
+    Updates progress bar based on value.
+    """
     progress_bar['value'] = value
     root.update_idletasks()
 
 # Function to perform the video conversion
 def convert_video():
+    """
+    Converts video.
+    """
     global process
     try:
         output_file_path = f"{destination_folder_path.get()}/output.mp4"
@@ -98,10 +113,16 @@ def convert_video():
 
 # Function to start the conversion process in a separate thread
 def start_conversion():
+    """
+    Start conversion.
+    """
     threading.Thread(target=convert_video).start()
 
 # Function to handle the window closing event
 def on_closing():
+    """
+    On closing.
+    """
     if messagebox.askokcancel("Quit", "Do you want to quit?"):
         if process:
             process.terminate()

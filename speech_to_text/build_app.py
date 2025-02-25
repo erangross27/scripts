@@ -1,9 +1,16 @@
+"""
+This script handles build app.
+"""
+
 import os
 import base64
 import sys
 import shutil
 
 def build_executable():
+    """
+    Build executable.
+    """
     # Create build directory
     build_dir = os.path.join('scripts', 'speech_to_text', 'build_output')
     os.makedirs(build_dir, exist_ok=True)

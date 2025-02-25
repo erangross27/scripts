@@ -1,10 +1,20 @@
+"""
+This script handles interface manager.
+"""
+
 import psutil  # Library to retrieve information on running processes and system utilization
 import socket  # Library for low-level networking functions 
 import netifaces  # Library to get network interface information 
 import wmi  # Library for accessing Windows Management Instrumentation
 from bidi.algorithm import get_display  # Library to handle bidirectional display of strings
 class InterfaceManager:
+    """
+    Manages interface.
+    """
     def __init__(self, logger):
+        """
+        Special method __init__.
+        """
         self.logger = logger
 
     def get_interfaces(self):

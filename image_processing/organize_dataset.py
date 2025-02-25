@@ -1,3 +1,7 @@
+"""
+This script handles organize dataset.
+"""
+
 import os
 import shutil
 import random

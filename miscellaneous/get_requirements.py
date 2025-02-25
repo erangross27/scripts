@@ -27,6 +27,9 @@ from collections import defaultdict
 
 # Function to extract import statements from a Python file
 def get_imports(file_path):
+    """
+    Retrieves imports based on file path.
+    """
     with open(file_path, 'r', encoding='utf-8') as file:
         try:
             tree = ast.parse(file.read())
@@ -47,6 +50,9 @@ def get_imports(file_path):
 
 # Function to normalize package names (e.g., 'PIL' to 'Pillow')
 def normalize_package_name(package):
+    """
+    Normalize package name based on package.
+    """
     package_mappings = {
         'PIL': 'Pillow',
         'bidi': 'python-bidi',
@@ -57,12 +63,18 @@ def normalize_package_name(package):
 
 # Function to get a list of standard library modules
 def get_stdlib_modules():
+    """
+    Retrieves stdlib modules.
+    """
     stdlib_modules = set(sys.builtin_module_names)
     stdlib_modules.update([m.name for m in pkgutil.iter_modules()])
     return stdlib_modules
 
 # Function to check if a package is Windows-specific
 def is_windows_specific(package):
+    """
+    Checks if windows specific based on package.
+    """
     windows_specific_modules = {
         'win32', 'winreg', '_win', 'msvcrt', 'nt', 'winsound', 'win32com', 'win32api',
         'win32gui', 'win32con', 'win32event', 'win32evtlog', 'win32file', 'win32security',
@@ -72,6 +84,9 @@ def is_windows_specific(package):
 
 # Main function to generate requirements file
 def get_all_requirements(output_file):
+    """
+    Retrieves all requirements based on output file.
+    """
     current_dir = os.getcwd()
     all_imports = defaultdict(set)
     is_windows = platform.system() == "Windows"
@@ -97,6 +112,9 @@ def get_all_requirements(output_file):
 
 # Main entry point of the script
 def main():
+    """
+    Main.
+    """
     output_file = "requirements.txt"
     get_all_requirements(output_file)
 

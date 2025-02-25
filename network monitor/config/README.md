@@ -8,12 +8,12 @@
 **Path:** `network monitor\config\__init__.py`
 
 **Description:**
-No description available
+This script handles   init  .
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
-- Size: 0.4 KB
-- Lines of code: 18 (of 19 total)
+- Last modified: 2025-02-25 08:16:29
+- Size: 0.5 KB
+- Lines of code: 21 (of 23 total)
 
 **Dependencies:**
 - feature_config
@@ -24,24 +24,24 @@ No description available
 **Path:** `network monitor\config\feature_config.py`
 
 **Description:**
-No description available
+This script handles feature config.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
+- Last modified: 2025-02-25 08:16:29
 - Size: 1.1 KB
-- Lines of code: 21 (of 22 total)
+- Lines of code: 24 (of 26 total)
 
 ### whitelist_config.py
 
 **Path:** `network monitor\config\whitelist_config.py`
 
 **Description:**
-No description available
+This script handles whitelist config.
 
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
+- Last modified: 2025-02-25 08:16:29
 - Size: 1.0 KB
-- Lines of code: 28 (of 40 total)
+- Lines of code: 31 (of 44 total)
 
 **Dependencies:**
 - ipaddress

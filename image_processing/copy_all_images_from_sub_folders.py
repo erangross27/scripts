@@ -1,8 +1,15 @@
+"""
+This script handles copy all images from sub folders.
+"""
+
 import os
 import shutil
 from pathlib import Path
 
 def main():
+    """
+    Main.
+    """
     # Define the source directory (with Hebrew characters)
     source_dir = Path(r"C:\Users\EranGross\OneDrive - Gross\תמונות")
     target_dir = source_dir / "AllImages"

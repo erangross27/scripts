@@ -1,3 +1,7 @@
+"""
+This script downloads content related to youtube.
+"""
+
 import sys
 import os
 import tempfile
@@ -9,16 +13,25 @@ from PyQt5.QtGui import QIcon, QFont
 from yt_dlp import YoutubeDL
 
 class DownloaderThread(QThread):
+    """
+    Represents a downloader thread.
+    """
     progress = pyqtSignal(float, str)
     finished = pyqtSignal(bool, str)
     
     def __init__(self, url, save_path, format_type):
+        """
+        Special method __init__.
+        """
         super().__init__()
         self.url = url
         self.save_path = save_path
         self.format_type = format_type
         
     def progress_hook(self, d):
+        """
+        Progress hook based on d.
+        """
         if d['status'] == 'downloading':
             try:
                 if d.get('total_bytes'):
@@ -53,6 +66,9 @@ class DownloaderThread(QThread):
             self.progress.emit(95, "Converting...")  # Show converting status
                 
     def run(self):
+        """
+        Run.
+        """
         try:
             # Create a temporary directory for cache
             cache_dir = os.path.join(tempfile.gettempdir(), 'yt_dlp_cache')
@@ -90,11 +106,20 @@ class DownloaderThread(QThread):
             self.finished.emit(False, f"Error: {str(e)}")
 
 class YouTubeDownloader(QMainWindow):
+    """
+    Represents a you tube downloader.
+    """
     def __init__(self):
+        """
+        Special method __init__.
+        """
         super().__init__()
         self.initUI()
         
     def initUI(self):
+        """
+        Initui.
+        """
         self.setWindowTitle('YouTube Downloader')
         self.setMinimumSize(800, 250)
         
@@ -187,11 +212,17 @@ class YouTubeDownloader(QMainWindow):
         layout.addStretch()
         
     def browse_location(self):
+        """
+        Browse location.
+        """
         folder = QFileDialog.getExistingDirectory(self, "Select Save Location")
         if folder:
             self.save_input.setText(folder)
             
     def start_download(self):
+        """
+        Start download.
+        """
         url = self.url_input.text().strip()
         save_path = self.save_input.text().strip()
         format_type = self.format_combo.currentText()
@@ -215,12 +246,18 @@ class YouTubeDownloader(QMainWindow):
         self.downloader.start()
         
     def update_progress(self, percentage, status_text):
+        """
+        Updates progress based on percentage, status text.
+        """
         # Ensure percentage is between 0 and 100
         percentage = max(0, min(100, percentage))
         self.progress_bar.setValue(int(percentage))
         self.status_label.setText(status_text)
         
     def download_finished(self, success, message):
+        """
+        Download finished based on success, message.
+        """
         self.download_btn.setEnabled(True)
         if success:
             self.status_label.setText("Completed!")
@@ -231,6 +268,9 @@ class YouTubeDownloader(QMainWindow):
             QMessageBox.warning(self, "Error", message)
 
 def main():
+    """
+    Main.
+    """
     app = QApplication(sys.argv)
     app.setStyle('Fusion')
     window = YouTubeDownloader()

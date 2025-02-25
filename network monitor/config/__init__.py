@@ -1,3 +1,7 @@
+"""
+This script handles   init  .
+"""
+
 from .whitelist_config import (
     WHITELISTED_IPS,
     WHITELISTED_PORTS,

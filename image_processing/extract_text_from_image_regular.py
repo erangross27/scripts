@@ -30,6 +30,9 @@ from tkinter import filedialog, messagebox
 import csv
 
 def extract_text_from_image(image_path, delimiter='\n'):
+    """
+    Extract text from image based on image path, delimiter.
+    """
     # Get the directory of the executable
     exe_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -60,6 +63,9 @@ def extract_text_from_image(image_path, delimiter='\n'):
     return []
 
 def save_to_file(data, file_path, file_type):
+    """
+    Save to file based on data, file path, file type.
+    """
     with open(file_path, 'w', encoding='utf-8') as f:
         if file_type == 'csv':
             writer = csv.writer(f)
@@ -70,11 +76,17 @@ def save_to_file(data, file_path, file_type):
                 f.write(f"{line}\n")  # Write the entire string
 
 def select_image_path(entry):
+    """
+    Select image path based on entry.
+    """
     image_path = filedialog.askopenfilename(title='Select image file')
     entry.delete(0, tk.END)
     entry.insert(0, image_path)
 
 def convert_and_save(entry, file_type_var):
+    """
+    Converts and save based on entry, file type var.
+    """
     extracted_text = extract_text_from_image(entry.get())
 
     # Flatten the list of tuples into a list of strings
@@ -91,6 +103,9 @@ def convert_and_save(entry, file_type_var):
 
     messagebox.showinfo('Success', 'Data has been successfully saved!')
 def main():
+    """
+    Main.
+    """
     root = tk.Tk()
     root.title('Extract Text from Image')
     root.geometry('800x300')

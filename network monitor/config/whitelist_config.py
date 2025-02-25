@@ -1,3 +1,7 @@
+"""
+This script handles whitelist config.
+"""
+
 import re
 from ipaddress import ip_network
 

@@ -1,3 +1,7 @@
+"""
+This script provides utility functions for networks.
+"""
+
 import socket
 
 def resolve_ip(ip):

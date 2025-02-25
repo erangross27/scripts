@@ -42,6 +42,9 @@ google_json_path = os.path.join(application_path, 'google.json')
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = google_json_path
 
 def process_image(image_path, progress_var, window, progress_bar):
+    """
+    Process image based on image path, progress var, window, progress bar.
+    """
     # Open and read the image file
     with io.open(image_path, 'rb') as image_file:
         content = image_file.read()
@@ -78,6 +81,9 @@ def process_image(image_path, progress_var, window, progress_bar):
     return document
 
 def create_gui():
+    """
+    Creates gui.
+    """
     # Create main window
     window = tk.Tk()
     window.title("Image to Text Converter")
@@ -95,12 +101,18 @@ def create_gui():
     image_entry = tk.Entry(window, width=40)
     image_entry.grid(row=0, column=1, padx=10)
     def select_image():
+        """
+        Select image.
+        """
         # Open file dialog to select an image
         file_path = filedialog.askopenfilename(filetypes=[("Image Files", "*.jpg;*.jpeg;*.png")])
         image_entry.delete(0, tk.END) 
         image_entry.insert(0, file_path) 
 
     def save_docx():
+        """
+        Save docx.
+        """
         # Get the output path and process the image
         output_path = filename_entry.get()
         if output_path:

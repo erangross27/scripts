@@ -1,3 +1,7 @@
+"""
+This script handles image brightener gui that performs numerical operations.
+"""
+
 import cv2
 import numpy as np
 import sys
@@ -8,7 +12,13 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap, QImage
 
 class ImageBrightener(QMainWindow):
+    """
+    Represents a image brightener.
+    """
     def __init__(self):
+        """
+        Special method __init__.
+        """
         super().__init__()
         self.setWindowTitle("Image Brightener")
         self.setMinimumSize(600, 400)
@@ -68,6 +78,9 @@ class ImageBrightener(QMainWindow):
         layout.addWidget(process_btn)
         
     def browse_input(self):
+        """
+        Browse input.
+        """
         file_name, _ = QFileDialog.getOpenFileName(
             self,
             "Select Input Image",
@@ -87,6 +100,9 @@ class ImageBrightener(QMainWindow):
                 self.output_edit.setText(self.output_path)
     
     def browse_output(self):
+        """
+        Browse output.
+        """
         file_name, _ = QFileDialog.getSaveFileName(
             self,
             "Select Output Location",
@@ -98,11 +114,17 @@ class ImageBrightener(QMainWindow):
             self.output_edit.setText(file_name)
     
     def update_brightness(self):
+        """
+        Updates brightness.
+        """
         self.brightness_factor = self.slider.value() / 100
         self.brightness_label.setText(f"{self.brightness_factor:.1f}x")
         self.update_preview()
     
     def update_preview(self):
+        """
+        Updates preview.
+        """
         if not self.input_path:
             return
             
@@ -133,6 +155,9 @@ class ImageBrightener(QMainWindow):
         self.image_label.setPixmap(QPixmap.fromImage(qt_image))
     
     def brighten_image(self, img):
+        """
+        Brighten image based on img.
+        """
         # Convert to HSV color space
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
         
@@ -146,6 +171,9 @@ class ImageBrightener(QMainWindow):
         return cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
     
     def process_image(self):
+        """
+        Process image.
+        """
         if not self.input_path or not self.output_path:
             return
             
@@ -159,6 +187,9 @@ class ImageBrightener(QMainWindow):
         cv2.imwrite(self.output_path, brightened)
 
 def main():
+    """
+    Main.
+    """
     app = QApplication(sys.argv)
     window = ImageBrightener()
     window.show()

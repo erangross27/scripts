@@ -1,8 +1,15 @@
+"""
+This script handles build app.
+"""
+
 import os
 import sys
 import shutil
 
 def build_executable():
+    """
+    Build executable.
+    """
     # Get the directory of the build script
     current_dir = os.path.dirname(os.path.abspath(__file__))
     

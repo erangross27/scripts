@@ -38,6 +38,9 @@ from utils.callbacks import Callbacks # type: ignore
 
 
 def main():
+    """
+    Main.
+    """
     # Define hyperparameters for YOLOv5 training
     hyp = {
         'lr0': 0.01,  # Initial learning rate

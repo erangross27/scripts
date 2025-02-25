@@ -1,3 +1,7 @@
+"""
+This script handles ai security service.
+"""
+
 # Main FastAPI backend service for AI security system
 
 # Import required libraries and modules
@@ -35,6 +39,9 @@ JWT_ALGORITHM = "HS256"
 
 # Define User model for database
 class User(Base):
+    """
+    Represents a user.
+    """
     __tablename__ = "users"
     
     id = Column(Integer, primary_key=True, index=True)
@@ -44,16 +51,25 @@ class User(Base):
     
 # Pydantic models for request/response validation
 class UserCreate(BaseModel):
+    """
+    Represents a user create.
+    """
     username: str
     password: str
 
 class UserResponse(BaseModel):
+    """
+    Represents a user response.
+    """
     id: int
     username: str
     created_at: datetime
 
 # Middleware to verify JWT token and get current user
 def get_current_user(token: str = Depends()):
+    """
+    Retrieves current user based on token.
+    """
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
         return payload.get("sub")
@@ -65,6 +81,9 @@ def get_current_user(token: str = Depends()):
 
 # Database session dependency
 def get_db():
+    """
+    Retrieves db.
+    """
     db = SessionLocal()
     try:
         yield db
@@ -73,7 +92,13 @@ def get_db():
 
 # Decorator for caching responses in Redis
 def cache_response(expire_time=300):
+    """
+    Cache response based on expire time.
+    """
     def decorator(func):
+        """
+        Decorator based on func.
+        """
         async def wrapper(*args, **kwargs):
             # Create cache key from function name and arguments
             cache_key = f"{func.__name__}:{str(args)}:{str(kwargs)}"

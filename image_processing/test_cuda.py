@@ -1,3 +1,7 @@
+"""
+This script contains test cases for cuda.
+"""
+
 try:
     import torch
     print("PyTorch imported successfully")

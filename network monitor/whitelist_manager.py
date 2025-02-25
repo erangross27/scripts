@@ -1,3 +1,7 @@
+"""
+This script handles whitelist manager.
+"""
+
 from config.whitelist_config import (
     WHITELISTED_IPS,
     WHITELISTED_PORTS,
@@ -14,7 +18,13 @@ from scapy.layers.dns import DNSQR
 import ipaddress
 
 class WhitelistManager:
+    """
+    Manages whitelist.
+    """
     def __init__(self, logger):
+        """
+        Special method __init__.
+        """
         self.logger = logger
 
     def is_whitelisted(self, packet):
