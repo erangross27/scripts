@@ -29,8 +29,20 @@ Dependencies:
 
 Note: This script requires Ghostscript to be installed and accessible in the system PATH.
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 4.7 KB
+- Lines of code: 93 (of 119 total)
+
+**Functions:**
+- `compress_pdf`: No documentation
+- `estimate_time`: No documentation
+- `update_progress`: No documentation
+- `select_file`: No documentation
+- `compress_file`: No documentation
+- `main`: No documentation
+
 **Dependencies:**
-- subprocess
 - tkinter
 
 ### numbering_pdf.py
@@ -63,6 +75,26 @@ Usage:
 Run the script and use the GUI to open a PDF, adjust settings, and save the numbered PDF.
 
 Note: This script requires PyQt5 and PyMuPDF to be installed.
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 11.5 KB
+- Lines of code: 205 (of 290 total)
+
+**Classes:**
+- `ColorIndicator`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `setColor`: No documentation
+    - `paintEvent`: No documentation
+- `PDFNumberer`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `initUI`: No documentation
+    - `select_color`: No documentation
+    - `open_pdf`: No documentation
+    - `update_preview`: No documentation
+    - `process_pdf`: No documentation
 
 **Dependencies:**
 - PyQt5

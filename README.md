@@ -1,6 +1,6 @@
 # Scripts Directory Documentation
 
-This repository contains various Python scripts organized by functionality.
+This repository contains various Python scripts and Jupyter notebooks organized by functionality.
 
 ## Table of Contents
 
@@ -49,8 +49,20 @@ Dependencies:
 
 Note: This script requires Ghostscript to be installed and accessible in the system PATH.
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 4.7 KB
+- Lines of code: 93 (of 119 total)
+
+**Functions:**
+- `compress_pdf`: No documentation
+- `estimate_time`: No documentation
+- `update_progress`: No documentation
+- `select_file`: No documentation
+- `compress_file`: No documentation
+- `main`: No documentation
+
 **Dependencies:**
-- subprocess
 - tkinter
 
 ### numbering_pdf.py
@@ -84,6 +96,26 @@ Run the script and use the GUI to open a PDF, adjust settings, and save the numb
 
 Note: This script requires PyQt5 and PyMuPDF to be installed.
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 11.5 KB
+- Lines of code: 205 (of 290 total)
+
+**Classes:**
+- `ColorIndicator`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `setColor`: No documentation
+    - `paintEvent`: No documentation
+- `PDFNumberer`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `initUI`: No documentation
+    - `select_color`: No documentation
+    - `open_pdf`: No documentation
+    - `update_preview`: No documentation
+    - `process_pdf`: No documentation
+
 **Dependencies:**
 - PyQt5
 - fitz
@@ -94,6 +126,24 @@ Note: This script requires PyQt5 and PyMuPDF to be installed.
 
 **Description:**
 No description available
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 4.4 KB
+- Lines of code: 85 (of 123 total)
+
+**Functions:**
+- `main`: No documentation
+
+**Classes:**
+- `BreastCancerDetector`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `load_and_prepare_data`: Load and prepare the breast cancer dataset
+    - `train_model`: Train the machine learning model
+    - `predict_single_case`: Predict for a single case
+    - `save_model`: Save the trained model
+    - `load_model`: Load a trained model
 
 **Dependencies:**
 - joblib
@@ -107,6 +157,14 @@ No description available
 
 **Description:**
 No description available
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 1.5 KB
+- Lines of code: 34 (of 50 total)
+
+**Functions:**
+- `capture_image`: Captures an image from the default camera and saves it to the specified output directory
 
 **Dependencies:**
 - cv2
@@ -147,6 +205,31 @@ Functions:
 - compress_image: Compresses a single image file
 - compress_images_in_folder: Compresses all JPEG images in a folder
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 7.5 KB
+- Lines of code: 149 (of 191 total)
+
+**Functions:**
+- `compress_image`: No documentation
+- `compress_images_in_folder`: No documentation
+
+**Classes:**
+- `ImageCompressorGUI`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `initUI`: No documentation
+    - `setup_radio_buttons`: No documentation
+    - `setup_input_output`: No documentation
+    - `setup_quality_slider`: No documentation
+    - `setup_compress_button`: No documentation
+    - `setup_output_text`: No documentation
+    - `clear_paths`: No documentation
+    - `browse_input`: No documentation
+    - `browse_output`: No documentation
+    - `update_quality_label`: No documentation
+    - `compress_images`: No documentation
+
 **Dependencies:**
 - PIL
 - PyQt5
@@ -175,6 +258,15 @@ Dependencies:
 - tkinter
 
 Note: This script requires a valid Google Cloud Vision API key (google.json) in the same directory.
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 5.0 KB
+- Lines of code: 82 (of 125 total)
+
+**Functions:**
+- `process_image`: No documentation
+- `create_gui`: No documentation
 
 **Dependencies:**
 - docx
@@ -213,6 +305,24 @@ Classes:
 
 Note: This script must be run in an environment with PyQt5 installed.
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 6.1 KB
+- Lines of code: 112 (of 151 total)
+
+**Classes:**
+- `SVGConverter`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `initUI`: No documentation
+    - `create_input_layout`: No documentation
+    - `create_resolution_layout`: No documentation
+    - `select_input`: No documentation
+    - `select_output`: No documentation
+    - `update_resolution_from_svg`: No documentation
+    - `update_output_suffix`: No documentation
+    - `convert_svg`: No documentation
+
 **Dependencies:**
 - PyQt5
 
@@ -222,6 +332,20 @@ Note: This script must be run in an environment with PyQt5 installed.
 
 **Description:**
 No description available
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 6.0 KB
+- Lines of code: 87 (of 129 total)
+
+**Classes:**
+- `ImageConverter`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `select_source`: No documentation
+    - `select_destination`: No documentation
+    - `update_convert_button`: No documentation
+    - `convert_image`: No documentation
 
 **Dependencies:**
 - PIL
@@ -234,8 +358,13 @@ No description available
 **Description:**
 No description available
 
-**Dependencies:**
-- shutil
+**File Info:**
+- Last modified: 2025-02-20 08:33:40
+- Size: 1.6 KB
+- Lines of code: 30 (of 49 total)
+
+**Functions:**
+- `main`: No documentation
 
 ### extract_text_from_image_regular.py
 
@@ -264,6 +393,18 @@ Requirements:
 Usage:
 Run the script to open the GUI. Select an image, choose the output file type (TXT or CSV),
 and click 'Convert' to extract and save the text.
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 3.9 KB
+- Lines of code: 79 (of 115 total)
+
+**Functions:**
+- `extract_text_from_image`: No documentation
+- `save_to_file`: No documentation
+- `select_image_path`: No documentation
+- `convert_and_save`: No documentation
+- `main`: No documentation
 
 **Dependencies:**
 - google
@@ -297,6 +438,18 @@ Usage:
 Run the script and use the GUI to select an image, choose the output file type,
 and convert the image text to a structured format.
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 4.8 KB
+- Lines of code: 80 (of 136 total)
+
+**Functions:**
+- `extract_text_from_image`: No documentation
+- `save_to_file`: No documentation
+- `select_image_path`: No documentation
+- `convert_and_save`: No documentation
+- `main`: No documentation
+
 **Dependencies:**
 - google
 - tkinter
@@ -307,6 +460,25 @@ and convert the image text to a structured format.
 
 **Description:**
 No description available
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 5.8 KB
+- Lines of code: 124 (of 168 total)
+
+**Functions:**
+- `main`: No documentation
+
+**Classes:**
+- `ImageBrightener`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `browse_input`: No documentation
+    - `browse_output`: No documentation
+    - `update_brightness`: No documentation
+    - `update_preview`: No documentation
+    - `brighten_image`: No documentation
+    - `process_image`: No documentation
 
 **Dependencies:**
 - PyQt5
@@ -340,9 +512,22 @@ Dependencies:
 - os
 - shutil
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 4.2 KB
+- Lines of code: 72 (of 111 total)
+
+**Classes:**
+- `ImageMover`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `initUI`: No documentation
+    - `selectSourceDir`: No documentation
+    - `selectDestDir`: No documentation
+    - `moveImages`: No documentation
+
 **Dependencies:**
 - PyQt5
-- shutil
 
 ### inpainting.py
 
@@ -385,6 +570,37 @@ select input/output files, and process images or videos for watermark removal.
 Note: Ensure all required dependencies are installed and CUDA is available
 for optimal performance when processing large files or videos.
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 23.9 KB
+- Lines of code: 391 (of 561 total)
+
+**Classes:**
+- `WatermarkDetectionApp`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `create_widgets`: No documentation
+    - `download_and_load_inpainting_model`: No documentation
+    - `inpaint`: No documentation
+    - `browse_model`: No documentation
+    - `load_watermark_model`: No documentation
+    - `browse_input`: No documentation
+    - `browse_output`: No documentation
+    - `start_processing`: No documentation
+    - `process_file`: No documentation
+    - `process_image`: No documentation
+    - `save_intermediate_frame`: No documentation
+    - `process_video`: No documentation
+    - `detect_and_mark_watermark`: No documentation
+    - `visualize_mask`: No documentation
+    - `inpaint_image`: No documentation
+    - `resize_and_pad`: No documentation
+    - `update_log`: No documentation
+- `GUILogHandler`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `emit`: No documentation
+
 **Dependencies:**
 - PIL
 - cv2
@@ -401,8 +617,13 @@ for optimal performance when processing large files or videos.
 **Description:**
 No description available
 
-**Dependencies:**
-- shutil
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 3.3 KB
+- Lines of code: 52 (of 75 total)
+
+**Functions:**
+- `organize_dataset`: Organize a dataset by splitting it into training and validation sets
 
 ### shutterstock_gui.py
 
@@ -410,6 +631,38 @@ No description available
 
 **Description:**
 No description available
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 9.1 KB
+- Lines of code: 192 (of 244 total)
+
+**Functions:**
+- `main`: No documentation
+
+**Classes:**
+- `UploaderWorker`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `process_image`: Process a single image with error handling
+    - `run`: Main worker thread execution
+- `MainWindow`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `initUI`: Initialize the user interface
+    - `create_widgets`: Create all UI widgets
+    - `setup_status_table`: Setup the status table configuration
+    - `add_widgets_to_layout`: Add all widgets to the main layout
+    - `browse_folder`: Handle folder selection
+    - `start_upload`: Start the upload process
+    - `connect_worker_signals`: Connect all worker signals to their handlers
+    - `toggle_buttons`: Toggle button states
+    - `update_progress`: Update progress bar and status message
+    - `update_status_table`: Update the status table with new information
+    - `refresh_status`: Refresh the status of all uploads
+    - `update_status_in_table`: Update a specific row in the status table
+    - `log_message`: Add a message to the log display
+    - `upload_finished`: Handle upload completion
 
 **Dependencies:**
 - PyQt5
@@ -421,6 +674,25 @@ No description available
 
 **Description:**
 No description available
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 10.1 KB
+- Lines of code: 213 (of 263 total)
+
+**Classes:**
+- `ShutterstockAutoUploader`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `setup_logging`: Setup logging configuration
+    - `load_keyword_blacklist`: Load blacklisted keywords
+    - `add_delay`: Add delay for rate limiting
+    - `encode_image`: Encode image to base64
+    - `analyze_image_with_claude`: Analyze image using Claude AI
+    - `validate_metadata`: Validate metadata before submission
+    - `submit_to_shutterstock`: Submit image and metadata to Shutterstock
+    - `handle_api_error`: Handle API errors with specific responses
+    - `check_submission_status`: Check the status of a submitted image
 
 **Dependencies:**
 - anthropic
@@ -434,6 +706,11 @@ No description available
 **Description:**
 No description available
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 0.3 KB
+- Lines of code: 8 (of 9 total)
+
 **Dependencies:**
 - torch
 
@@ -444,14 +721,48 @@ No description available
 **Description:**
 No description available
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 20.9 KB
+- Lines of code: 419 (of 539 total)
+
+**Functions:**
+- `main`: No documentation
+
+**Classes:**
+- `MetadataWorker`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `run`: No documentation
+    - `stop`: No documentation
+- `MainWindow`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `initUI`: No documentation
+    - `select_folder`: No documentation
+    - `start_processing`: No documentation
+    - `stop_processing`: No documentation
+    - `update_progress`: No documentation
+    - `update_log`: No documentation
+    - `processing_finished`: No documentation
+- `LocalMetadataUpdater`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `_setup_apis`: Set up API clients
+    - `process_folder`: Process all images in the folder
+    - `process_single_image`: Process a single image
+    - `_resize_image_for_api`: Resize image to meet API requirements while maintaining aspect ratio and size <5MB
+    - `_analyze_image`: Analyze image using Anthropic API
+    - `_normalize_category`: Try to normalize the category returned by the AI to one from the valid list
+    - `_parse_analysis_response`: Parse the AI response into structured metadata
+    - `_update_local_metadata`: Update local image EXIF metadata
+
 **Dependencies:**
 - PIL
 - PyQt5
 - anthropic
 - piexif
 - shlex
-- subprocess
-- traceback
 - win32file
 
 ### watermar_detection.py
@@ -486,6 +797,31 @@ Classes:
 - GUILogHandler: Custom logging handler to update the GUI log display
 
 Note: This application requires PyTorch, OpenCV, and other dependencies to be installed.
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 10.0 KB
+- Lines of code: 180 (of 250 total)
+
+**Classes:**
+- `WatermarkDetectionApp`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `create_widgets`: No documentation
+    - `browse_model`: No documentation
+    - `load_model`: No documentation
+    - `browse_input`: No documentation
+    - `browse_output`: No documentation
+    - `start_processing`: No documentation
+    - `process_file`: No documentation
+    - `process_image`: No documentation
+    - `process_video`: No documentation
+    - `detect_watermark`: No documentation
+    - `update_log`: No documentation
+- `GUILogHandler`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `emit`: No documentation
 
 **Dependencies:**
 - PIL
@@ -525,6 +861,21 @@ The script will automatically download the dataset if not already present.
 
 Note: Adjust hyperparameters like batch size, learning rate, and number of epochs as needed.
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 5.2 KB
+- Lines of code: 95 (of 124 total)
+
+**Functions:**
+- `train`: No documentation
+- `test`: No documentation
+
+**Classes:**
+- `Net`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `forward`: No documentation
+
 **Dependencies:**
 - torch
 - torchvision
@@ -552,6 +903,22 @@ Requirements:
 - GPUtil
 
 The script will automatically use CUDA if available, otherwise it will default to CPU.
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 5.8 KB
+- Lines of code: 119 (of 156 total)
+
+**Functions:**
+- `train_and_test`: No documentation
+- `print_gpu_memory`: No documentation
+- `print_cpu_memory`: No documentation
+
+**Classes:**
+- `Net`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `forward`: No documentation
 
 **Dependencies:**
 - GPUtil
@@ -586,6 +953,14 @@ Usage:
 For a full list of available arguments, run:
     python script_name.py --help
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 7.7 KB
+- Lines of code: 116 (of 142 total)
+
+**Functions:**
+- `main`: No documentation
+
 **Dependencies:**
 - torch
 - train
@@ -599,6 +974,15 @@ For a full list of available arguments, run:
 **Description:**
 No description available
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 4.0 KB
+- Lines of code: 88 (of 133 total)
+
+**Functions:**
+- `cpu_matrix_mul`: No documentation
+- `gpu_matrix_mul`: No documentation
+
 **Dependencies:**
 - numpy
 - pycuda
@@ -609,6 +993,11 @@ No description available
 
 **Description:**
 No description available
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 2.2 KB
+- Lines of code: 48 (of 81 total)
 
 **Dependencies:**
 - numpy
@@ -621,6 +1010,14 @@ No description available
 **Description:**
 No description available
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 1.9 KB
+- Lines of code: 29 (of 51 total)
+
+**Functions:**
+- `get_intel_gpu_info`: Retrieves and displays information about the Intel GPU installed on the system
+
 **Dependencies:**
 - wmi
 
@@ -631,8 +1028,17 @@ No description available
 **Description:**
 No description available
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 3.8 KB
+- Lines of code: 80 (of 104 total)
+
+**Functions:**
+- `get_monitor_info_wmi`: Retrieve monitor information using Windows Management Instrumentation (WMI)
+- `get_monitor_info_powershell`: Retrieve monitor information using PowerShell as a fallback method
+- `main`: Main function to retrieve and display monitor information
+
 **Dependencies:**
-- subprocess
 - wmi
 
 ### get_requirements.py
@@ -658,9 +1064,21 @@ Usage:
 Run this script in the directory containing the Python files you want to analyze.
 The generated requirements.txt file will be saved in the same directory.
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 4.1 KB
+- Lines of code: 78 (of 105 total)
+
+**Functions:**
+- `get_imports`: No documentation
+- `normalize_package_name`: No documentation
+- `get_stdlib_modules`: No documentation
+- `is_windows_specific`: No documentation
+- `get_all_requirements`: No documentation
+- `main`: No documentation
+
 **Dependencies:**
 - pkgutil
-- platform
 
 ### matrix_multiplication_comparison.py
 
@@ -699,6 +1117,18 @@ Requirements:
 
 Note: GPU operations require CUDA-capable hardware and appropriate CUDA setup.
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 4.1 KB
+- Lines of code: 90 (of 123 total)
+
+**Functions:**
+- `print_gpu_memory`: No documentation
+- `print_cpu_memory`: No documentation
+- `cpu_gaussian_blur`: No documentation
+- `gpu_gaussian_blur`: No documentation
+- `run_comparison`: No documentation
+
 **Dependencies:**
 - GPUtil
 - PIL
@@ -714,8 +1144,10 @@ Note: GPU operations require CUDA-capable hardware and appropriate CUDA setup.
 **Description:**
 No description available
 
-**Dependencies:**
-- shutil
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 3.0 KB
+- Lines of code: 68 (of 81 total)
 
 ### password_hashing_comparison.py
 
@@ -744,6 +1176,18 @@ Dependencies:
 Usage:
 Run this script directly to perform the comparison with default parameters.
 You can modify the parameters in the run_comparison() function call if needed.
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 4.1 KB
+- Lines of code: 82 (of 116 total)
+
+**Functions:**
+- `print_gpu_memory`: No documentation
+- `print_cpu_memory`: No documentation
+- `cpu_hash_passwords`: No documentation
+- `gpu_hash_passwords`: No documentation
+- `run_comparison`: No documentation
 
 **Dependencies:**
 - GPUtil
@@ -776,6 +1220,20 @@ Run the script to perform the CPU-GPU comparison for prime number finding.
 The comparison parameters (number size, maximum number, and number of runs)
 can be adjusted in the run_comparison() function call at the end of the script.
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 4.6 KB
+- Lines of code: 101 (of 140 total)
+
+**Functions:**
+- `is_prime`: No documentation
+- `cpu_find_primes`: No documentation
+- `gpu_is_prime`: No documentation
+- `gpu_find_primes`: No documentation
+- `print_gpu_memory`: No documentation
+- `print_cpu_memory`: No documentation
+- `run_comparison`: No documentation
+
 **Dependencies:**
 - GPUtil
 - numpy
@@ -789,7 +1247,13 @@ can be adjusted in the run_comparison() function call at the end of the script.
 **Description:**
 No description available
 
-**Dependencies:**
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 2.3 KB
+- Lines of code: 34 (of 54 total)
+
+**Functions:**
+- `remove_versions`: Remove version specifiers and comments from a requirements file
 
 ### setup_env.py
 
@@ -797,6 +1261,25 @@ No description available
 
 **Description:**
 No description available
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 6.9 KB
+- Lines of code: 141 (of 187 total)
+
+**Functions:**
+- `main`: No documentation
+
+**Classes:**
+- `EnvironmentManager`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `set_windows_env_variable`: Set Windows environment variable using registry and broadcast change
+    - `load_existing_config`: Load existing configuration if available
+    - `save_config`: Save configuration to file
+    - `get_user_input`: Get user input for required variables
+    - `set_environment_variables`: Set all environment variables using the proven method
+    - `create_download_folder`: Create the download folder if it doesn't exist
 
 **Dependencies:**
 - ctypes
@@ -809,7 +1292,15 @@ No description available
 **Description:**
 No description available
 
-**Dependencies:**
+**File Info:**
+- Last modified: 2025-02-20 08:52:01
+- Size: 2.4 KB
+- Lines of code: 49 (of 67 total)
+
+**Functions:**
+- `extract_imports`: Extract import statements from a Python file
+- `find_requirements`: Find all Python files and extract their requirements
+- `generate_requirements_txt`: Generate requirements
 
 ### sort_cpu_gpu_comparison.py
 
@@ -838,6 +1329,18 @@ Requirements:
 - GPUtil
 
 Note: GPU sorting will only be performed if CUDA is available.
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 3.3 KB
+- Lines of code: 79 (of 107 total)
+
+**Functions:**
+- `cpu_sort`: No documentation
+- `gpu_sort`: No documentation
+- `print_gpu_memory`: No documentation
+- `print_cpu_memory`: No documentation
+- `run_comparison`: No documentation
 
 **Dependencies:**
 - GPUtil
@@ -879,10 +1382,27 @@ Environment variables:
 Usage:
 Run the script directly to process files and update the README.md.
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 10.5 KB
+- Lines of code: 238 (of 287 total)
+
+**Functions:**
+- `create_db_and_user`: Create the database and user if they don't exist
+- `get_db_connection`: Establish and return a connection to the database
+- `ensure_db_setup`: Ensure the database, user, and necessary tables are set up
+- `get_file_hash`: Calculate and return the MD5 hash of a file
+- `is_file_processed`: Check if a file has already been processed by comparing its last modified time and hash
+- `update_processed_file`: Update or insert a record for a processed file in the database
+- `get_docstring`: Extract the docstring from a Python file
+- `get_script_description`: Use Anthropic API to get a description of what the script does
+- `get_license_filename`: Find the correct license filename in the directory
+- `update_readme_content`: Update the README
+- `main`: Main function to process Python files and update the README
+
 **Dependencies:**
 - anthropic
 - psycopg2
-- subprocess
 
 ### __init__.py
 
@@ -891,12 +1411,29 @@ Run the script directly to process files and update the README.md.
 **Description:**
 No description available
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 0.0 KB
+- Lines of code: 0 (of 0 total)
+
 ### anomaly_detector.py
 
 **Path:** `network monitor\anomaly_detector.py`
 
 **Description:**
 No description available
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 4.1 KB
+- Lines of code: 73 (of 104 total)
+
+**Classes:**
+- `AnomalyDetector`: A class for detecting network traffic anomalies using machine learning
+  - Methods:
+    - `__init__`: Initialize the AnomalyDetector with a logger
+    - `analyze_traffic`: Analyze network traffic for anomalies using machine learning
+    - `_generate_anomaly_details`: Generate detailed information about detected anomalies
 
 **Dependencies:**
 - feature_extractor
@@ -909,6 +1446,11 @@ No description available
 **Description:**
 No description available
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 0.4 KB
+- Lines of code: 18 (of 19 total)
+
 **Dependencies:**
 - feature_config
 - whitelist_config
@@ -920,12 +1462,22 @@ No description available
 **Description:**
 No description available
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 1.1 KB
+- Lines of code: 21 (of 22 total)
+
 ### whitelist_config.py
 
 **Path:** `network monitor\config\whitelist_config.py`
 
 **Description:**
 No description available
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 1.0 KB
+- Lines of code: 28 (of 40 total)
 
 **Dependencies:**
 - ipaddress
@@ -936,6 +1488,18 @@ No description available
 
 **Description:**
 No description available
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 4.1 KB
+- Lines of code: 95 (of 124 total)
+
+**Classes:**
+- `FeatureExtractor`: A class for extracting features from network packets for machine learning analysis
+  - Methods:
+    - `__init__`: Initialize the FeatureExtractor with predefined feature names
+    - `extract_features`: Extract features from a list of packets for machine learning analysis
+    - `_extract_packet_features`: Extract features from a single packet
 
 **Dependencies:**
 - config
@@ -949,11 +1513,24 @@ No description available
 **Description:**
 No description available
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 5.6 KB
+- Lines of code: 92 (of 113 total)
+
+**Classes:**
+- `InterfaceManager`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `get_interfaces`: Retrieve a list of active network interfaces along with their IP addresses and netmasks
+    - `get_subnet_mask`: Get the subnet mask for a given interface
+    - `choose_interface`: Allow user to choose a network interface
+    - `setup_interface`: Setup network interface either automatically or based on user choice
+
 **Dependencies:**
 - bidi
 - netifaces
 - psutil
-- subprocess
 - wmi
 
 ### logger_setup.py
@@ -963,7 +1540,19 @@ No description available
 **Description:**
 No description available
 
-**Dependencies:**
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 2.4 KB
+- Lines of code: 34 (of 59 total)
+
+**Classes:**
+- `LoggerSetup`: A class to set up and manage a thread-safe logging system using a queue-based approach
+  - Methods:
+    - `__init__`: Initialize the logger setup with a queue, logger, and queue listener
+    - `_setup_logger`: Configure and return a logger instance with queue handler
+    - `_setup_queue_listener`: Set up and return a queue listener with stream handler for console output
+    - `get_logger`: Return the configured logger instance
+    - `stop_listener`: Stop the queue listener if it exists
 
 ### __init__.py
 
@@ -971,6 +1560,11 @@ No description available
 
 **Description:**
 No description available
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 0.1 KB
+- Lines of code: 2 (of 3 total)
 
 **Dependencies:**
 - persistent_anomaly_detector
@@ -981,6 +1575,20 @@ No description available
 
 **Description:**
 No description available
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 2.9 KB
+- Lines of code: 61 (of 74 total)
+
+**Classes:**
+- `PersistentAnomalyDetector`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `partial_fit`: Partially fit the model with new data
+    - `predict`: Make predictions using the fitted model
+    - `save_model`: Save the fitted model to a file
+    - `load_model`: Load a previously saved model
 
 **Dependencies:**
 - joblib
@@ -993,6 +1601,23 @@ No description available
 
 **Description:**
 No description available
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 9.3 KB
+- Lines of code: 130 (of 173 total)
+
+**Functions:**
+- `main`: Entry point of the script - parse arguments and start monitoring
+
+**Classes:**
+- `NetworkMonitor`: Main class for monitoring network traffic and detecting anomalies
+  - Methods:
+    - `__init__`: No documentation
+    - `check_root_linux`: Check if script is running with root privileges on Linux systems
+    - `run`: Main monitoring loop that captures and analyzes network traffic
+    - `_log_results`: Log detected suspicious activities and anomalies
+    - `_update_false_positives`: Track and handle potential false positive detections
 
 **Dependencies:**
 - anomaly_detector
@@ -1009,6 +1634,22 @@ No description available
 **Description:**
 No description available
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 13.4 KB
+- Lines of code: 233 (of 292 total)
+
+**Classes:**
+- `PacketAnalyzer`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `_is_binary_or_encrypted`: Check if the data appears to be binary or encrypted
+    - `_decode_payload`: Try multiple encodings to decode the payload
+    - `analyze_traffic`: Analyze network traffic for suspicious activities
+    - `_analyze_packets`: Analyze individual packets for suspicious behavior
+    - `_check_payload_for_threats`: Check packet payload for potential threats with context
+    - `_is_whitelisted`: Check if packet matches any whitelist patterns
+
 **Dependencies:**
 - ipaddress
 - scapy
@@ -1020,8 +1661,19 @@ No description available
 **Description:**
 No description available
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 2.4 KB
+- Lines of code: 63 (of 76 total)
+
+**Classes:**
+- `PacketCapture`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `capture_packets_worker`: No documentation
+    - `capture_packets`: No documentation
+
 **Dependencies:**
-- queue
 - scapy
 - tqdm
 
@@ -1031,6 +1683,11 @@ No description available
 
 **Description:**
 No description available
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 0.3 KB
+- Lines of code: 9 (of 10 total)
 
 **Dependencies:**
 - network_utils
@@ -1043,7 +1700,14 @@ No description available
 **Description:**
 No description available
 
-**Dependencies:**
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 0.6 KB
+- Lines of code: 18 (of 21 total)
+
+**Functions:**
+- `resolve_ip`: Resolve an IP address to a hostname
+- `is_private_ip`: Check if an IP address is private
 
 ### packet_utils.py
 
@@ -1051,6 +1715,16 @@ No description available
 
 **Description:**
 No description available
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 0.9 KB
+- Lines of code: 26 (of 29 total)
+
+**Functions:**
+- `is_inbound`: Check if a packet is inbound to the local network
+- `get_packet_protocol`: Get the protocol of a packet
+- `get_packet_ports`: Get source and destination ports of a packet
 
 **Dependencies:**
 - ipaddress
@@ -1062,6 +1736,25 @@ No description available
 
 **Description:**
 No description available
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 4.4 KB
+- Lines of code: 106 (of 124 total)
+
+**Classes:**
+- `WhitelistManager`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `is_whitelisted`: Check if a packet matches any whitelist rules
+    - `is_whitelisted_port`: Check if a port is whitelisted
+    - `_check_ip_whitelist`: Check if packet IPs are whitelisted
+    - `_check_port_whitelist`: Check if packet ports are whitelisted
+    - `_check_protocol_whitelist`: Check if packet protocol is whitelisted
+    - `_check_time_based_whitelist`: Check if current time falls within whitelisted time windows
+    - `_check_domain_whitelist`: Check if DNS query domain is whitelisted
+    - `_check_broadcast_whitelist`: Check if broadcast packet should be whitelisted
+    - `_check_multicast_whitelist`: Check if multicast packet should be whitelisted
 
 **Dependencies:**
 - config
@@ -1095,6 +1788,15 @@ Dependencies:
 - os
 
 Note: This script is designed for educational and demonstrative purposes.
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 3.8 KB
+- Lines of code: 75 (of 124 total)
+
+**Functions:**
+- `deutsch_jozsa_circuit`: Create a Deutsch-Jozsa circuit
+- `balanced_oracle`: No documentation
 
 **Dependencies:**
 - matplotlib
@@ -1134,6 +1836,16 @@ The secret key is set within the script and can be modified as needed.
 
 Note: This is a demonstration and should not be used for actual cryptographic purposes.
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 4.3 KB
+- Lines of code: 95 (of 142 total)
+
+**Functions:**
+- `oracle`: Implement a more complex oracle for the given 3-bit key
+- `diffuser`: Implement the diffuser for 3 qubits
+- `grover_circuit`: Create a Grover's algorithm circuit for cracking a 3-bit key
+
 **Dependencies:**
 - matplotlib
 - qiskit
@@ -1167,6 +1879,14 @@ Note: This script is for educational purposes and demonstrates basic quantum com
 For production-level cryptographic applications, consult with cryptography experts and use
 established cryptographic libraries and protocols.
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 3.8 KB
+- Lines of code: 58 (of 93 total)
+
+**Functions:**
+- `quantum_random_number`: Generate a random number using quantum circuit
+
 **Dependencies:**
 - qiskit
 - qiskit_ibm_runtime
@@ -1178,7 +1898,31 @@ established cryptographic libraries and protocols.
 **Description:**
 No description available
 
+**File Info:**
+- Last modified: 2025-02-25 07:53:35
+- Size: 19.0 KB
+- Lines of code: 327 (of 425 total)
+
+**Functions:**
+- `parse_args`: No documentation
+
+**Classes:**
+- `ScriptAnalyzer`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `extract_docstring`: Parse Python file and extract module-level docstring
+    - `extract_imports`: Parse Python file and extract all import statements
+    - `extract_functions_and_classes`: Parse Python file and extract functions and classes with their docstrings
+    - `get_file_stats`: Get file statistics such as size, lines of code, and last modified date
+    - `process_notebook`: Process Jupyter notebook (
+    - `analyze_file`: Analyze a single file and return its data
+    - `should_exclude`: Check if a path should be excluded based on exclude_dirs
+    - `analyze_scripts`: Walk through directory tree and analyze all Python files and Jupyter notebooks
+    - `generate_readme_content`: Generate markdown content for README files
+    - `generate_readme`: Generate README files for root and subdirectories
+
 **Dependencies:**
+- nbformat
 
 ### setup_requirements.py
 
@@ -1187,7 +1931,15 @@ No description available
 **Description:**
 No description available
 
-**Dependencies:**
+**File Info:**
+- Last modified: 2025-02-23 13:11:51
+- Size: 3.8 KB
+- Lines of code: 65 (of 97 total)
+
+**Functions:**
+- `extract_imports`: Extract import statements from a Python file
+- `find_requirements`: Find all Python files and extract their requirements
+- `generate_requirements_txt`: Generate requirements
 
 ### build_app.py
 
@@ -1196,8 +1948,13 @@ No description available
 **Description:**
 No description available
 
-**Dependencies:**
-- shutil
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 4.2 KB
+- Lines of code: 106 (of 143 total)
+
+**Functions:**
+- `build_executable`: No documentation
 
 ### transcription_app.py
 
@@ -1205,6 +1962,48 @@ No description available
 
 **Description:**
 No description available
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 21.0 KB
+- Lines of code: 445 (of 579 total)
+
+**Functions:**
+- `get_embedded_api_key`: No documentation
+- `main`: No documentation
+
+**Classes:**
+- `ProofreadingDialog`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+- `ProofreadingWorker`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `run`: No documentation
+- `TranscriptionWorker`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `format_transcript`: No documentation
+    - `split_audio`: No documentation
+    - `run`: No documentation
+- `TranscriptionApp`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `toggle_maximize`: No documentation
+    - `copy_text`: No documentation
+    - `init_ui`: No documentation
+    - `mousePressEvent`: No documentation
+    - `mouseMoveEvent`: No documentation
+    - `update_status`: No documentation
+    - `browse_file`: No documentation
+    - `start_transcription`: No documentation
+    - `start_proofreading`: No documentation
+    - `proofreading_complete`: No documentation
+    - `proofreading_error`: No documentation
+    - `update_progress`: No documentation
+    - `transcription_complete`: No documentation
+    - `save_transcript`: No documentation
+    - `transcription_error`: No documentation
 
 **Dependencies:**
 - PyQt5
@@ -1217,6 +2016,21 @@ No description available
 
 **Description:**
 No description available
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 5.3 KB
+- Lines of code: 122 (of 169 total)
+
+**Functions:**
+- `get_current_user`: No documentation
+- `get_db`: No documentation
+- `cache_response`: No documentation
+
+**Classes:**
+- `User`: No documentation
+- `UserCreate`: No documentation
+- `UserResponse`: No documentation
 
 **Dependencies:**
 - bcrypt
@@ -1264,6 +2078,78 @@ Dependencies:
 - win32com
 
 Note: This application is designed to run on Windows due to some Windows-specific features.
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 83.8 KB
+- Lines of code: 1147 (of 1747 total)
+
+**Functions:**
+- `setup_logging`: No documentation
+- `main`: No documentation
+
+**Classes:**
+- `ConversationHistory`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `create_table`: No documentation
+    - `save_conversation_to_db`: No documentation
+    - `load_conversation_history`: No documentation
+    - `load_conversations`: No documentation
+    - `update_conversation_history`: No documentation
+    - `rename_conversation`: No documentation
+    - `delete_conversation`: No documentation
+    - `get_conversation_title`: No documentation
+- `PythonHighlighter`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `highlightBlock`: No documentation
+- `MultiLineInput`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `keyPressEvent`: No documentation
+    - `insertFromMimeData`: No documentation
+    - `is_code_block`: No documentation
+    - `format_code_block`: No documentation
+    - `adjustHeight`: No documentation
+- `MessageProcessor`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `run`: No documentation
+- `APIKeyDialog`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `get_api_key`: No documentation
+- `ClaudeChat`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `set_windows_env_variable`: No documentation
+    - `init_ui`: No documentation
+    - `update_sidebar`: No documentation
+    - `show_context_menu`: No documentation
+    - `rename_conversation`: No documentation
+    - `delete_conversation`: No documentation
+    - `show_code_dialog`: No documentation
+    - `encode_image`: No documentation
+    - `load_conversation`: No documentation
+    - `send_message`: No documentation
+    - `get_the_current_model`: No documentation
+    - `save_conversation`: No documentation
+    - `generate_conversation_title`: No documentation
+    - `set_focus_to_input`: No documentation
+    - `update_chat`: No documentation
+    - `add_new_conversation`: No documentation
+    - `is_code_block`: No documentation
+    - `add_copy_button`: No documentation
+    - `copy_code_to_clipboard`: No documentation
+    - `update_chat_history`: No documentation
+    - `enable_input`: No documentation
+    - `clear_chat`: No documentation
+    - `api_busy`: No documentation
+    - `show_api_error`: No documentation
+    - `upload_file`: No documentation
+    - `close_progress_dialog`: No documentation
+    - `handle_api_error`: No documentation
 
 **Dependencies:**
 - PIL
@@ -1314,6 +2200,79 @@ Dependencies:
 Note: Ensure all required dependencies are installed and the Anthropic API key is available
 before running the application.
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 85.1 KB
+- Lines of code: 1167 (of 1801 total)
+
+**Functions:**
+- `setup_logging`: No documentation
+- `main`: No documentation
+
+**Classes:**
+- `ConversationHistory`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `create_table`: No documentation
+    - `save_conversation_to_db`: No documentation
+    - `load_conversation_history`: No documentation
+    - `load_conversations`: No documentation
+    - `update_conversation_history`: No documentation
+    - `rename_conversation`: No documentation
+    - `delete_conversation`: No documentation
+    - `get_conversation_title`: No documentation
+- `PythonHighlighter`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `highlightBlock`: No documentation
+- `MultiLineInput`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `keyPressEvent`: No documentation
+    - `insertFromMimeData`: No documentation
+    - `is_code_block`: No documentation
+    - `format_code_block`: No documentation
+    - `adjustHeight`: No documentation
+- `MessageProcessor`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `run`: No documentation
+- `APIKeyDialog`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `get_api_key`: No documentation
+- `ClaudeChat`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `set_linux_env_variable`: No documentation
+    - `set_macos_env_variable`: No documentation
+    - `init_ui`: No documentation
+    - `update_sidebar`: No documentation
+    - `show_context_menu`: No documentation
+    - `rename_conversation`: No documentation
+    - `delete_conversation`: No documentation
+    - `show_code_dialog`: No documentation
+    - `encode_image`: No documentation
+    - `load_conversation`: No documentation
+    - `send_message`: No documentation
+    - `get_the_current_model`: No documentation
+    - `save_conversation`: No documentation
+    - `generate_conversation_title`: No documentation
+    - `set_focus_to_input`: No documentation
+    - `update_chat`: No documentation
+    - `add_new_conversation`: No documentation
+    - `is_code_block`: No documentation
+    - `add_copy_button`: No documentation
+    - `copy_code_to_clipboard`: No documentation
+    - `update_chat_history`: No documentation
+    - `enable_input`: No documentation
+    - `clear_chat`: No documentation
+    - `api_busy`: No documentation
+    - `show_api_error`: No documentation
+    - `upload_file`: No documentation
+    - `close_progress_dialog`: No documentation
+    - `handle_api_error`: No documentation
+
 **Dependencies:**
 - PIL
 - PyQt5
@@ -1321,10 +2280,8 @@ before running the application.
 - ctypes
 - fitz
 - httpx
-- platform
 - pyexpat
 - requests
-- subprocess
 
 ### convert_audio_to_text.py
 
@@ -1358,6 +2315,19 @@ Usage:
 4. Click "Convert" to process the audio and generate text
 
 The script handles audio format conversion (m4a to wav) and channel conversion (stereo to mono) automatically.
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 4.6 KB
+- Lines of code: 93 (of 138 total)
+
+**Functions:**
+- `browse_audio_file`: No documentation
+- `browse_save_location`: No documentation
+- `convert_m4a_to_wav`: No documentation
+- `convert_stereo_to_mono`: No documentation
+- `convert_audio_to_text`: No documentation
+- `main`: No documentation
 
 **Dependencies:**
 - audioop
@@ -1401,10 +2371,34 @@ Email credentials are securely stored in the Windows Registry.
 
 Note: This script is designed to run on Windows systems only.
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 11.5 KB
+- Lines of code: 222 (of 290 total)
+
+**Functions:**
+- `check_dependencies`: No documentation
+- `check_module`: No documentation
+- `load_config`: No documentation
+- `main`: No documentation
+
+**Classes:**
+- `Config`: No documentation
+- `DiskSpaceAlertService`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `SvcStop`: No documentation
+    - `SvcDoRun`: No documentation
+    - `main`: No documentation
+    - `check_disk_space`: No documentation
+    - `get_disks`: No documentation
+    - `send_alert`: No documentation
+    - `get_email_credentials`: No documentation
+    - `configure_email`: No documentation
+
 **Dependencies:**
 - cryptography
 - dataclasses
-- email
 - getpass
 - psutil
 - servicemanager
@@ -1437,6 +2431,11 @@ Requirements:
 Note: This script is designed for Windows systems, as it specifically looks for
 C: and D: drives.
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 1.4 KB
+- Lines of code: 23 (of 36 total)
+
 **Dependencies:**
 - psutil
 
@@ -1446,6 +2445,28 @@ C: and D: drives.
 
 **Description:**
 No description available
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 9.8 KB
+- Lines of code: 211 (of 272 total)
+
+**Functions:**
+- `parse_time`: Convert a string 'hours:minutes' or 'hours' into total minutes as a float
+- `format_hours`: Converts total minutes into 'hours:minutes' string, with rounding to nearest minute
+- `evaluate_expression`: Given a list of tokens in the form [time_in_minutes, operator, time_in_minutes, operator,
+- `main`: No documentation
+
+**Classes:**
+- `TimeCalculator`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `on_button_clicked`: No documentation
+    - `clear_all`: Reset everything
+    - `process_operator`: 1
+    - `process_equals`: 1
+    - `update_expression_display`: Updates the expression display with the newly entered time or operator
+    - `show_error`: No documentation
 
 **Dependencies:**
 - PyQt5
@@ -1473,8 +2494,15 @@ Usage:
     Run the script directly to see the system information output.
     Alternatively, import the system_discovery function to use it in other scripts.
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 1.8 KB
+- Lines of code: 28 (of 50 total)
+
+**Functions:**
+- `system_discovery`: Function to gather and print system information
+
 **Dependencies:**
-- platform
 - psutil
 
 ### convert_mp4_codec_and_resolution_for_tv.py
@@ -1509,8 +2537,21 @@ Dependencies:
 Note: This script is designed to work both as a standalone Python script and
 when bundled with PyInstaller.
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 5.5 KB
+- Lines of code: 93 (of 141 total)
+
+**Functions:**
+- `select_source_file`: No documentation
+- `select_destination_folder`: No documentation
+- `get_duration`: No documentation
+- `update_progress_bar`: No documentation
+- `convert_video`: No documentation
+- `start_conversion`: No documentation
+- `on_closing`: No documentation
+
 **Dependencies:**
-- subprocess
 - tkinter
 
 ### create_movie_clip_from_images_and_sound.py
@@ -1541,6 +2582,11 @@ Usage:
 - Run the script to generate the video.
 
 Note: Ensure all required libraries are installed before running the script.
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 2.8 KB
+- Lines of code: 43 (of 80 total)
 
 **Dependencies:**
 - cv2
@@ -1583,6 +2629,28 @@ Author: [Eran Gross]
 Date: [30/08/2024]
 Version: 1.0
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 8.4 KB
+- Lines of code: 156 (of 219 total)
+
+**Classes:**
+- `FrameExtractor`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `run`: No documentation
+    - `get_frame_count`: No documentation
+- `App`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `initUI`: No documentation
+    - `select_videos`: No documentation
+    - `select_output`: No documentation
+    - `extract_frames`: No documentation
+    - `update_progress`: No documentation
+    - `update_status`: No documentation
+    - `extraction_finished`: No documentation
+
 **Dependencies:**
 - PyQt5
 - cv2
@@ -1606,6 +2674,11 @@ Usage:
 Note:
     This script requires the moviepy library to be installed. You can install it using pip:
     pip install moviepy
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 1.0 KB
+- Lines of code: 16 (of 26 total)
 
 **Dependencies:**
 - moviepy
@@ -1639,10 +2712,20 @@ Run the script to perform the encoding comparison.
 Note: This script requires FFmpeg to be installed and accessible in the system path.
 For GPU encoding, it assumes an NVIDIA GPU with NVENC support.
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 3.9 KB
+- Lines of code: 85 (of 116 total)
+
+**Functions:**
+- `print_gpu_memory`: No documentation
+- `print_cpu_memory`: No documentation
+- `encode_video`: No documentation
+- `run_comparison`: No documentation
+
 **Dependencies:**
 - GPUtil
 - psutil
-- subprocess
 
 ### build_app.py
 
@@ -1651,8 +2734,13 @@ For GPU encoding, it assumes an NVIDIA GPU with NVENC support.
 **Description:**
 No description available
 
-**Dependencies:**
-- shutil
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 3.5 KB
+- Lines of code: 96 (of 127 total)
+
+**Functions:**
+- `build_executable`: No documentation
 
 ### youtube_downloader.py
 
@@ -1661,7 +2749,29 @@ No description available
 **Description:**
 No description available
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 8.8 KB
+- Lines of code: 192 (of 241 total)
+
+**Functions:**
+- `main`: No documentation
+
+**Classes:**
+- `DownloaderThread`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `progress_hook`: No documentation
+    - `run`: No documentation
+- `YouTubeDownloader`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `initUI`: No documentation
+    - `browse_location`: No documentation
+    - `start_download`: No documentation
+    - `update_progress`: No documentation
+    - `download_finished`: No documentation
+
 **Dependencies:**
 - PyQt5
-- tempfile
 - yt_dlp

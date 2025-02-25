@@ -10,6 +10,15 @@
 **Description:**
 No description available
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 4.0 KB
+- Lines of code: 88 (of 133 total)
+
+**Functions:**
+- `cpu_matrix_mul`: No documentation
+- `gpu_matrix_mul`: No documentation
+
 **Dependencies:**
 - numpy
 - pycuda
@@ -20,6 +29,11 @@ No description available
 
 **Description:**
 No description available
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 2.2 KB
+- Lines of code: 48 (of 81 total)
 
 **Dependencies:**
 - numpy
@@ -32,6 +46,14 @@ No description available
 **Description:**
 No description available
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 1.9 KB
+- Lines of code: 29 (of 51 total)
+
+**Functions:**
+- `get_intel_gpu_info`: Retrieves and displays information about the Intel GPU installed on the system
+
 **Dependencies:**
 - wmi
 
@@ -42,8 +64,17 @@ No description available
 **Description:**
 No description available
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 3.8 KB
+- Lines of code: 80 (of 104 total)
+
+**Functions:**
+- `get_monitor_info_wmi`: Retrieve monitor information using Windows Management Instrumentation (WMI)
+- `get_monitor_info_powershell`: Retrieve monitor information using PowerShell as a fallback method
+- `main`: Main function to retrieve and display monitor information
+
 **Dependencies:**
-- subprocess
 - wmi
 
 ### get_requirements.py
@@ -69,9 +100,21 @@ Usage:
 Run this script in the directory containing the Python files you want to analyze.
 The generated requirements.txt file will be saved in the same directory.
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 4.1 KB
+- Lines of code: 78 (of 105 total)
+
+**Functions:**
+- `get_imports`: No documentation
+- `normalize_package_name`: No documentation
+- `get_stdlib_modules`: No documentation
+- `is_windows_specific`: No documentation
+- `get_all_requirements`: No documentation
+- `main`: No documentation
+
 **Dependencies:**
 - pkgutil
-- platform
 
 ### matrix_multiplication_comparison.py
 
@@ -110,6 +153,18 @@ Requirements:
 
 Note: GPU operations require CUDA-capable hardware and appropriate CUDA setup.
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 4.1 KB
+- Lines of code: 90 (of 123 total)
+
+**Functions:**
+- `print_gpu_memory`: No documentation
+- `print_cpu_memory`: No documentation
+- `cpu_gaussian_blur`: No documentation
+- `gpu_gaussian_blur`: No documentation
+- `run_comparison`: No documentation
+
 **Dependencies:**
 - GPUtil
 - PIL
@@ -125,8 +180,10 @@ Note: GPU operations require CUDA-capable hardware and appropriate CUDA setup.
 **Description:**
 No description available
 
-**Dependencies:**
-- shutil
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 3.0 KB
+- Lines of code: 68 (of 81 total)
 
 ### password_hashing_comparison.py
 
@@ -155,6 +212,18 @@ Dependencies:
 Usage:
 Run this script directly to perform the comparison with default parameters.
 You can modify the parameters in the run_comparison() function call if needed.
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 4.1 KB
+- Lines of code: 82 (of 116 total)
+
+**Functions:**
+- `print_gpu_memory`: No documentation
+- `print_cpu_memory`: No documentation
+- `cpu_hash_passwords`: No documentation
+- `gpu_hash_passwords`: No documentation
+- `run_comparison`: No documentation
 
 **Dependencies:**
 - GPUtil
@@ -187,6 +256,20 @@ Run the script to perform the CPU-GPU comparison for prime number finding.
 The comparison parameters (number size, maximum number, and number of runs)
 can be adjusted in the run_comparison() function call at the end of the script.
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 4.6 KB
+- Lines of code: 101 (of 140 total)
+
+**Functions:**
+- `is_prime`: No documentation
+- `cpu_find_primes`: No documentation
+- `gpu_is_prime`: No documentation
+- `gpu_find_primes`: No documentation
+- `print_gpu_memory`: No documentation
+- `print_cpu_memory`: No documentation
+- `run_comparison`: No documentation
+
 **Dependencies:**
 - GPUtil
 - numpy
@@ -200,7 +283,13 @@ can be adjusted in the run_comparison() function call at the end of the script.
 **Description:**
 No description available
 
-**Dependencies:**
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 2.3 KB
+- Lines of code: 34 (of 54 total)
+
+**Functions:**
+- `remove_versions`: Remove version specifiers and comments from a requirements file
 
 ### setup_env.py
 
@@ -208,6 +297,25 @@ No description available
 
 **Description:**
 No description available
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 6.9 KB
+- Lines of code: 141 (of 187 total)
+
+**Functions:**
+- `main`: No documentation
+
+**Classes:**
+- `EnvironmentManager`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `set_windows_env_variable`: Set Windows environment variable using registry and broadcast change
+    - `load_existing_config`: Load existing configuration if available
+    - `save_config`: Save configuration to file
+    - `get_user_input`: Get user input for required variables
+    - `set_environment_variables`: Set all environment variables using the proven method
+    - `create_download_folder`: Create the download folder if it doesn't exist
 
 **Dependencies:**
 - ctypes
@@ -220,7 +328,15 @@ No description available
 **Description:**
 No description available
 
-**Dependencies:**
+**File Info:**
+- Last modified: 2025-02-20 08:52:01
+- Size: 2.4 KB
+- Lines of code: 49 (of 67 total)
+
+**Functions:**
+- `extract_imports`: Extract import statements from a Python file
+- `find_requirements`: Find all Python files and extract their requirements
+- `generate_requirements_txt`: Generate requirements
 
 ### sort_cpu_gpu_comparison.py
 
@@ -249,6 +365,18 @@ Requirements:
 - GPUtil
 
 Note: GPU sorting will only be performed if CUDA is available.
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 3.3 KB
+- Lines of code: 79 (of 107 total)
+
+**Functions:**
+- `cpu_sort`: No documentation
+- `gpu_sort`: No documentation
+- `print_gpu_memory`: No documentation
+- `print_cpu_memory`: No documentation
+- `run_comparison`: No documentation
 
 **Dependencies:**
 - GPUtil
@@ -290,7 +418,24 @@ Environment variables:
 Usage:
 Run the script directly to process files and update the README.md.
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 10.5 KB
+- Lines of code: 238 (of 287 total)
+
+**Functions:**
+- `create_db_and_user`: Create the database and user if they don't exist
+- `get_db_connection`: Establish and return a connection to the database
+- `ensure_db_setup`: Ensure the database, user, and necessary tables are set up
+- `get_file_hash`: Calculate and return the MD5 hash of a file
+- `is_file_processed`: Check if a file has already been processed by comparing its last modified time and hash
+- `update_processed_file`: Update or insert a record for a processed file in the database
+- `get_docstring`: Extract the docstring from a Python file
+- `get_script_description`: Use Anthropic API to get a description of what the script does
+- `get_license_filename`: Find the correct license filename in the directory
+- `update_readme_content`: Update the README
+- `main`: Main function to process Python files and update the README
+
 **Dependencies:**
 - anthropic
 - psycopg2
-- subprocess

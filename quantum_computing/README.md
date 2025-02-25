@@ -31,6 +31,15 @@ Dependencies:
 
 Note: This script is designed for educational and demonstrative purposes.
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 3.8 KB
+- Lines of code: 75 (of 124 total)
+
+**Functions:**
+- `deutsch_jozsa_circuit`: Create a Deutsch-Jozsa circuit
+- `balanced_oracle`: No documentation
+
 **Dependencies:**
 - matplotlib
 - qiskit
@@ -69,6 +78,16 @@ The secret key is set within the script and can be modified as needed.
 
 Note: This is a demonstration and should not be used for actual cryptographic purposes.
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 4.3 KB
+- Lines of code: 95 (of 142 total)
+
+**Functions:**
+- `oracle`: Implement a more complex oracle for the given 3-bit key
+- `diffuser`: Implement the diffuser for 3 qubits
+- `grover_circuit`: Create a Grover's algorithm circuit for cracking a 3-bit key
+
 **Dependencies:**
 - matplotlib
 - qiskit
@@ -101,6 +120,14 @@ Requirements:
 Note: This script is for educational purposes and demonstrates basic quantum computing concepts.
 For production-level cryptographic applications, consult with cryptography experts and use
 established cryptographic libraries and protocols.
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 3.8 KB
+- Lines of code: 58 (of 93 total)
+
+**Functions:**
+- `quantum_random_number`: Generate a random number using quantum circuit
 
 **Dependencies:**
 - qiskit

@@ -33,6 +33,21 @@ The script will automatically download the dataset if not already present.
 
 Note: Adjust hyperparameters like batch size, learning rate, and number of epochs as needed.
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 5.2 KB
+- Lines of code: 95 (of 124 total)
+
+**Functions:**
+- `train`: No documentation
+- `test`: No documentation
+
+**Classes:**
+- `Net`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `forward`: No documentation
+
 **Dependencies:**
 - torch
 - torchvision
@@ -60,6 +75,22 @@ Requirements:
 - GPUtil
 
 The script will automatically use CUDA if available, otherwise it will default to CPU.
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 5.8 KB
+- Lines of code: 119 (of 156 total)
+
+**Functions:**
+- `train_and_test`: No documentation
+- `print_gpu_memory`: No documentation
+- `print_cpu_memory`: No documentation
+
+**Classes:**
+- `Net`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `forward`: No documentation
 
 **Dependencies:**
 - GPUtil
@@ -93,6 +124,14 @@ Usage:
 
 For a full list of available arguments, run:
     python script_name.py --help
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 7.7 KB
+- Lines of code: 116 (of 142 total)
+
+**Functions:**
+- `main`: No documentation
 
 **Dependencies:**
 - torch

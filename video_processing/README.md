@@ -35,8 +35,21 @@ Dependencies:
 Note: This script is designed to work both as a standalone Python script and
 when bundled with PyInstaller.
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 5.5 KB
+- Lines of code: 93 (of 141 total)
+
+**Functions:**
+- `select_source_file`: No documentation
+- `select_destination_folder`: No documentation
+- `get_duration`: No documentation
+- `update_progress_bar`: No documentation
+- `convert_video`: No documentation
+- `start_conversion`: No documentation
+- `on_closing`: No documentation
+
 **Dependencies:**
-- subprocess
 - tkinter
 
 ### create_movie_clip_from_images_and_sound.py
@@ -67,6 +80,11 @@ Usage:
 - Run the script to generate the video.
 
 Note: Ensure all required libraries are installed before running the script.
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 2.8 KB
+- Lines of code: 43 (of 80 total)
 
 **Dependencies:**
 - cv2
@@ -109,6 +127,28 @@ Author: [Eran Gross]
 Date: [30/08/2024]
 Version: 1.0
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 8.4 KB
+- Lines of code: 156 (of 219 total)
+
+**Classes:**
+- `FrameExtractor`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `run`: No documentation
+    - `get_frame_count`: No documentation
+- `App`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `initUI`: No documentation
+    - `select_videos`: No documentation
+    - `select_output`: No documentation
+    - `extract_frames`: No documentation
+    - `update_progress`: No documentation
+    - `update_status`: No documentation
+    - `extraction_finished`: No documentation
+
 **Dependencies:**
 - PyQt5
 - cv2
@@ -132,6 +172,11 @@ Usage:
 Note:
     This script requires the moviepy library to be installed. You can install it using pip:
     pip install moviepy
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 1.0 KB
+- Lines of code: 16 (of 26 total)
 
 **Dependencies:**
 - moviepy
@@ -165,7 +210,17 @@ Run the script to perform the encoding comparison.
 Note: This script requires FFmpeg to be installed and accessible in the system path.
 For GPU encoding, it assumes an NVIDIA GPU with NVENC support.
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 3.9 KB
+- Lines of code: 85 (of 116 total)
+
+**Functions:**
+- `print_gpu_memory`: No documentation
+- `print_cpu_memory`: No documentation
+- `encode_video`: No documentation
+- `run_comparison`: No documentation
+
 **Dependencies:**
 - GPUtil
 - psutil
-- subprocess

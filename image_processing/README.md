@@ -10,6 +10,14 @@
 **Description:**
 No description available
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 1.5 KB
+- Lines of code: 34 (of 50 total)
+
+**Functions:**
+- `capture_image`: Captures an image from the default camera and saves it to the specified output directory
+
 **Dependencies:**
 - cv2
 
@@ -49,6 +57,31 @@ Functions:
 - compress_image: Compresses a single image file
 - compress_images_in_folder: Compresses all JPEG images in a folder
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 7.5 KB
+- Lines of code: 149 (of 191 total)
+
+**Functions:**
+- `compress_image`: No documentation
+- `compress_images_in_folder`: No documentation
+
+**Classes:**
+- `ImageCompressorGUI`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `initUI`: No documentation
+    - `setup_radio_buttons`: No documentation
+    - `setup_input_output`: No documentation
+    - `setup_quality_slider`: No documentation
+    - `setup_compress_button`: No documentation
+    - `setup_output_text`: No documentation
+    - `clear_paths`: No documentation
+    - `browse_input`: No documentation
+    - `browse_output`: No documentation
+    - `update_quality_label`: No documentation
+    - `compress_images`: No documentation
+
 **Dependencies:**
 - PIL
 - PyQt5
@@ -77,6 +110,15 @@ Dependencies:
 - tkinter
 
 Note: This script requires a valid Google Cloud Vision API key (google.json) in the same directory.
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 5.0 KB
+- Lines of code: 82 (of 125 total)
+
+**Functions:**
+- `process_image`: No documentation
+- `create_gui`: No documentation
 
 **Dependencies:**
 - docx
@@ -115,6 +157,24 @@ Classes:
 
 Note: This script must be run in an environment with PyQt5 installed.
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 6.1 KB
+- Lines of code: 112 (of 151 total)
+
+**Classes:**
+- `SVGConverter`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `initUI`: No documentation
+    - `create_input_layout`: No documentation
+    - `create_resolution_layout`: No documentation
+    - `select_input`: No documentation
+    - `select_output`: No documentation
+    - `update_resolution_from_svg`: No documentation
+    - `update_output_suffix`: No documentation
+    - `convert_svg`: No documentation
+
 **Dependencies:**
 - PyQt5
 
@@ -124,6 +184,20 @@ Note: This script must be run in an environment with PyQt5 installed.
 
 **Description:**
 No description available
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 6.0 KB
+- Lines of code: 87 (of 129 total)
+
+**Classes:**
+- `ImageConverter`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `select_source`: No documentation
+    - `select_destination`: No documentation
+    - `update_convert_button`: No documentation
+    - `convert_image`: No documentation
 
 **Dependencies:**
 - PIL
@@ -136,8 +210,13 @@ No description available
 **Description:**
 No description available
 
-**Dependencies:**
-- shutil
+**File Info:**
+- Last modified: 2025-02-20 08:33:40
+- Size: 1.6 KB
+- Lines of code: 30 (of 49 total)
+
+**Functions:**
+- `main`: No documentation
 
 ### extract_text_from_image_regular.py
 
@@ -166,6 +245,18 @@ Requirements:
 Usage:
 Run the script to open the GUI. Select an image, choose the output file type (TXT or CSV),
 and click 'Convert' to extract and save the text.
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 3.9 KB
+- Lines of code: 79 (of 115 total)
+
+**Functions:**
+- `extract_text_from_image`: No documentation
+- `save_to_file`: No documentation
+- `select_image_path`: No documentation
+- `convert_and_save`: No documentation
+- `main`: No documentation
 
 **Dependencies:**
 - google
@@ -199,6 +290,18 @@ Usage:
 Run the script and use the GUI to select an image, choose the output file type,
 and convert the image text to a structured format.
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 4.8 KB
+- Lines of code: 80 (of 136 total)
+
+**Functions:**
+- `extract_text_from_image`: No documentation
+- `save_to_file`: No documentation
+- `select_image_path`: No documentation
+- `convert_and_save`: No documentation
+- `main`: No documentation
+
 **Dependencies:**
 - google
 - tkinter
@@ -209,6 +312,25 @@ and convert the image text to a structured format.
 
 **Description:**
 No description available
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 5.8 KB
+- Lines of code: 124 (of 168 total)
+
+**Functions:**
+- `main`: No documentation
+
+**Classes:**
+- `ImageBrightener`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `browse_input`: No documentation
+    - `browse_output`: No documentation
+    - `update_brightness`: No documentation
+    - `update_preview`: No documentation
+    - `brighten_image`: No documentation
+    - `process_image`: No documentation
 
 **Dependencies:**
 - PyQt5
@@ -242,9 +364,22 @@ Dependencies:
 - os
 - shutil
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 4.2 KB
+- Lines of code: 72 (of 111 total)
+
+**Classes:**
+- `ImageMover`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `initUI`: No documentation
+    - `selectSourceDir`: No documentation
+    - `selectDestDir`: No documentation
+    - `moveImages`: No documentation
+
 **Dependencies:**
 - PyQt5
-- shutil
 
 ### inpainting.py
 
@@ -287,6 +422,37 @@ select input/output files, and process images or videos for watermark removal.
 Note: Ensure all required dependencies are installed and CUDA is available
 for optimal performance when processing large files or videos.
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 23.9 KB
+- Lines of code: 391 (of 561 total)
+
+**Classes:**
+- `WatermarkDetectionApp`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `create_widgets`: No documentation
+    - `download_and_load_inpainting_model`: No documentation
+    - `inpaint`: No documentation
+    - `browse_model`: No documentation
+    - `load_watermark_model`: No documentation
+    - `browse_input`: No documentation
+    - `browse_output`: No documentation
+    - `start_processing`: No documentation
+    - `process_file`: No documentation
+    - `process_image`: No documentation
+    - `save_intermediate_frame`: No documentation
+    - `process_video`: No documentation
+    - `detect_and_mark_watermark`: No documentation
+    - `visualize_mask`: No documentation
+    - `inpaint_image`: No documentation
+    - `resize_and_pad`: No documentation
+    - `update_log`: No documentation
+- `GUILogHandler`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `emit`: No documentation
+
 **Dependencies:**
 - PIL
 - cv2
@@ -303,8 +469,13 @@ for optimal performance when processing large files or videos.
 **Description:**
 No description available
 
-**Dependencies:**
-- shutil
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 3.3 KB
+- Lines of code: 52 (of 75 total)
+
+**Functions:**
+- `organize_dataset`: Organize a dataset by splitting it into training and validation sets
 
 ### shutterstock_gui.py
 
@@ -312,6 +483,38 @@ No description available
 
 **Description:**
 No description available
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 9.1 KB
+- Lines of code: 192 (of 244 total)
+
+**Functions:**
+- `main`: No documentation
+
+**Classes:**
+- `UploaderWorker`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `process_image`: Process a single image with error handling
+    - `run`: Main worker thread execution
+- `MainWindow`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `initUI`: Initialize the user interface
+    - `create_widgets`: Create all UI widgets
+    - `setup_status_table`: Setup the status table configuration
+    - `add_widgets_to_layout`: Add all widgets to the main layout
+    - `browse_folder`: Handle folder selection
+    - `start_upload`: Start the upload process
+    - `connect_worker_signals`: Connect all worker signals to their handlers
+    - `toggle_buttons`: Toggle button states
+    - `update_progress`: Update progress bar and status message
+    - `update_status_table`: Update the status table with new information
+    - `refresh_status`: Refresh the status of all uploads
+    - `update_status_in_table`: Update a specific row in the status table
+    - `log_message`: Add a message to the log display
+    - `upload_finished`: Handle upload completion
 
 **Dependencies:**
 - PyQt5
@@ -323,6 +526,25 @@ No description available
 
 **Description:**
 No description available
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 10.1 KB
+- Lines of code: 213 (of 263 total)
+
+**Classes:**
+- `ShutterstockAutoUploader`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `setup_logging`: Setup logging configuration
+    - `load_keyword_blacklist`: Load blacklisted keywords
+    - `add_delay`: Add delay for rate limiting
+    - `encode_image`: Encode image to base64
+    - `analyze_image_with_claude`: Analyze image using Claude AI
+    - `validate_metadata`: Validate metadata before submission
+    - `submit_to_shutterstock`: Submit image and metadata to Shutterstock
+    - `handle_api_error`: Handle API errors with specific responses
+    - `check_submission_status`: Check the status of a submitted image
 
 **Dependencies:**
 - anthropic
@@ -336,6 +558,11 @@ No description available
 **Description:**
 No description available
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 0.3 KB
+- Lines of code: 8 (of 9 total)
+
 **Dependencies:**
 - torch
 
@@ -346,14 +573,48 @@ No description available
 **Description:**
 No description available
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 20.9 KB
+- Lines of code: 419 (of 539 total)
+
+**Functions:**
+- `main`: No documentation
+
+**Classes:**
+- `MetadataWorker`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `run`: No documentation
+    - `stop`: No documentation
+- `MainWindow`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `initUI`: No documentation
+    - `select_folder`: No documentation
+    - `start_processing`: No documentation
+    - `stop_processing`: No documentation
+    - `update_progress`: No documentation
+    - `update_log`: No documentation
+    - `processing_finished`: No documentation
+- `LocalMetadataUpdater`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `_setup_apis`: Set up API clients
+    - `process_folder`: Process all images in the folder
+    - `process_single_image`: Process a single image
+    - `_resize_image_for_api`: Resize image to meet API requirements while maintaining aspect ratio and size <5MB
+    - `_analyze_image`: Analyze image using Anthropic API
+    - `_normalize_category`: Try to normalize the category returned by the AI to one from the valid list
+    - `_parse_analysis_response`: Parse the AI response into structured metadata
+    - `_update_local_metadata`: Update local image EXIF metadata
+
 **Dependencies:**
 - PIL
 - PyQt5
 - anthropic
 - piexif
 - shlex
-- subprocess
-- traceback
 - win32file
 
 ### watermar_detection.py
@@ -388,6 +649,31 @@ Classes:
 - GUILogHandler: Custom logging handler to update the GUI log display
 
 Note: This application requires PyTorch, OpenCV, and other dependencies to be installed.
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 10.0 KB
+- Lines of code: 180 (of 250 total)
+
+**Classes:**
+- `WatermarkDetectionApp`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `create_widgets`: No documentation
+    - `browse_model`: No documentation
+    - `load_model`: No documentation
+    - `browse_input`: No documentation
+    - `browse_output`: No documentation
+    - `start_processing`: No documentation
+    - `process_file`: No documentation
+    - `process_image`: No documentation
+    - `process_video`: No documentation
+    - `detect_watermark`: No documentation
+    - `update_log`: No documentation
+- `GUILogHandler`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `emit`: No documentation
 
 **Dependencies:**
 - PIL

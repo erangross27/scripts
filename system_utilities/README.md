@@ -10,6 +10,21 @@
 **Description:**
 No description available
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 5.3 KB
+- Lines of code: 122 (of 169 total)
+
+**Functions:**
+- `get_current_user`: No documentation
+- `get_db`: No documentation
+- `cache_response`: No documentation
+
+**Classes:**
+- `User`: No documentation
+- `UserCreate`: No documentation
+- `UserResponse`: No documentation
+
 **Dependencies:**
 - bcrypt
 - fastapi
@@ -56,6 +71,78 @@ Dependencies:
 - win32com
 
 Note: This application is designed to run on Windows due to some Windows-specific features.
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 83.8 KB
+- Lines of code: 1147 (of 1747 total)
+
+**Functions:**
+- `setup_logging`: No documentation
+- `main`: No documentation
+
+**Classes:**
+- `ConversationHistory`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `create_table`: No documentation
+    - `save_conversation_to_db`: No documentation
+    - `load_conversation_history`: No documentation
+    - `load_conversations`: No documentation
+    - `update_conversation_history`: No documentation
+    - `rename_conversation`: No documentation
+    - `delete_conversation`: No documentation
+    - `get_conversation_title`: No documentation
+- `PythonHighlighter`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `highlightBlock`: No documentation
+- `MultiLineInput`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `keyPressEvent`: No documentation
+    - `insertFromMimeData`: No documentation
+    - `is_code_block`: No documentation
+    - `format_code_block`: No documentation
+    - `adjustHeight`: No documentation
+- `MessageProcessor`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `run`: No documentation
+- `APIKeyDialog`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `get_api_key`: No documentation
+- `ClaudeChat`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `set_windows_env_variable`: No documentation
+    - `init_ui`: No documentation
+    - `update_sidebar`: No documentation
+    - `show_context_menu`: No documentation
+    - `rename_conversation`: No documentation
+    - `delete_conversation`: No documentation
+    - `show_code_dialog`: No documentation
+    - `encode_image`: No documentation
+    - `load_conversation`: No documentation
+    - `send_message`: No documentation
+    - `get_the_current_model`: No documentation
+    - `save_conversation`: No documentation
+    - `generate_conversation_title`: No documentation
+    - `set_focus_to_input`: No documentation
+    - `update_chat`: No documentation
+    - `add_new_conversation`: No documentation
+    - `is_code_block`: No documentation
+    - `add_copy_button`: No documentation
+    - `copy_code_to_clipboard`: No documentation
+    - `update_chat_history`: No documentation
+    - `enable_input`: No documentation
+    - `clear_chat`: No documentation
+    - `api_busy`: No documentation
+    - `show_api_error`: No documentation
+    - `upload_file`: No documentation
+    - `close_progress_dialog`: No documentation
+    - `handle_api_error`: No documentation
 
 **Dependencies:**
 - PIL
@@ -106,6 +193,79 @@ Dependencies:
 Note: Ensure all required dependencies are installed and the Anthropic API key is available
 before running the application.
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 85.1 KB
+- Lines of code: 1167 (of 1801 total)
+
+**Functions:**
+- `setup_logging`: No documentation
+- `main`: No documentation
+
+**Classes:**
+- `ConversationHistory`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `create_table`: No documentation
+    - `save_conversation_to_db`: No documentation
+    - `load_conversation_history`: No documentation
+    - `load_conversations`: No documentation
+    - `update_conversation_history`: No documentation
+    - `rename_conversation`: No documentation
+    - `delete_conversation`: No documentation
+    - `get_conversation_title`: No documentation
+- `PythonHighlighter`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `highlightBlock`: No documentation
+- `MultiLineInput`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `keyPressEvent`: No documentation
+    - `insertFromMimeData`: No documentation
+    - `is_code_block`: No documentation
+    - `format_code_block`: No documentation
+    - `adjustHeight`: No documentation
+- `MessageProcessor`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `run`: No documentation
+- `APIKeyDialog`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `get_api_key`: No documentation
+- `ClaudeChat`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `set_linux_env_variable`: No documentation
+    - `set_macos_env_variable`: No documentation
+    - `init_ui`: No documentation
+    - `update_sidebar`: No documentation
+    - `show_context_menu`: No documentation
+    - `rename_conversation`: No documentation
+    - `delete_conversation`: No documentation
+    - `show_code_dialog`: No documentation
+    - `encode_image`: No documentation
+    - `load_conversation`: No documentation
+    - `send_message`: No documentation
+    - `get_the_current_model`: No documentation
+    - `save_conversation`: No documentation
+    - `generate_conversation_title`: No documentation
+    - `set_focus_to_input`: No documentation
+    - `update_chat`: No documentation
+    - `add_new_conversation`: No documentation
+    - `is_code_block`: No documentation
+    - `add_copy_button`: No documentation
+    - `copy_code_to_clipboard`: No documentation
+    - `update_chat_history`: No documentation
+    - `enable_input`: No documentation
+    - `clear_chat`: No documentation
+    - `api_busy`: No documentation
+    - `show_api_error`: No documentation
+    - `upload_file`: No documentation
+    - `close_progress_dialog`: No documentation
+    - `handle_api_error`: No documentation
+
 **Dependencies:**
 - PIL
 - PyQt5
@@ -113,10 +273,8 @@ before running the application.
 - ctypes
 - fitz
 - httpx
-- platform
 - pyexpat
 - requests
-- subprocess
 
 ### convert_audio_to_text.py
 
@@ -150,6 +308,19 @@ Usage:
 4. Click "Convert" to process the audio and generate text
 
 The script handles audio format conversion (m4a to wav) and channel conversion (stereo to mono) automatically.
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 4.6 KB
+- Lines of code: 93 (of 138 total)
+
+**Functions:**
+- `browse_audio_file`: No documentation
+- `browse_save_location`: No documentation
+- `convert_m4a_to_wav`: No documentation
+- `convert_stereo_to_mono`: No documentation
+- `convert_audio_to_text`: No documentation
+- `main`: No documentation
 
 **Dependencies:**
 - audioop
@@ -193,10 +364,34 @@ Email credentials are securely stored in the Windows Registry.
 
 Note: This script is designed to run on Windows systems only.
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 11.5 KB
+- Lines of code: 222 (of 290 total)
+
+**Functions:**
+- `check_dependencies`: No documentation
+- `check_module`: No documentation
+- `load_config`: No documentation
+- `main`: No documentation
+
+**Classes:**
+- `Config`: No documentation
+- `DiskSpaceAlertService`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `SvcStop`: No documentation
+    - `SvcDoRun`: No documentation
+    - `main`: No documentation
+    - `check_disk_space`: No documentation
+    - `get_disks`: No documentation
+    - `send_alert`: No documentation
+    - `get_email_credentials`: No documentation
+    - `configure_email`: No documentation
+
 **Dependencies:**
 - cryptography
 - dataclasses
-- email
 - getpass
 - psutil
 - servicemanager
@@ -229,6 +424,11 @@ Requirements:
 Note: This script is designed for Windows systems, as it specifically looks for
 C: and D: drives.
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 1.4 KB
+- Lines of code: 23 (of 36 total)
+
 **Dependencies:**
 - psutil
 
@@ -238,6 +438,28 @@ C: and D: drives.
 
 **Description:**
 No description available
+
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 9.8 KB
+- Lines of code: 211 (of 272 total)
+
+**Functions:**
+- `parse_time`: Convert a string 'hours:minutes' or 'hours' into total minutes as a float
+- `format_hours`: Converts total minutes into 'hours:minutes' string, with rounding to nearest minute
+- `evaluate_expression`: Given a list of tokens in the form [time_in_minutes, operator, time_in_minutes, operator,
+- `main`: No documentation
+
+**Classes:**
+- `TimeCalculator`: No documentation
+  - Methods:
+    - `__init__`: No documentation
+    - `on_button_clicked`: No documentation
+    - `clear_all`: Reset everything
+    - `process_operator`: 1
+    - `process_equals`: 1
+    - `update_expression_display`: Updates the expression display with the newly entered time or operator
+    - `show_error`: No documentation
 
 **Dependencies:**
 - PyQt5
@@ -265,6 +487,13 @@ Usage:
     Run the script directly to see the system information output.
     Alternatively, import the system_discovery function to use it in other scripts.
 
+**File Info:**
+- Last modified: 2025-02-18 10:38:35
+- Size: 1.8 KB
+- Lines of code: 28 (of 50 total)
+
+**Functions:**
+- `system_discovery`: Function to gather and print system information
+
 **Dependencies:**
-- platform
 - psutil
