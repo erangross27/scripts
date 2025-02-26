@@ -39,3 +39,4 @@ qiskit
 qiskit-ibm-runtime
 pywin32; platform_system == "Windows"
 WMI; platform_system == "Windows"
+nbformat
