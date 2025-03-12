@@ -14,13 +14,18 @@ import argparse
 def extract_imports(file_path):
     """Extract import statements from a Python file"""
     # Try to parse the Python file and handle any syntax errors
-    with open(file_path, 'r', encoding='utf-8') as file:
-        try:
-            tree = ast.parse(file.read())
-        except (SyntaxError, ValueError) as e:
-            import warnings
-            warnings.warn(f"Could not parse {file_path}: {e}", SyntaxWarning)
-            return set()
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            try:
+                tree = ast.parse(file.read())
+            except (SyntaxError, ValueError) as e:
+                import warnings
+                warnings.warn(f"Could not parse {file_path}: {e}", SyntaxWarning)
+                return set()
+    except (IOError, OSError) as e:
+        import warnings
+        warnings.warn(f"Could not read {file_path}: {e}", RuntimeWarning)
+        return set()
 
     # Store found imports in a set
     imports = set()
@@ -30,8 +35,13 @@ def extract_imports(file_path):
             for name in node.names:
                 imports.add(name.name.split('.')[0])
         elif isinstance(node, ast.ImportFrom):
-            if node.module:
+            # Handle relative imports (from . import module)
+            if node.module is not None:
                 imports.add(node.module.split('.')[0])
+            # Add imported names for relative imports without module
+            else:
+                for name in node.names:
+                    imports.add(name.name.split('.')[0])
     return imports
 
 # Common Python standard library modules to exclude from requirements
