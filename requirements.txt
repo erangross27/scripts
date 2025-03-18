@@ -82,3 +82,5 @@ winreg
 wmi
 yaml
 yt_dlp
+bottle>=0.12.20 # not directly required, pinned by Snyk to avoid a vulnerability
+pymongo>=4.6.3 # not directly required, pinned by Snyk to avoid a vulnerability
