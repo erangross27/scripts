@@ -1,5 +1,6 @@
 # Directory Scripts Documentation
 
+
 ## Available Scripts
 
 
@@ -10,8 +11,9 @@
 **Description:**
 This script handles build app.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 4.3 KB
 - Lines of code: 112 (of 150 total)
 
@@ -25,8 +27,9 @@ This script handles build app.
 **Description:**
 This script handles transcription app.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 22.7 KB
 - Lines of code: 535 (of 670 total)
 

@@ -1,5 +1,6 @@
 # Directory Scripts Documentation
 
+
 ## Available Scripts
 
 
@@ -29,8 +30,9 @@ Dependencies:
 
 Note: This script requires Ghostscript to be installed and accessible in the system PATH.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 5.1 KB
 - Lines of code: 111 (of 137 total)
 
@@ -76,8 +78,9 @@ Run the script and use the GUI to open a PDF, adjust settings, and save the numb
 
 Note: This script requires PyQt5 and PyMuPDF to be installed.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 12.1 KB
 - Lines of code: 238 (of 323 total)
 

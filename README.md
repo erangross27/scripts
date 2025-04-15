@@ -49,8 +49,9 @@ Dependencies:
 
 Note: This script requires Ghostscript to be installed and accessible in the system PATH.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 5.1 KB
 - Lines of code: 111 (of 137 total)
 
@@ -96,8 +97,9 @@ Run the script and use the GUI to open a PDF, adjust settings, and save the numb
 
 Note: This script requires PyQt5 and PyMuPDF to be installed.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 12.1 KB
 - Lines of code: 238 (of 323 total)
 
@@ -127,8 +129,9 @@ Note: This script requires PyQt5 and PyMuPDF to be installed.
 **Description:**
 This script handles breast cancer detector that processes data, performs numerical operations.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 4.6 KB
 - Lines of code: 97 (of 136 total)
 
@@ -158,8 +161,9 @@ This script handles breast cancer detector that processes data, performs numeric
 **Description:**
 This script implements captureImage functionality.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 1.5 KB
 - Lines of code: 37 (of 54 total)
 
@@ -205,8 +209,9 @@ Functions:
 - compress_image: Compresses a single image file
 - compress_images_in_folder: Compresses all JPEG images in a folder
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 8.4 KB
 - Lines of code: 194 (of 236 total)
 
@@ -259,8 +264,9 @@ Dependencies:
 
 Note: This script requires a valid Google Cloud Vision API key (google.json) in the same directory.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 5.2 KB
 - Lines of code: 94 (of 137 total)
 
@@ -305,8 +311,9 @@ Classes:
 
 Note: This script must be run in an environment with PyQt5 installed.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 6.7 KB
 - Lines of code: 142 (of 181 total)
 
@@ -333,8 +340,9 @@ Note: This script must be run in an environment with PyQt5 installed.
 **Description:**
 This script implements convertor functionality that processes images.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 6.3 KB
 - Lines of code: 108 (of 151 total)
 
@@ -358,8 +366,9 @@ This script implements convertor functionality that processes images.
 **Description:**
 This script handles copy all images from sub folders.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 1.7 KB
 - Lines of code: 36 (of 56 total)
 
@@ -394,8 +403,9 @@ Usage:
 Run the script to open the GUI. Select an image, choose the output file type (TXT or CSV),
 and click 'Convert' to extract and save the text.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 4.2 KB
 - Lines of code: 94 (of 130 total)
 
@@ -438,8 +448,9 @@ Usage:
 Run the script and use the GUI to select an image, choose the output file type,
 and convert the image text to a structured format.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 5.1 KB
 - Lines of code: 95 (of 151 total)
 
@@ -461,8 +472,9 @@ and convert the image text to a structured format.
 **Description:**
 This script handles image brightener gui that performs numerical operations.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 6.3 KB
 - Lines of code: 154 (of 199 total)
 
@@ -512,8 +524,9 @@ Dependencies:
 - os
 - shutil
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 4.5 KB
 - Lines of code: 90 (of 129 total)
 
@@ -570,8 +583,9 @@ select input/output files, and process images or videos for watermark removal.
 Note: Ensure all required dependencies are installed and CUDA is available
 for optimal performance when processing large files or videos.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 25.4 KB
 - Lines of code: 457 (of 627 total)
 
@@ -617,8 +631,9 @@ for optimal performance when processing large files or videos.
 **Description:**
 This script handles organize dataset.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 3.3 KB
 - Lines of code: 55 (of 79 total)
 
@@ -632,8 +647,9 @@ This script handles organize dataset.
 **Description:**
 This script handles shutterstock gui.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 9.4 KB
 - Lines of code: 210 (of 263 total)
 
@@ -675,8 +691,9 @@ This script handles shutterstock gui.
 **Description:**
 This script handles shutterstock uploader that makes HTTP requests.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 10.3 KB
 - Lines of code: 222 (of 273 total)
 
@@ -706,8 +723,9 @@ This script handles shutterstock uploader that makes HTTP requests.
 **Description:**
 This script contains test cases for cuda.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 0.3 KB
 - Lines of code: 11 (of 13 total)
 
@@ -721,8 +739,9 @@ This script contains test cases for cuda.
 **Description:**
 This script handles update meta data that processes images.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 21.8 KB
 - Lines of code: 470 (of 591 total)
 
@@ -772,8 +791,9 @@ This script handles update meta data that processes images.
 **Description:**
 This script handles update meta data pro.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 24.6 KB
 - Lines of code: 470 (of 607 total)
 
@@ -834,8 +854,9 @@ Classes:
 
 Note: This application requires PyTorch, OpenCV, and other dependencies to be installed.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 10.9 KB
 - Lines of code: 228 (of 298 total)
 
@@ -897,8 +918,9 @@ The script will automatically download the dataset if not already present.
 
 Note: Adjust hyperparameters like batch size, learning rate, and number of epochs as needed.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 5.5 KB
 - Lines of code: 110 (of 139 total)
 
@@ -940,8 +962,9 @@ Requirements:
 
 The script will automatically use CUDA if available, otherwise it will default to CPU.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 6.1 KB
 - Lines of code: 137 (of 174 total)
 
@@ -989,8 +1012,9 @@ Usage:
 For a full list of available arguments, run:
     python script_name.py --help
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 7.7 KB
 - Lines of code: 119 (of 145 total)
 
@@ -1010,8 +1034,9 @@ For a full list of available arguments, run:
 **Description:**
 This script handles cuda matrix multiplication that performs numerical operations.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 4.3 KB
 - Lines of code: 97 (of 143 total)
 
@@ -1030,8 +1055,9 @@ This script handles cuda matrix multiplication that performs numerical operation
 **Description:**
 This script handles cuda vector add that performs numerical operations.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 2.3 KB
 - Lines of code: 51 (of 85 total)
 
@@ -1046,8 +1072,9 @@ This script handles cuda vector add that performs numerical operations.
 **Description:**
 This script handles discover gpu memory.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 1.9 KB
 - Lines of code: 32 (of 55 total)
 
@@ -1064,8 +1091,9 @@ This script handles discover gpu memory.
 **Description:**
 This script handles discover monitor information.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 3.8 KB
 - Lines of code: 83 (of 108 total)
 
@@ -1076,6 +1104,25 @@ This script handles discover monitor information.
 
 **Dependencies:**
 - wmi
+
+### get_openai_model_list.py
+
+**Path:** `miscellaneous\get_openai_model_list.py`
+
+**Description:**
+No documentation
+
+
+**File Info:**
+- Last modified: 2025-04-15 20:20:08
+- Size: 2.0 KB
+- Lines of code: 39 (of 57 total)
+
+**Functions:**
+- `list_openai_models`: Fetches and displays available OpenAI models
+
+**Dependencies:**
+- openai
 
 ### get_requirements.py
 
@@ -1100,8 +1147,9 @@ Usage:
 Run this script in the directory containing the Python files you want to analyze.
 The generated requirements.txt file will be saved in the same directory.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 4.5 KB
 - Lines of code: 96 (of 123 total)
 
@@ -1153,8 +1201,9 @@ Requirements:
 
 Note: GPU operations require CUDA-capable hardware and appropriate CUDA setup.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 4.4 KB
 - Lines of code: 105 (of 138 total)
 
@@ -1180,8 +1229,9 @@ Note: GPU operations require CUDA-capable hardware and appropriate CUDA setup.
 **Description:**
 This script handles organize scripts.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 3.1 KB
 - Lines of code: 71 (of 85 total)
 
@@ -1213,8 +1263,9 @@ Usage:
 Run this script directly to perform the comparison with default parameters.
 You can modify the parameters in the run_comparison() function call if needed.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 4.4 KB
 - Lines of code: 97 (of 131 total)
 
@@ -1256,8 +1307,9 @@ Run the script to perform the CPU-GPU comparison for prime number finding.
 The comparison parameters (number size, maximum number, and number of runs)
 can be adjusted in the run_comparison() function call at the end of the script.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 5.0 KB
 - Lines of code: 122 (of 161 total)
 
@@ -1283,8 +1335,9 @@ can be adjusted in the run_comparison() function call at the end of the script.
 **Description:**
 This script handles remove versions from requirements.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 2.3 KB
 - Lines of code: 37 (of 58 total)
 
@@ -1298,8 +1351,9 @@ This script handles remove versions from requirements.
 **Description:**
 This script handles setup env.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 7.0 KB
 - Lines of code: 153 (of 200 total)
 
@@ -1328,8 +1382,9 @@ This script handles setup env.
 **Description:**
 This script handles setup requirements.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 2.5 KB
 - Lines of code: 52 (of 71 total)
 
@@ -1366,8 +1421,9 @@ Requirements:
 
 Note: GPU sorting will only be performed if CUDA is available.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 3.5 KB
 - Lines of code: 94 (of 122 total)
 
@@ -1418,8 +1474,9 @@ Environment variables:
 Usage:
 Run the script directly to process files and update the README.md.
 
+
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
+- Last modified: 2025-04-15 20:20:08
 - Size: 10.5 KB
 - Lines of code: 238 (of 287 total)
 
@@ -1447,8 +1504,9 @@ Run the script directly to process files and update the README.md.
 **Description:**
 This script handles   init  .
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 0.0 KB
 - Lines of code: 3 (of 4 total)
 
@@ -1459,8 +1517,9 @@ This script handles   init  .
 **Description:**
 This script handles anomaly detector that performs numerical operations.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 4.2 KB
 - Lines of code: 76 (of 108 total)
 
@@ -1482,8 +1541,9 @@ This script handles anomaly detector that performs numerical operations.
 **Description:**
 This script handles   init  .
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 0.5 KB
 - Lines of code: 21 (of 23 total)
 
@@ -1498,8 +1558,9 @@ This script handles   init  .
 **Description:**
 This script handles feature config.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 1.1 KB
 - Lines of code: 24 (of 26 total)
 
@@ -1510,8 +1571,9 @@ This script handles feature config.
 **Description:**
 This script handles whitelist config.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 1.0 KB
 - Lines of code: 31 (of 44 total)
 
@@ -1525,8 +1587,9 @@ This script handles whitelist config.
 **Description:**
 This script handles feature extractor that processes data.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 4.1 KB
 - Lines of code: 98 (of 128 total)
 
@@ -1549,8 +1612,9 @@ This script handles feature extractor that processes data.
 **Description:**
 This script handles interface manager.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 5.8 KB
 - Lines of code: 101 (of 123 total)
 
@@ -1576,8 +1640,9 @@ This script handles interface manager.
 **Description:**
 This script handles logger setup.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 2.4 KB
 - Lines of code: 37 (of 63 total)
 
@@ -1597,8 +1662,9 @@ This script handles logger setup.
 **Description:**
 This script handles   init  .
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 0.2 KB
 - Lines of code: 5 (of 7 total)
 
@@ -1612,8 +1678,9 @@ This script handles   init  .
 **Description:**
 This script handles persistent anomaly detector that processes data.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 3.1 KB
 - Lines of code: 70 (of 84 total)
 
@@ -1638,8 +1705,9 @@ This script handles persistent anomaly detector that processes data.
 **Description:**
 This script handles network monitor.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 9.4 KB
 - Lines of code: 136 (of 180 total)
 
@@ -1670,8 +1738,9 @@ This script handles network monitor.
 **Description:**
 This script handles packet analyzer.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 13.6 KB
 - Lines of code: 242 (of 302 total)
 
@@ -1697,8 +1766,9 @@ This script handles packet analyzer.
 **Description:**
 This script handles packet capture.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 2.8 KB
 - Lines of code: 81 (of 95 total)
 
@@ -1720,8 +1790,9 @@ This script handles packet capture.
 **Description:**
 This script handles   init  .
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 0.3 KB
 - Lines of code: 12 (of 14 total)
 
@@ -1736,8 +1807,9 @@ This script handles   init  .
 **Description:**
 This script provides utility functions for networks.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 0.6 KB
 - Lines of code: 21 (of 25 total)
 
@@ -1752,8 +1824,9 @@ This script provides utility functions for networks.
 **Description:**
 This script provides utility functions for packets.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 1.0 KB
 - Lines of code: 29 (of 33 total)
 
@@ -1773,8 +1846,9 @@ This script provides utility functions for packets.
 **Description:**
 This script handles whitelist manager.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 4.6 KB
 - Lines of code: 115 (of 134 total)
 
@@ -1825,8 +1899,9 @@ Dependencies:
 
 Note: This script is designed for educational and demonstrative purposes.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 3.9 KB
 - Lines of code: 78 (of 127 total)
 
@@ -1872,8 +1947,9 @@ The secret key is set within the script and can be modified as needed.
 
 Note: This is a demonstration and should not be used for actual cryptographic purposes.
 
+
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
+- Last modified: 2025-04-15 20:20:08
 - Size: 4.3 KB
 - Lines of code: 95 (of 142 total)
 
@@ -1915,8 +1991,9 @@ Note: This script is for educational purposes and demonstrates basic quantum com
 For production-level cryptographic applications, consult with cryptography experts and use
 established cryptographic libraries and protocols.
 
+
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
+- Last modified: 2025-04-15 20:20:08
 - Size: 3.8 KB
 - Lines of code: 58 (of 93 total)
 
@@ -1932,42 +2009,32 @@ established cryptographic libraries and protocols.
 **Path:** `readme_generator.py`
 
 **Description:**
-This script handles readme generator.
+No documentation
+
 
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
-- Size: 33.3 KB
-- Lines of code: 570 (of 743 total)
+- Last modified: 2025-04-15 20:47:57
+- Size: 18.4 KB
+- Lines of code: 350 (of 417 total)
 
 **Functions:**
-- `parse_args`: Parses args
+- `parse_args`: No documentation
 
 **Classes:**
-- `DocUpdater`: Class responsible for updating Python files with missing documentation
+- `ScriptAnalyzer`: No documentation
   - Methods:
-    - `__init__`: Special method __init__
-    - `get_module_docstring`: Check if a Python file has a module-level docstring
-    - `get_function_docstring`: Get docstring for a function node
-    - `get_class_docstring`: Get docstring for a class node
-    - `infer_file_description`: Infer a description for a Python file based on its content
-    - `_infer_purpose_from_name`: Infer purpose from filename
-    - `infer_function_docstring`: Infer a docstring for a function based on its name and parameters
-    - `infer_class_docstring`: Infer a docstring for a class based on its name and methods
-    - `update_file_with_docstrings`: Update a Python file with inferred docstrings where they're missing
-- `ScriptAnalyzer`: Represents a script analyzer
-  - Methods:
-    - `__init__`: Special method __init__
-    - `extract_docstring`: Parse Python file and extract module-level docstring
-    - `extract_imports`: Parse Python file and extract all import statements
-    - `extract_functions_and_classes`: Parse Python file and extract functions and classes with their docstrings
-    - `get_file_stats`: Get file statistics such as size, lines of code, and last modified date
-    - `process_notebook`: Process Jupyter notebook (
-    - `update_file_docstrings`: Update docstrings in a Python file if they're missing
-    - `analyze_file`: Analyze a single file and return its data
-    - `should_exclude`: Check if a path should be excluded based on exclude_dirs
-    - `analyze_scripts`: Walk through directory tree and analyze all Python files and Jupyter notebooks
-    - `generate_readme_content`: Generate markdown content for README files
-    - `generate_readme`: Generate README files for root and subdirectories
+    - `__init__`: No documentation
+    - `extract_docstring`: Extract the module-level docstring from a Python file
+    - `extract_imports`: Extract imported modules from a Python file
+    - `extract_functions_and_classes`: Extract top-level functions and classes with their docstrings
+    - `get_file_stats`: Get file statistics: size, last modified, lines, code lines
+    - `process_notebook`: Process Jupyter Notebook (
+    - `update_file_docstrings`: Placeholder for updating missing docstrings in a Python file
+    - `analyze_file`: Analyze a single file, return structured data
+    - `should_exclude`: Determine if a directory should be excluded
+    - `analyze_scripts`: Walk directory and analyze all Python and notebook files
+    - `generate_readme_content`: Generate Markdown content for README files
+    - `generate_readme`: Generate README
 
 **Dependencies:**
 - nbformat
@@ -1979,10 +2046,11 @@ This script handles readme generator.
 **Description:**
 This script handles setup requirements.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
-- Size: 3.8 KB
-- Lines of code: 68 (of 101 total)
+- Last modified: 2025-04-15 20:20:08
+- Size: 4.3 KB
+- Lines of code: 76 (of 111 total)
 
 **Functions:**
 - `extract_imports`: Extract import statements from a Python file
@@ -1996,8 +2064,9 @@ This script handles setup requirements.
 **Description:**
 This script handles build app.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 4.3 KB
 - Lines of code: 112 (of 150 total)
 
@@ -2011,8 +2080,9 @@ This script handles build app.
 **Description:**
 This script handles transcription app.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 22.7 KB
 - Lines of code: 535 (of 670 total)
 
@@ -2065,8 +2135,9 @@ This script handles transcription app.
 **Description:**
 This script handles ai security service.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 5.7 KB
 - Lines of code: 146 (of 194 total)
 
@@ -2094,10 +2165,11 @@ This script handles ai security service.
 **Path:** `system_utilities\anthropic_claude_chat.py`
 
 **Description:**
-Could not parse file for description
+No documentation
+
 
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 87.4 KB
 - Lines of code: 1318 (of 1918 total)
 
@@ -2106,10 +2178,11 @@ Could not parse file for description
 **Path:** `system_utilities\anthropic_claude_chat_for_linux.py`
 
 **Description:**
-Could not parse file for description
+No documentation
+
 
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 88.8 KB
 - Lines of code: 1341 (of 1975 total)
 
@@ -2146,8 +2219,9 @@ Usage:
 
 The script handles audio format conversion (m4a to wav) and channel conversion (stereo to mono) automatically.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 5.0 KB
 - Lines of code: 111 (of 156 total)
 
@@ -2201,8 +2275,9 @@ Email credentials are securely stored in the Windows Registry.
 
 Note: This script is designed to run on Windows systems only.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 12.2 KB
 - Lines of code: 267 (of 335 total)
 
@@ -2261,8 +2336,9 @@ Requirements:
 Note: This script is designed for Windows systems, as it specifically looks for
 C: and D: drives.
 
+
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
+- Last modified: 2025-04-15 20:20:08
 - Size: 1.4 KB
 - Lines of code: 23 (of 36 total)
 
@@ -2276,15 +2352,16 @@ C: and D: drives.
 **Description:**
 This script handles hour calculator.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 10.1 KB
 - Lines of code: 229 (of 291 total)
 
 **Functions:**
 - `parse_time`: Convert a string 'hours:minutes' or 'hours' into total minutes as a float
 - `format_hours`: Converts total minutes into 'hours:minutes' string, with rounding to nearest minute
-- `evaluate_expression`: Given a list of tokens in the form [time_in_minutes, operator, time_in_minutes, operator,
+- `evaluate_expression`: Given a list of tokens in the form [time_in_minutes, operator, time_in_minutes, operator, 
 - `main`: Main
 
 **Classes:**
@@ -2324,8 +2401,9 @@ Usage:
     Run the script directly to see the system information output.
     Alternatively, import the system_discovery function to use it in other scripts.
 
+
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
+- Last modified: 2025-04-15 20:20:08
 - Size: 1.8 KB
 - Lines of code: 28 (of 50 total)
 
@@ -2367,8 +2445,9 @@ Dependencies:
 Note: This script is designed to work both as a standalone Python script and
 when bundled with PyInstaller.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 5.8 KB
 - Lines of code: 114 (of 162 total)
 
@@ -2413,8 +2492,9 @@ Usage:
 
 Note: Ensure all required libraries are installed before running the script.
 
+
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
+- Last modified: 2025-04-15 20:20:08
 - Size: 2.8 KB
 - Lines of code: 43 (of 80 total)
 
@@ -2459,8 +2539,9 @@ Author: [Eran Gross]
 Date: [30/08/2024]
 Version: 1.0
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 9.1 KB
 - Lines of code: 195 (of 258 total)
 
@@ -2505,8 +2586,9 @@ Note:
     This script requires the moviepy library to be installed. You can install it using pip:
     pip install moviepy
 
+
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
+- Last modified: 2025-04-15 20:20:08
 - Size: 1.0 KB
 - Lines of code: 16 (of 26 total)
 
@@ -2542,8 +2624,9 @@ Run the script to perform the encoding comparison.
 Note: This script requires FFmpeg to be installed and accessible in the system path.
 For GPU encoding, it assumes an NVIDIA GPU with NVENC support.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 4.1 KB
 - Lines of code: 97 (of 128 total)
 
@@ -2564,8 +2647,9 @@ For GPU encoding, it assumes an NVIDIA GPU with NVENC support.
 **Description:**
 This script handles build app.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 3.6 KB
 - Lines of code: 102 (of 134 total)
 
@@ -2579,8 +2663,9 @@ This script handles build app.
 **Description:**
 This script downloads content related to youtube.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 9.6 KB
 - Lines of code: 231 (of 281 total)
 
