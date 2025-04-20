@@ -1,5 +1,6 @@
 # Directory Scripts Documentation
 
+
 ## Available Scripts
 
 
@@ -10,8 +11,9 @@
 **Description:**
 This script handles cuda matrix multiplication that performs numerical operations.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 4.3 KB
 - Lines of code: 97 (of 143 total)
 
@@ -30,8 +32,9 @@ This script handles cuda matrix multiplication that performs numerical operation
 **Description:**
 This script handles cuda vector add that performs numerical operations.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 2.3 KB
 - Lines of code: 51 (of 85 total)
 
@@ -46,8 +49,9 @@ This script handles cuda vector add that performs numerical operations.
 **Description:**
 This script handles discover gpu memory.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 1.9 KB
 - Lines of code: 32 (of 55 total)
 
@@ -64,8 +68,9 @@ This script handles discover gpu memory.
 **Description:**
 This script handles discover monitor information.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 3.8 KB
 - Lines of code: 83 (of 108 total)
 
@@ -76,6 +81,25 @@ This script handles discover monitor information.
 
 **Dependencies:**
 - wmi
+
+### get_openai_model_list.py
+
+**Path:** `miscellaneous\get_openai_model_list.py`
+
+**Description:**
+No documentation
+
+
+**File Info:**
+- Last modified: 2025-04-15 20:20:08
+- Size: 2.0 KB
+- Lines of code: 39 (of 57 total)
+
+**Functions:**
+- `list_openai_models`: Fetches and displays available OpenAI models
+
+**Dependencies:**
+- openai
 
 ### get_requirements.py
 
@@ -100,8 +124,9 @@ Usage:
 Run this script in the directory containing the Python files you want to analyze.
 The generated requirements.txt file will be saved in the same directory.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 4.5 KB
 - Lines of code: 96 (of 123 total)
 
@@ -153,8 +178,9 @@ Requirements:
 
 Note: GPU operations require CUDA-capable hardware and appropriate CUDA setup.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 4.4 KB
 - Lines of code: 105 (of 138 total)
 
@@ -180,8 +206,9 @@ Note: GPU operations require CUDA-capable hardware and appropriate CUDA setup.
 **Description:**
 This script handles organize scripts.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 3.1 KB
 - Lines of code: 71 (of 85 total)
 
@@ -213,8 +240,9 @@ Usage:
 Run this script directly to perform the comparison with default parameters.
 You can modify the parameters in the run_comparison() function call if needed.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 4.4 KB
 - Lines of code: 97 (of 131 total)
 
@@ -256,8 +284,9 @@ Run the script to perform the CPU-GPU comparison for prime number finding.
 The comparison parameters (number size, maximum number, and number of runs)
 can be adjusted in the run_comparison() function call at the end of the script.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 5.0 KB
 - Lines of code: 122 (of 161 total)
 
@@ -283,8 +312,9 @@ can be adjusted in the run_comparison() function call at the end of the script.
 **Description:**
 This script handles remove versions from requirements.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 2.3 KB
 - Lines of code: 37 (of 58 total)
 
@@ -298,8 +328,9 @@ This script handles remove versions from requirements.
 **Description:**
 This script handles setup env.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 7.0 KB
 - Lines of code: 153 (of 200 total)
 
@@ -328,8 +359,9 @@ This script handles setup env.
 **Description:**
 This script handles setup requirements.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 2.5 KB
 - Lines of code: 52 (of 71 total)
 
@@ -366,8 +398,9 @@ Requirements:
 
 Note: GPU sorting will only be performed if CUDA is available.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 3.5 KB
 - Lines of code: 94 (of 122 total)
 
@@ -418,8 +451,9 @@ Environment variables:
 Usage:
 Run the script directly to process files and update the README.md.
 
+
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
+- Last modified: 2025-04-15 20:20:08
 - Size: 10.5 KB
 - Lines of code: 238 (of 287 total)
 

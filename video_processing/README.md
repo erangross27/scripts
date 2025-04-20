@@ -1,5 +1,6 @@
 # Directory Scripts Documentation
 
+
 ## Available Scripts
 
 
@@ -35,8 +36,9 @@ Dependencies:
 Note: This script is designed to work both as a standalone Python script and
 when bundled with PyInstaller.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 5.8 KB
 - Lines of code: 114 (of 162 total)
 
@@ -81,8 +83,9 @@ Usage:
 
 Note: Ensure all required libraries are installed before running the script.
 
+
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
+- Last modified: 2025-04-15 20:20:08
 - Size: 2.8 KB
 - Lines of code: 43 (of 80 total)
 
@@ -127,8 +130,9 @@ Author: [Eran Gross]
 Date: [30/08/2024]
 Version: 1.0
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 9.1 KB
 - Lines of code: 195 (of 258 total)
 
@@ -173,8 +177,9 @@ Note:
     This script requires the moviepy library to be installed. You can install it using pip:
     pip install moviepy
 
+
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
+- Last modified: 2025-04-15 20:20:08
 - Size: 1.0 KB
 - Lines of code: 16 (of 26 total)
 
@@ -210,8 +215,9 @@ Run the script to perform the encoding comparison.
 Note: This script requires FFmpeg to be installed and accessible in the system path.
 For GPU encoding, it assumes an NVIDIA GPU with NVENC support.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 4.1 KB
 - Lines of code: 97 (of 128 total)
 

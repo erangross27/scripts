@@ -1,5 +1,6 @@
 # Directory Scripts Documentation
 
+
 ## Available Scripts
 
 
@@ -33,8 +34,9 @@ The script will automatically download the dataset if not already present.
 
 Note: Adjust hyperparameters like batch size, learning rate, and number of epochs as needed.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 5.5 KB
 - Lines of code: 110 (of 139 total)
 
@@ -76,8 +78,9 @@ Requirements:
 
 The script will automatically use CUDA if available, otherwise it will default to CPU.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 6.1 KB
 - Lines of code: 137 (of 174 total)
 
@@ -125,8 +128,9 @@ Usage:
 For a full list of available arguments, run:
     python script_name.py --help
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 7.7 KB
 - Lines of code: 119 (of 145 total)
 

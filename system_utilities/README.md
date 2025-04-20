@@ -1,5 +1,6 @@
 # Directory Scripts Documentation
 
+
 ## Available Scripts
 
 
@@ -10,8 +11,9 @@
 **Description:**
 This script handles ai security service.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 5.7 KB
 - Lines of code: 146 (of 194 total)
 
@@ -39,10 +41,11 @@ This script handles ai security service.
 **Path:** `system_utilities\anthropic_claude_chat.py`
 
 **Description:**
-Could not parse file for description
+No documentation
+
 
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 87.4 KB
 - Lines of code: 1318 (of 1918 total)
 
@@ -51,10 +54,11 @@ Could not parse file for description
 **Path:** `system_utilities\anthropic_claude_chat_for_linux.py`
 
 **Description:**
-Could not parse file for description
+No documentation
+
 
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 88.8 KB
 - Lines of code: 1341 (of 1975 total)
 
@@ -91,8 +95,9 @@ Usage:
 
 The script handles audio format conversion (m4a to wav) and channel conversion (stereo to mono) automatically.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 5.0 KB
 - Lines of code: 111 (of 156 total)
 
@@ -146,8 +151,9 @@ Email credentials are securely stored in the Windows Registry.
 
 Note: This script is designed to run on Windows systems only.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 12.2 KB
 - Lines of code: 267 (of 335 total)
 
@@ -206,8 +212,9 @@ Requirements:
 Note: This script is designed for Windows systems, as it specifically looks for
 C: and D: drives.
 
+
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
+- Last modified: 2025-04-15 20:20:08
 - Size: 1.4 KB
 - Lines of code: 23 (of 36 total)
 
@@ -221,15 +228,16 @@ C: and D: drives.
 **Description:**
 This script handles hour calculator.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 10.1 KB
 - Lines of code: 229 (of 291 total)
 
 **Functions:**
 - `parse_time`: Convert a string 'hours:minutes' or 'hours' into total minutes as a float
 - `format_hours`: Converts total minutes into 'hours:minutes' string, with rounding to nearest minute
-- `evaluate_expression`: Given a list of tokens in the form [time_in_minutes, operator, time_in_minutes, operator,
+- `evaluate_expression`: Given a list of tokens in the form [time_in_minutes, operator, time_in_minutes, operator, 
 - `main`: Main
 
 **Classes:**
@@ -269,8 +277,9 @@ Usage:
     Run the script directly to see the system information output.
     Alternatively, import the system_discovery function to use it in other scripts.
 
+
 **File Info:**
-- Last modified: 2025-02-18 10:38:35
+- Last modified: 2025-04-15 20:20:08
 - Size: 1.8 KB
 - Lines of code: 28 (of 50 total)
 

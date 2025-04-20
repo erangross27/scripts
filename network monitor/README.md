@@ -1,5 +1,6 @@
 # Directory Scripts Documentation
 
+
 ## Available Scripts
 
 
@@ -10,8 +11,9 @@
 **Description:**
 This script handles   init  .
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 0.0 KB
 - Lines of code: 3 (of 4 total)
 
@@ -22,8 +24,9 @@ This script handles   init  .
 **Description:**
 This script handles anomaly detector that performs numerical operations.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 4.2 KB
 - Lines of code: 76 (of 108 total)
 
@@ -45,8 +48,9 @@ This script handles anomaly detector that performs numerical operations.
 **Description:**
 This script handles feature extractor that processes data.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 4.1 KB
 - Lines of code: 98 (of 128 total)
 
@@ -69,8 +73,9 @@ This script handles feature extractor that processes data.
 **Description:**
 This script handles interface manager.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 5.8 KB
 - Lines of code: 101 (of 123 total)
 
@@ -96,8 +101,9 @@ This script handles interface manager.
 **Description:**
 This script handles logger setup.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 2.4 KB
 - Lines of code: 37 (of 63 total)
 
@@ -117,8 +123,9 @@ This script handles logger setup.
 **Description:**
 This script handles network monitor.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 9.4 KB
 - Lines of code: 136 (of 180 total)
 
@@ -149,8 +156,9 @@ This script handles network monitor.
 **Description:**
 This script handles packet analyzer.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 13.6 KB
 - Lines of code: 242 (of 302 total)
 
@@ -176,8 +184,9 @@ This script handles packet analyzer.
 **Description:**
 This script handles packet capture.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 2.8 KB
 - Lines of code: 81 (of 95 total)
 
@@ -199,8 +208,9 @@ This script handles packet capture.
 **Description:**
 This script handles whitelist manager.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 4.6 KB
 - Lines of code: 115 (of 134 total)
 

@@ -1,5 +1,6 @@
 # Directory Scripts Documentation
 
+
 ## Available Scripts
 
 
@@ -10,8 +11,9 @@
 **Description:**
 This script implements captureImage functionality.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 1.5 KB
 - Lines of code: 37 (of 54 total)
 
@@ -57,8 +59,9 @@ Functions:
 - compress_image: Compresses a single image file
 - compress_images_in_folder: Compresses all JPEG images in a folder
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 8.4 KB
 - Lines of code: 194 (of 236 total)
 
@@ -111,8 +114,9 @@ Dependencies:
 
 Note: This script requires a valid Google Cloud Vision API key (google.json) in the same directory.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 5.2 KB
 - Lines of code: 94 (of 137 total)
 
@@ -157,8 +161,9 @@ Classes:
 
 Note: This script must be run in an environment with PyQt5 installed.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 6.7 KB
 - Lines of code: 142 (of 181 total)
 
@@ -185,8 +190,9 @@ Note: This script must be run in an environment with PyQt5 installed.
 **Description:**
 This script implements convertor functionality that processes images.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 6.3 KB
 - Lines of code: 108 (of 151 total)
 
@@ -210,8 +216,9 @@ This script implements convertor functionality that processes images.
 **Description:**
 This script handles copy all images from sub folders.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 1.7 KB
 - Lines of code: 36 (of 56 total)
 
@@ -246,8 +253,9 @@ Usage:
 Run the script to open the GUI. Select an image, choose the output file type (TXT or CSV),
 and click 'Convert' to extract and save the text.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 4.2 KB
 - Lines of code: 94 (of 130 total)
 
@@ -290,8 +298,9 @@ Usage:
 Run the script and use the GUI to select an image, choose the output file type,
 and convert the image text to a structured format.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 5.1 KB
 - Lines of code: 95 (of 151 total)
 
@@ -313,8 +322,9 @@ and convert the image text to a structured format.
 **Description:**
 This script handles image brightener gui that performs numerical operations.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 6.3 KB
 - Lines of code: 154 (of 199 total)
 
@@ -364,8 +374,9 @@ Dependencies:
 - os
 - shutil
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 4.5 KB
 - Lines of code: 90 (of 129 total)
 
@@ -422,8 +433,9 @@ select input/output files, and process images or videos for watermark removal.
 Note: Ensure all required dependencies are installed and CUDA is available
 for optimal performance when processing large files or videos.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 25.4 KB
 - Lines of code: 457 (of 627 total)
 
@@ -469,8 +481,9 @@ for optimal performance when processing large files or videos.
 **Description:**
 This script handles organize dataset.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 3.3 KB
 - Lines of code: 55 (of 79 total)
 
@@ -484,8 +497,9 @@ This script handles organize dataset.
 **Description:**
 This script handles shutterstock gui.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 9.4 KB
 - Lines of code: 210 (of 263 total)
 
@@ -527,8 +541,9 @@ This script handles shutterstock gui.
 **Description:**
 This script handles shutterstock uploader that makes HTTP requests.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 10.3 KB
 - Lines of code: 222 (of 273 total)
 
@@ -558,8 +573,9 @@ This script handles shutterstock uploader that makes HTTP requests.
 **Description:**
 This script contains test cases for cuda.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 0.3 KB
 - Lines of code: 11 (of 13 total)
 
@@ -573,8 +589,9 @@ This script contains test cases for cuda.
 **Description:**
 This script handles update meta data that processes images.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 21.8 KB
 - Lines of code: 470 (of 591 total)
 
@@ -624,8 +641,9 @@ This script handles update meta data that processes images.
 **Description:**
 This script handles update meta data pro.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 24.6 KB
 - Lines of code: 470 (of 607 total)
 
@@ -686,8 +704,9 @@ Classes:
 
 Note: This application requires PyTorch, OpenCV, and other dependencies to be installed.
 
+
 **File Info:**
-- Last modified: 2025-02-25 08:16:29
+- Last modified: 2025-04-15 20:20:08
 - Size: 10.9 KB
 - Lines of code: 228 (of 298 total)
 
