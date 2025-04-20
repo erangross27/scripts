@@ -1,86 +1,49 @@
-GPUtil
-PIL
-PyQt5
-anomaly_detector
-anthropic
-audioop
-bcrypt
-bidi
-concurrent
-config
-cryptography
-ctypes
-cv2
-dataclasses
-diffusers
-docx
-dotenv
-email
-fastapi
-feature_config
-feature_extractor
-fitz
-getpass
-google
-huggingface_hub
-interface_manager
-ipaddress
-joblib
-jwt
-logger_setup
-matplotlib
-models
-moviepy
-nbformat
-netifaces
-network_utils
-numpy
-openai
-packet_analyzer
-packet_capture
-packet_utils
-pandas
-persistent_anomaly_detector
-piexif
-pkgutil
-platform
-psutil
-psycopg2
-pycuda
-pydantic
-pydub
-qiskit
-qiskit_ibm_runtime
-queue
-redis
+# Core packages
+pyqt5
+yt-dlp
 requests
-scapy
-servicemanager
-shlex
-shutil
-shutterstock_uploader
-sklearn
-smtplib
-sqlalchemy
-subprocess
-tempfile
-tkinter
+tqdm
+pydub
+pandas
+numpy
+psutil
+moviepy
+matplotlib
+scikit-learn
+opencv-python
+Pillow
+PyYAML
+
+# Optional or less common requirements (Add/remove as truly used)
+redis
+psycopg2
+pymongo
+qiskit
+qiskit-ibm-runtime
+
+# For FastAPI-powered UIs (if used)
+fastapi
+uvicorn
+
+# Audio/video/image processing (if relevant)
 torch
 torchvision
-tqdm
-traceback
-train
-utils
-uvicorn
-wave
-whitelist_config
-win32event
-win32file
-win32service
-win32serviceutil
-winreg
-wmi
-yaml
-yt_dlp
-bottle>=0.12.20 # not directly required, pinned by Snyk to avoid a vulnerability
-pymongo>=4.6.3 # not directly required, pinned by Snyk to avoid a vulnerability
+diffusers
+
+# PDF/Doc manipulation (if used)
+python-docx
+pymupdf
+
+# Security
+cryptography
+bcrypt
+pyjwt
+
+# For Windows service support (if used)
+pywin32
+
+# Other
+bottle>=0.12.20  # Pinned if required
+
+
+pydantic>=2.10,<3.0  # Pinned to avoid breaking changes in v3.0
