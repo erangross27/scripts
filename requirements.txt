@@ -1,49 +1,28 @@
 # Core packages
-pyqt5
-yt-dlp
-requests
-tqdm
-pydub
-pandas
-numpy
-psutil
-moviepy
-matplotlib
-scikit-learn
-opencv-python
 Pillow
 PyYAML
+matplotlib
+moviepy
+numpy
+opencv-python
+pandas
+psutil
+pydub
+pyqt5
+requests
+scikit-learn
+tqdm
+yt-dlp
 
-# Optional or less common requirements (Add/remove as truly used)
-redis
-psycopg2
-pymongo
-qiskit
-qiskit-ibm-runtime
-
-# For FastAPI-powered UIs (if used)
+# Optional packages
+bcrypt
+cryptography
+diffusers
 fastapi
-uvicorn
-
-# Audio/video/image processing (if relevant)
+psycopg2
+pydantic>=2.10,<3.0
+qiskit
+redis
 torch
 torchvision
-diffusers
-
-# PDF/Doc manipulation (if used)
-python-docx
-pymupdf
-
-# Security
-cryptography
-bcrypt
-pyjwt
-
-# For Windows service support (if used)
-pywin32
-
-# Other
-bottle>=0.12.20  # Pinned if required
-
-
-pydantic>=2.10,<3.0  # Pinned to avoid breaking changes in v3.0
+uvicorn
