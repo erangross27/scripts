@@ -122,3 +122,4 @@ def run_comparison(size=10_000_000, runs=5):
 
 # Run the comparison
 run_comparison()
+
