@@ -106,6 +106,8 @@ def run_comparison(size=10_000_000, runs=5):
             gpu_times.append(gpu_time)
             print(f"GPU Time: {gpu_time:.4f} seconds")
             print_gpu_memory()
+        else:
+            print("\nCUDA is not available. Skipping GPU sorting.")
 
     # Print average times
     avg_cpu_time = sum(cpu_times) / len(cpu_times)

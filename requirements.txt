@@ -26,3 +26,11 @@ redis
 torch
 torchvision
 uvicorn
+moviepy
+PyMuPDF
+python-docx
+anthropic
+piexif
+gputil
+pycuda
+wmi
