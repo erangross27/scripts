@@ -55,6 +55,8 @@ class NetworkMonitor:
                 self.logger.error("No valid interface found. Exiting.")
                 return
 
+            self.logger.info(f"Monitoring interface: {interface}")  # Add this line
+
             # Initialize tracking variables for monitoring
             false_positive_count = defaultdict(int)  # Track potential false positives
             iteration_count = 0                      # Count monitoring iterations
@@ -77,6 +79,7 @@ class NetworkMonitor:
                     )
 
                     if packets:
+                        self.logger.debug(f"Captured {len(packets)} packets")  # Add this line
                         # Analyze captured packets for suspicious behavior
                         suspicious_activities = self.packet_analyzer.analyze_traffic(
                             packets,

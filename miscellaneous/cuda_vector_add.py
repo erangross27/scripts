@@ -1,85 +1,56 @@
-"""
-This script handles cuda vector add that performs numerical operations.
-"""
-
 import numpy as np
-import pycuda.autoinit
-import pycuda.driver as cuda
-from pycuda.compiler import SourceModule
-import time
+import torch
 
-# CUDA kernel for vector addition
-cuda_code = """
-__global__ void vector_add(float *a, float *b, float *c, int n)
-{
-    int tid = blockIdx.x * blockDim.x + threadIdx.x;
-    if (tid < n)
-        c[tid] = a[tid] + b[tid];
-}
-"""
+def main():
+    """
+    Vector addition using PyTorch CUDA tensors and timing with torch.cuda.Event.
+    """
+    # 1. Initialize data on the host (CPU)
+    N = 1_000_000
+    A = torch.arange(N, dtype=torch.float32)
+    B = torch.arange(N, dtype=torch.float32) * 2
 
-# Compile the CUDA kernel
-mod = SourceModule(cuda_code)
+    # 2. Move data to the device (GPU)
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    d_A = A.to(device)
+    d_B = B.to(device)
 
-# Get the kernel function
-vector_add = mod.get_function("vector_add")
+    # 3. Prepare CUDA events for timing
+    start_event = torch.cuda.Event(enable_timing=True)
+    end_event = torch.cuda.Event(enable_timing=True)
 
-# Set up the data
-n = 1000000
-print(f"Generating {n} random numbers for each vector...")
-a = np.random.randn(n).astype(np.float32)
-b = np.random.randn(n).astype(np.float32)
-c = np.zeros_like(a)
+    # 4. Launch the vector addition and time it
+    print("Launching CUDA vector addition with PyTorch...")
+    start_event.record()
+    d_C = d_A + d_B
+    end_event.record()
 
-# Print first few elements of input vectors
-print("\nFirst 5 elements of vector a:")
-print(a[:5])
-print("\nFirst 5 elements of vector b:")
-print(b[:5])
+    # Wait for the events to be recorded
+    torch.cuda.synchronize()
 
-# Allocate memory on the GPU
-a_gpu = cuda.mem_alloc(a.nbytes)
-b_gpu = cuda.mem_alloc(b.nbytes)
-c_gpu = cuda.mem_alloc(c.nbytes)
+    # 5. Copy result back to the host
+    C = d_C.cpu().numpy()
+    print("Vector addition complete.")
 
-# Copy data to the GPU
-cuda.memcpy_htod(a_gpu, a)
-cuda.memcpy_htod(b_gpu, b)
+    # 6. Verification
+    print(f"First 5 elements of A: {A[:5].numpy()}")
+    print(f"First 5 elements of B: {B[:5].numpy()}")
+    print(f"Result (A + B)[:5]:    {C[:5]}")
 
-# Set up the grid and block sizes
-block_size = 256
-grid_size = (n + block_size - 1) // block_size
+    expected = (A + B).numpy()
+    if np.allclose(C, expected):
+        print("\nResult is correct!")
+    else:
+        print("\nResult is INCORRECT!")
 
-print(f"\nLaunching CUDA kernel with grid size: {grid_size}, block size: {block_size}")
+    # 7. Print timing
+    elapsed_ms = start_event.elapsed_time(end_event)
+    print(f"\nCUDA vector addition took {elapsed_ms:.3f} ms.")
 
-# Record the start time
-start_time = time.time()
-
-# Call the kernel function
-vector_add(a_gpu, b_gpu, c_gpu, np.int32(n), block=(block_size, 1, 1), grid=(grid_size, 1))
-
-# Record the end time
-end_time = time.time()
-
-# Copy the result back to the host
-cuda.memcpy_dtoh(c, c_gpu)
-
-# Calculate and print the execution time
-execution_time = end_time - start_time
-print(f"\nCUDA kernel execution time: {execution_time:.6f} seconds")
-
-# Print first few elements of the result
-print("\nFirst 5 elements of the result vector c:")
-print(c[:5])
-
-# Verify the result
-print("\nVerifying the result...")
-np.testing.assert_almost_equal(c, a + b)
-print("Vector addition successful!")
-
-# Calculate and print some statistics
-max_diff = np.max(np.abs(c - (a + b)))
-print(f"\nMaximum absolute difference: {max_diff}")
-print(f"Mean of vector a: {np.mean(a):.6f}")
-print(f"Mean of vector b: {np.mean(b):.6f}")
-print(f"Mean of result vector c: {np.mean(c):.6f}")
+if __name__ == '__main__':
+    try:
+        main()
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        print("\nPlease ensure your CUDA toolkit, NVIDIA drivers, and PyTorch are installed correctly.")
+        print("If issues persist, consider using a more widely supported Python version like 3.11 or 3.12, as Python 3.13 is very new.")

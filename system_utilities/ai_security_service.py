@@ -6,11 +6,12 @@ This script handles ai security service.
 
 # Import required libraries and modules
 from fastapi import FastAPI, HTTPException, Depends, status
+from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy import create_engine, Column, Integer, String, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from redis import Redis
-from datetime import datetime
+from datetime import datetime, timedelta
 import jwt
 import bcrypt
 from typing import Optional
@@ -23,7 +24,7 @@ app = FastAPI(title="AI Security Backend Service")
 # Set up database connection using environment variables or defaults
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://user:password@localhost/db")
 engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoload=True, bind=engine)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 # Configure Redis cache connection
@@ -66,7 +67,9 @@ class UserResponse(BaseModel):
     created_at: datetime
 
 # Middleware to verify JWT token and get current user
-def get_current_user(token: str = Depends()):
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/login")
+
+def get_current_user(token: str = Depends(oauth2_scheme)):
     """
     Retrieves current user based on token.
     """
@@ -167,8 +170,9 @@ async def login(username: str, password: str, db: Session = Depends(get_db)):
         )
     
     # Generate and return JWT token
+    token_expires = datetime.utcnow() + timedelta(minutes=30)
     token = jwt.encode(
-        {"sub": user.username, "exp": datetime.utcnow()},
+        {"sub": user.username, "exp": token_expires},
         JWT_SECRET,
         algorithm=JWT_ALGORITHM
     )
@@ -187,7 +191,13 @@ async def health_check():
 # Main execution block
 if __name__ == "__main__":
     # Initialize database schema
-    Base.metadata.create_all(bind=engine)
+    try:
+        Base.metadata.create_all(bind=engine)
+        print("Database tables created successfully.")
+    except Exception as e:
+        print(f"Error connecting to the database: {e}")
+        print("Please ensure the PostgreSQL server is running and the DATABASE_URL is correct.")
+        exit(1)
     
     # Start uvicorn server
     import uvicorn

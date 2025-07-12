@@ -12,7 +12,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # GPU matrix multiplication function using PyTorch
 def gpu_matrix_mul(a, b):
     """
-    Gpu matrix mul based on a, b using PyTorch.
+    GPU matrix multiplication using PyTorch and CUDA events for timing.
     """
     a_gpu = torch.from_numpy(a).to(device)
     b_gpu = torch.from_numpy(b).to(device)
@@ -34,7 +34,7 @@ def gpu_matrix_mul(a, b):
 # CPU matrix multiplication function
 def cpu_matrix_mul(a, b):
     """
-    Cpu matrix mul based on a, b.
+    CPU matrix multiplication using NumPy.
     """
     start_time = time.perf_counter()
     c = np.dot(a, b)
