@@ -1,55 +1,75 @@
 """
-This script handles discover gpu memory.
+This script discovers and displays information about all GPUs installed on the system.
 """
 
 import wmi
+import subprocess
+import re
 
-def get_intel_gpu_info():
+def get_nvidia_vram():
+    try:
+        result = subprocess.run(
+            ["nvidia-smi", "--query-gpu=memory.total", "--format=csv,noheader,nounits"],
+            capture_output=True, text=True, check=True
+        )
+        vram_list = [int(x.strip()) for x in result.stdout.strip().split('\n') if x.strip().isdigit()]
+        # Returns list of VRAM values in MB
+        return vram_list
+    except Exception:
+        return []
+
+def get_all_gpu_info():
     """
-    Retrieves and displays information about the Intel GPU installed on the system.
+    Retrieves and displays information about all GPUs installed on the system.
 
-    This function uses Windows Management Instrumentation (WMI) to query for
-    information about the Intel GPU. It prints the following details:
+    Uses Windows Management Instrumentation (WMI) to query for information about all video controllers.
+    Prints the following details for each GPU:
     - GPU name
     - Total VRAM (in GB, if available)
     - Driver version
     - Video processor information
 
-    The function handles potential errors and prints an error message if an exception occurs.
-
-    Note: This function is designed to work on Windows systems with Intel GPUs.
-    Returns:
-    None. Information is printed to the console.
-
-    Raises:
-    Exception: Any exception that occurs during WMI querying or data processing.
+    Handles potential errors and prints an error message if an exception occurs.
     """
     try:
-        # Initialize WMI object
         c = wmi.WMI()
-        
-        # Query for Intel GPU information
-        gpu_info = c.Win32_VideoController(AdapterCompatibility="Intel Corporation")[0]
-        
-        # Print GPU name
-        print(f"GPU: {gpu_info.Name}")
-        
-        # Convert memory to GB and handle cases where AdapterRAM is not available
-        memory_gb = int(gpu_info.AdapterRAM) / (1024**3) if gpu_info.AdapterRAM else "Unknown"
-        
-        # Print total VRAM, formatting as float if available, otherwise as string
-        print(f"Total VRAM: {memory_gb:.2f} GB" if isinstance(memory_gb, float) else f"Total VRAM: {memory_gb}")
-        
-        # Print driver version
-        print(f"Driver Version: {gpu_info.DriverVersion}")
-        
-        # Print video processor information
-        print(f"Video Processor: {gpu_info.VideoProcessor}")
-        
+        gpus = c.Win32_VideoController()
+        nvidia_vram_list = get_nvidia_vram()
+        nvidia_idx = 0
+
+        if not gpus:
+            print("No GPUs found.")
+            return
+
+        for idx, gpu in enumerate(gpus, 1):
+            print(f"\nGPU #{idx}: {gpu.Name}")
+            vram_shown = False
+
+            # Try NVIDIA-SMI for NVIDIA cards
+            if "NVIDIA" in gpu.Name.upper() and nvidia_idx < len(nvidia_vram_list):
+                memory_gb = nvidia_vram_list[nvidia_idx] / 1024
+                print(f"Total VRAM: {memory_gb:.2f} GB (from nvidia-smi)")
+                vram_shown = True
+                nvidia_idx += 1
+
+            # Fallback to WMI
+            if not vram_shown:
+                try:
+                    adapter_ram = int(gpu.AdapterRAM) if gpu.AdapterRAM is not None else None
+                    if adapter_ram and adapter_ram > 0:
+                        memory_gb = adapter_ram / (1024**3)
+                        print(f"Total VRAM: {memory_gb:.2f} GB")
+                    else:
+                        print("Total VRAM: Unknown")
+                except Exception:
+                    print("Total VRAM: Unknown")
+
+            print(f"Driver Version: {gpu.DriverVersion}")
+            print(f"Video Processor: {gpu.VideoProcessor}")
+
     except Exception as e:
-        # Handle and print any exceptions that occur
         print(f"An error occurred: {e}")
 
 if __name__ == "__main__":
     # Call the function when the script is run directly
-    get_intel_gpu_info()
+    get_all_gpu_info()
