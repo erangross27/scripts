@@ -134,5 +134,5 @@ def run_comparison(image_path, runs=3):
 # Main execution
 if __name__ == "__main__":
     # Replace with the path to a large image file
-    image_path = "/home/erangross/Downloads/1.jpg"
+    image_path = r"C:\Users\erang\Downloads\1.jpg"
     run_comparison(image_path)
