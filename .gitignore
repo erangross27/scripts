@@ -58,3 +58,6 @@ speech_to_text/ffmpeg.exe
 speech_to_text/ffplay.exe
 speech_to_text/ffprobe.exe
 speech_to_text/release/AudioTranscriber.exe
+system_utilities/antropic_logs/error.log
+system_utilities/antropic_logs/info.log
+system_utilities/antropic_logs/warning.log
