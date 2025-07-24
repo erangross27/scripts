@@ -63,3 +63,8 @@ network monitor/__pycache__/
 network monitor/*/__pycache__/
 network monitor/*.pyc
 network monitor/*/*.pyc
+
+# System utilities logs
+system_utilities/antropic_logs/error.log
+system_utilities/antropic_logs/info.log
+system_utilities/antropic_logs/warning.log
