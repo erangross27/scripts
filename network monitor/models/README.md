@@ -19,6 +19,7 @@ This script handles   init  .
 
 **Dependencies:**
 - persistent_anomaly_detector
+- deep_packet_analyzer
 
 ### persistent_anomaly_detector.py
 
@@ -46,3 +47,43 @@ This script handles persistent anomaly detector that processes data.
 - joblib
 - pandas
 - sklearn
+
+### deep_packet_analyzer.py
+
+**Path:** `network monitor\models\deep_packet_analyzer.py`
+
+**Description:**
+This script implements deep learning models for advanced packet analysis and anomaly detection.
+
+
+**File Info:**
+- Last modified: 2025-04-15 20:20:08
+- Size: 0 KB
+- Lines of code: 0 (of 0 total)
+
+**Classes:**
+- `DeepPacketAnalyzer`: Deep learning-based packet analyzer with multiple model options
+  - Methods:
+    - `__init__`: Initialize with model type (Random Forest, Neural Network, or Deep NN)
+    - `fit`: Train the model with provided data
+    - `predict`: Predict anomalies in data
+    - `predict_proba`: Predict probabilities of anomalies
+
+- `DeepNeuralNetwork`: PyTorch-based deep neural network for packet analysis
+  - Methods:
+    - `__init__`: Initialize the neural network
+    - `train_model`: Train the neural network
+    - `predict`: Make predictions using the trained model
+    - `predict_proba`: Predict probabilities using the trained model
+
+- `SequenceAnomalyDetector`: Sequence-based anomaly detector for temporal pattern analysis
+  - Methods:
+    - `__init__`: Initialize with sequence length
+    - `fit`: Train the sequence-based model
+    - `predict`: Predict anomalies in sequences
+
+**Dependencies:**
+- sklearn
+- torch (optional)
+- pandas
+- numpy

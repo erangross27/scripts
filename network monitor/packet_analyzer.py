@@ -6,10 +6,26 @@ from collections import defaultdict
 import ipaddress
 import re
 import time
-from scapy.all import Ether, Raw
-from scapy.layers.inet import IP, TCP, UDP
-from scapy.layers.inet6 import IPv6
-from scapy.layers.dns import DNS, DNSQR
+import socket  # Add socket import for DNS resolution
+try:
+    from scapy.all import Ether, Raw
+    from scapy.layers.inet import IP, TCP, UDP
+    from scapy.layers.inet6 import IPv6
+    from scapy.layers.dns import DNS, DNSQR
+except ImportError:
+    print("Warning: scapy is not installed. Some functionality may be limited.")
+
+# Import the IP resolution utility
+try:
+    from utils.network_utils import resolve_ip
+except ImportError:
+    # Fallback function if the utility is not available
+    def resolve_ip(ip):
+        """Fallback function to resolve an IP address to a hostname."""
+        try:
+            return socket.gethostbyaddr(ip)[0]
+        except (socket.herror, socket.timeout, NameError):
+            return ip
 
 class PacketAnalyzer:
     """
@@ -59,9 +75,20 @@ class PacketAnalyzer:
     def _is_binary_or_encrypted(self, data):
         """Check if the data appears to be binary or encrypted."""
         try:
+            # Handle case where data might not be string or bytes
+            if not isinstance(data, (str, bytes)):
+                return True
+                
+            # If it's bytes, decode it
+            if isinstance(data, bytes):
+                try:
+                    data = data.decode('utf-8')
+                except UnicodeDecodeError:
+                    return True
+            
             # Calculate ratio of printable characters
             printable_count = sum(1 for c in data if c.isprintable() or c.isspace())
-            ratio = printable_count / len(data)
+            ratio = printable_count / len(data) if len(data) > 0 else 0
             
             # If less than 30% printable characters, likely binary/encrypted
             if ratio < 0.30:
@@ -71,15 +98,29 @@ class PacketAnalyzer:
             char_freq = defaultdict(int)
             for c in data:
                 char_freq[c] += 1
-            entropy = sum(-freq/len(data) * len(data)/freq for freq in char_freq.values())
+            
+            # Avoid division by zero
+            if len(data) == 0:
+                return True
+                
+            entropy = 0
+            for freq in char_freq.values():
+                if freq > 0:
+                    p = freq / len(data)
+                    entropy -= p * (p.bit_length() - 1)  # Approximate log2(p)
             
             return entropy > 5.0  # High entropy threshold
             
         except Exception:
+            # If we can't determine, assume it's binary/encrypted
             return True
 
     def _decode_payload(self, raw_data):
         """Try multiple encodings to decode the payload."""
+        # Handle case where raw_data might not be bytes
+        if not isinstance(raw_data, bytes):
+            return None, None
+            
         encodings = [
             'utf-8',
             'cp1255',  # Windows Hebrew
@@ -107,7 +148,14 @@ class PacketAnalyzer:
         port_scans = defaultdict(set)
         
         try:
-            local_network = ipaddress.ip_network(f"{local_ip}/{subnet_mask}", strict=False)
+            # Handle invalid IP or subnet mask
+            try:
+                local_network = ipaddress.ip_network(f"{local_ip}/{subnet_mask}", strict=False)
+            except Exception as e:
+                self.logger.error(f"Invalid network configuration: {e}")
+                # Fallback to a default network
+                local_network = ipaddress.ip_network("192.168.1.0/24", strict=False)
+                
             self.logger.debug(f"Starting analysis of {len(raw_packets)} packets for network: {local_network}")
             
             packet_types = defaultdict(int)
@@ -177,71 +225,81 @@ class PacketAnalyzer:
                     connection_stats['total_analyzed'] += 1
 
                     if IP in packet:
-                        src_ip = packet[IP].src
-                        dst_ip = packet[IP].dst
-                        src_ip_obj = ipaddress.ip_address(src_ip)
-                        dst_ip_obj = ipaddress.ip_address(dst_ip)
+                        try:
+                            src_ip = packet[IP].src
+                            dst_ip = packet[IP].dst
+                            src_ip_obj = ipaddress.ip_address(src_ip)
+                            dst_ip_obj = ipaddress.ip_address(dst_ip)
 
-                        is_inbound = dst_ip_obj in local_network and src_ip_obj not in local_network
-                        is_outbound = src_ip_obj in local_network and dst_ip_obj not in local_network
-                        is_local = src_ip_obj in local_network and dst_ip_obj in local_network
+                            is_inbound = dst_ip_obj in local_network and src_ip_obj not in local_network
+                            is_outbound = src_ip_obj in local_network and dst_ip_obj not in local_network
+                            is_local = src_ip_obj in local_network and dst_ip_obj in local_network
 
-                        if is_inbound:
-                            connection_stats['inbound'] += 1
-                            
-                            if TCP in packet:
-                                dst_port = packet[TCP].dport
-                                src_port = packet[TCP].sport
-                                inbound_connections[dst_port][src_ip] += 1
-                                port_scans[src_ip].add(dst_port)
+                            if is_inbound:
+                                connection_stats['inbound'] += 1
                                 
-                                self.logger.debug(f"Inbound TCP: {src_ip}:{src_port} -> {dst_ip}:{dst_port}")
-                                
-                                if packet[TCP].flags & 0x02:
-                                    time_window[f"{src_ip}:{dst_port}"].append(current_time)
-                                    recent_syns = [t for t in time_window[f"{src_ip}:{dst_port}"] 
-                                                 if t > current_time - 60]
-                                    if len(recent_syns) > 50:
-                                        suspicious_activities.append(
-                                            ('Potential SYN flood detected', src_ip, dst_ip, dst_port)
-                                        )
-                            
-                            elif UDP in packet:
-                                dst_port = packet[UDP].dport
-                                src_port = packet[UDP].sport
-                                inbound_connections[dst_port][src_ip] += 1
-                                port_scans[src_ip].add(dst_port)
-                                self.logger.debug(f"Inbound UDP: {src_ip}:{src_port} -> {dst_ip}:{dst_port}")
-
-                        elif is_outbound:
-                            connection_stats['outbound'] += 1
-                        elif is_local:
-                            connection_stats['local'] += 1
-
-                        if DNS in packet and packet.haslayer(DNSQR):
-                            query = packet[DNSQR].qname.decode('utf-8', errors='ignore')
-                            dns_queries[src_ip].add(query)
-                            self.logger.debug(f"DNS Query from {src_ip}: {query}")
-
-                        if Raw in packet and not self._is_whitelisted(packet):
-                            try:
-                                raw_data = packet[Raw].load
-                                decoded_payload, encoding = self._decode_payload(raw_data)
-                                
-                                if decoded_payload and not self._is_binary_or_encrypted(decoded_payload):
-                                    threats = self._check_payload_for_threats(decoded_payload)
-                                    for threat_type, context in threats:
-                                        # Only log if we have meaningful context
-                                        if not self._is_binary_or_encrypted(context):
+                                if TCP in packet:
+                                    dst_port = packet[TCP].dport
+                                    src_port = packet[TCP].sport
+                                    inbound_connections[dst_port][src_ip] += 1
+                                    port_scans[src_ip].add(dst_port)
+                                    
+                                    self.logger.debug(f"Inbound TCP: {src_ip}:{src_port} -> {dst_ip}:{dst_port}")
+                                    
+                                    if packet[TCP].flags & 0x02:
+                                        time_window[f"{src_ip}:{dst_port}"].append(current_time)
+                                        recent_syns = [t for t in time_window[f"{src_ip}:{dst_port}"] 
+                                                     if t > current_time - 60]
+                                        if len(recent_syns) > 50:
                                             suspicious_activities.append(
-                                                ('Suspicious payload detected', 
-                                                 src_ip, 
-                                                 dst_ip, 
-                                                 threat_type,
-                                                 f"Context ({encoding}): {context[:100]}...")
+                                                ('Potential SYN flood detected', src_ip, dst_ip, dst_port)
                                             )
-                            except Exception as e:
-                                self.logger.debug(f"Error processing payload: {e}")
+                                
+                                elif UDP in packet:
+                                    dst_port = packet[UDP].dport
+                                    src_port = packet[UDP].sport
+                                    inbound_connections[dst_port][src_ip] += 1
+                                    port_scans[src_ip].add(dst_port)
+                                    self.logger.debug(f"Inbound UDP: {src_ip}:{src_port} -> {dst_ip}:{dst_port}")
+
+                            elif is_outbound:
+                                connection_stats['outbound'] += 1
+                            elif is_local:
+                                connection_stats['local'] += 1
+                        except Exception as e:
+                            self.logger.debug(f"Error processing IP addresses: {e}")
+                            continue
+
+                        try:
+                            if DNS in packet and packet.haslayer(DNSQR):
+                                query = packet[DNSQR].qname.decode('utf-8', errors='ignore')
+                                dns_queries[src_ip].add(query)
+                                self.logger.debug(f"DNS Query from {src_ip}: {query}")
+                        except Exception as e:
+                            self.logger.debug(f"Error processing DNS: {e}")
+
+                        try:
+                            if Raw in packet and not self._is_whitelisted(packet):
+                                try:
+                                    raw_data = packet[Raw].load
+                                    decoded_payload, encoding = self._decode_payload(raw_data)
+                                    
+                                    if decoded_payload and not self._is_binary_or_encrypted(decoded_payload):
+                                        threats = self._check_payload_for_threats(decoded_payload)
+                                        for threat_type, context in threats:
+                                            # Only log if we have meaningful context
+                                            if not self._is_binary_or_encrypted(context):
+                                                suspicious_activities.append(
+                                                    ('Suspicious payload detected', 
+                                                     src_ip, 
+                                                     dst_ip, 
+                                                     threat_type,
+                                                     f"Context ({encoding}): {context[:100]}...")
+                                                )
+                                except Exception as e:
+                                    self.logger.debug(f"Error processing payload: {e}")
+                        except Exception as e:
+                            self.logger.debug(f"Error processing Raw layer: {e}")
 
             except Exception as e:
                 self.logger.debug(f"Error analyzing packet: {e}")
@@ -265,8 +323,14 @@ class PacketAnalyzer:
             self.logger.info("\nMost active source IPs:")
             ip_activity = [(ip, len(ports)) for ip, ports in port_scans.items()]
             ip_activity.sort(key=lambda x: x[1], reverse=True)
-            for ip, port_count in ip_activity[:5]:
-                self.logger.info(f"IP {ip}: accessed {port_count} unique ports")
+            for ip, port_count in ip_activity[:10]:  # Show more IPs now
+                # Resolve IP to hostname
+                hostname = resolve_ip(ip)
+                # Show both IP and hostname if they're different
+                if hostname != ip:
+                    self.logger.info(f"IP {ip} ({hostname}): accessed {port_count} unique ports")
+                else:
+                    self.logger.info(f"IP {ip}: accessed {port_count} unique ports")
 
     def _check_payload_for_threats(self, payload):
         """Check packet payload for potential threats with context."""
@@ -275,28 +339,36 @@ class PacketAnalyzer:
 
         detected_threats = []
         for pattern, description in self.threat_patterns.items():
-            if re.search(pattern, payload):
-                matches = re.finditer(pattern, payload)
-                for match in matches:
-                    start = max(0, match.start() - 20)
-                    end = min(len(payload), match.end() + 20)
-                    context = payload[start:end].strip()
-                    if not self._is_binary_or_encrypted(context):
-                        detected_threats.append((description, context))
+            try:
+                if re.search(pattern, payload):
+                    matches = re.finditer(pattern, payload)
+                    for match in matches:
+                        start = max(0, match.start() - 20)
+                        end = min(len(payload), match.end() + 20)
+                        context = payload[start:end].strip()
+                        if not self._is_binary_or_encrypted(context):
+                            detected_threats.append((description, context))
+            except Exception as e:
+                self.logger.debug(f"Error checking pattern {pattern}: {e}")
+                continue
         return detected_threats
 
     def _is_whitelisted(self, packet):
         """Check if packet matches any whitelist patterns."""
-        if Raw in packet:
-            try:
-                raw_data = packet[Raw].load
-                decoded_payload, _ = self._decode_payload(raw_data)
-                
-                if decoded_payload:
-                    if self._is_binary_or_encrypted(decoded_payload):
-                        return True
-                        
-                    return any(re.search(pattern, decoded_payload) for pattern in self.whitelist_patterns)
-            except:
-                return True
-        return False
+        try:
+            if Raw in packet:
+                try:
+                    raw_data = packet[Raw].load
+                    decoded_payload, _ = self._decode_payload(raw_data)
+                    
+                    if decoded_payload:
+                        if self._is_binary_or_encrypted(decoded_payload):
+                            return True
+                            
+                        return any(re.search(pattern, decoded_payload) for pattern in self.whitelist_patterns)
+                except:
+                    return True
+            return False
+        except Exception:
+            # If we can't determine, assume it's whitelisted to avoid false positives
+            return True

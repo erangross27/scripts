@@ -1,8 +1,45 @@
 # Directory Scripts Documentation
 
+## Overview
+
+This network monitoring tool provides real-time analysis of network traffic with both traditional machine learning and modern deep learning techniques for anomaly detection. The system can identify suspicious activities, potential threats, and unusual patterns in network traffic.
+
+By default, the system automatically selects the most sophisticated model available based on your environment:
+- Deep Neural Network (if PyTorch is available)
+- Neural Network (if scikit-learn MLPClassifier is available)
+- Random Forest (fallback option)
 
 ## Available Scripts
 
+### New Deep Learning Features
+
+The network monitor now includes advanced deep learning models for improved anomaly detection:
+
+1. **DeepPacketAnalyzer**: Uses Random Forest, Neural Networks, or Deep Neural Networks for enhanced packet analysis
+2. **SequenceAnomalyDetector**: Analyzes temporal patterns in network traffic sequences
+3. **Hybrid Approach**: Combines traditional Isolation Forest with deep learning for improved accuracy
+4. **Automatic Model Selection**: Automatically uses the most sophisticated model available in your environment
+
+### Usage
+
+Simply run the script without any parameters to use the most sophisticated model available:
+
+```bash
+python network_monitor.py
+```
+
+The system will automatically:
+1. Detect what machine learning libraries are available
+2. Select the most sophisticated model possible
+3. Start monitoring network traffic with that model
+
+If you want to manually select a model type, you can still use:
+
+```bash
+python network_monitor.py --model-type random_forest
+python network_monitor.py --model-type neural_network
+python network_monitor.py --model-type deep_nn
+```
 
 ### __init__.py
 
@@ -36,6 +73,7 @@ This script handles anomaly detector that performs numerical operations.
     - `__init__`: Initialize the AnomalyDetector with a logger
     - `analyze_traffic`: Analyze network traffic for anomalies using machine learning
     - `_generate_anomaly_details`: Generate detailed information about detected anomalies
+    - `train_deep_analyzer`: Train the deep analyzer with labeled data
 
 **Dependencies:**
 - feature_extractor

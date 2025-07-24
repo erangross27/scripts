@@ -3,7 +3,7 @@ This script provides utility functions for packets.
 """
 
 import ipaddress
-from scapy.layers.inet import IP
+from scapy.layers.inet import IP, TCP, UDP
 
 def is_inbound(packet, local_network):
     """Check if a packet is inbound to the local network."""
