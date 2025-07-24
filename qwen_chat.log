@@ -1,0 +1,22 @@
+2025-07-24 15:12:56,393 - INFO - Starting Qwen Chat Application
+2025-07-24 15:12:56,453 - INFO - Environment variable HF_KEY present: True
+2025-07-24 15:12:56,453 - INFO - HF_KEY environment variable found
+2025-07-24 15:12:56,454 - INFO - Headers configured with bearer token
+2025-07-24 15:12:56,454 - INFO - Setting up user interface
+2025-07-24 15:12:56,458 - INFO - User interface setup completed
+2025-07-24 15:12:56,458 - INFO - Application initialized successfully
+2025-07-24 15:13:01,391 - INFO - Sending message to Qwen model
+2025-07-24 15:13:01,391 - INFO - User message added to history: hello
+2025-07-24 15:13:01,396 - INFO - Updated status to 'Thinking...'
+2025-07-24 15:13:01,396 - INFO - Sending request to https://router.huggingface.co/v1/chat/completions
+2025-07-24 15:13:09,426 - INFO - Response status code: 200
+2025-07-24 15:13:09,427 - INFO - Successfully received response from Qwen model
+2025-07-24 15:13:09,428 - INFO - Updated UI with Qwen response
+2025-07-24 15:13:23,095 - INFO - Sending message to Qwen model
+2025-07-24 15:13:23,095 - INFO - User message added to history: which model are you?
+2025-07-24 15:13:23,098 - INFO - Updated status to 'Thinking...'
+2025-07-24 15:13:23,098 - INFO - Sending request to https://router.huggingface.co/v1/chat/completions
+2025-07-24 15:13:24,848 - INFO - Response status code: 200
+2025-07-24 15:13:24,849 - INFO - Successfully received response from Qwen model
+2025-07-24 15:13:24,850 - INFO - Updated UI with Qwen response
+2025-07-24 15:14:52,340 - INFO - Qwen Chat Application closed
