@@ -49,15 +49,17 @@ runs/train/exp8/opt.yaml
 runs/train/exp9/hyp.yaml
 runs/train/exp9/labels_correlogram.jpg
 runs/train/exp9/labels.jpg
-runs/train/exp9/opt.yaml
-video_processing/youtube_downloader/release/YouTubeDownloader.exe
-video_processing/youtube_downloader/ffmpeg.exe
-video_processing/youtube_downloader/ffplay.exe
-video_processing/youtube_downloader/ffprobe.exe
-speech_to_text/ffmpeg.exe
-speech_to_text/ffplay.exe
-speech_to_text/ffprobe.exe
-speech_to_text/release/AudioTranscriber.exe
-system_utilities/antropic_logs/error.log
-system_utilities/antropic_logs/info.log
-system_utilities/antropic_logs/warning.log
+
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Network monitor cache files
+network monitor/__pycache__/
+network monitor/*/__pycache__/
+network monitor/*.pyc
+network monitor/*/*.pyc
