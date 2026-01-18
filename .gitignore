@@ -68,3 +68,8 @@ network monitor/*/*.pyc
 system_utilities/antropic_logs/error.log
 system_utilities/antropic_logs/info.log
 system_utilities/antropic_logs/warning.log
+# Environments
+.env
+.venv/
+venv/
+ENV/
