@@ -16,11 +16,11 @@ import logging
 import json
 from datetime import datetime
 from typing import Dict, List, Any
-from PyQt5.QtWidgets import (QApplication, QMainWindow, QProgressBar, 
+from PyQt6.QtWidgets import (QApplication, QMainWindow, QProgressBar,
                            QTextEdit, QVBoxLayout, QPushButton, QWidget,
                            QFileDialog, QLabel, QHBoxLayout)
-from PyQt5.QtCore import Qt, QThread, pyqtSignal
-from PyQt5.QtGui import QTextCursor
+from PyQt6.QtCore import Qt, QThread, pyqtSignal
+from PyQt6.QtGui import QTextCursor
 import subprocess
 import shlex
 
@@ -193,7 +193,7 @@ class MainWindow(QMainWindow):
         self.log_display.append(message)
         # Auto-scroll to bottom
         cursor = self.log_display.textCursor()
-        cursor.movePosition(QTextCursor.End)
+        cursor.movePosition(QTextCursor.MoveOperation.End)
         self.log_display.setTextCursor(cursor)
 
     def processing_finished(self):
@@ -378,7 +378,7 @@ Transportation
 
             # Make the API call
             message = self.anthropic.messages.create(
-                model="claude-3-sonnet-20240229",
+                model="claude-sonnet-4-5-20250929",
                 max_tokens=1000,
                 temperature=0,
                 system="""You are a professional image analyst providing metadata for stock photos from the Golan Heights region.
@@ -585,7 +585,7 @@ def main():
     app = QApplication(sys.argv)
     window = MainWindow()
     window.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
 
 if __name__ == "__main__":
     main()

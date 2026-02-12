@@ -35,8 +35,8 @@ Version: 1.0
 import sys
 import cv2
 import os
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QFileDialog, QVBoxLayout, QLabel, QSpinBox, QProgressBar, QListWidget, QHBoxLayout, QRadioButton, QButtonGroup
-from PyQt5.QtCore import Qt, QThread, pyqtSignal
+from PyQt6.QtWidgets import QApplication, QWidget, QPushButton, QFileDialog, QVBoxLayout, QLabel, QSpinBox, QProgressBar, QListWidget, QHBoxLayout, QRadioButton, QButtonGroup
+from PyQt6.QtCore import Qt, QThread, pyqtSignal
 
 # FrameExtractor class for extracting frames from videos
 class FrameExtractor(QThread):
@@ -255,4 +255,4 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     ex = App()
     ex.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())

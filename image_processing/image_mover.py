@@ -25,7 +25,7 @@ Dependencies:
 
 import os
 import shutil
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QFileDialog, QVBoxLayout, QLabel
+from PyQt6.QtWidgets import QApplication, QWidget, QPushButton, QFileDialog, QVBoxLayout, QLabel
 
 class ImageMover(QWidget):
     """
@@ -126,4 +126,4 @@ if __name__ == '__main__':
     app = QApplication([])
     ex = ImageMover()
     ex.show()
-    app.exec_()
+    app.exec()

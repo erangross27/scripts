@@ -5,11 +5,11 @@ This script handles image brightener gui that performs numerical operations.
 import cv2
 import numpy as np
 import sys
-from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QLabel, 
+from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QLabel,
                             QPushButton, QVBoxLayout, QHBoxLayout, QSlider,
                             QFileDialog, QLineEdit)
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QPixmap, QImage
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QPixmap, QImage
 
 class ImageBrightener(QMainWindow):
     """
@@ -56,7 +56,7 @@ class ImageBrightener(QMainWindow):
         # Create brightness slider
         slider_layout = QHBoxLayout()
         slider_label = QLabel("Brightness:")
-        self.slider = QSlider(Qt.Horizontal)
+        self.slider = QSlider(Qt.Orientation.Horizontal)
         self.slider.setMinimum(0)
         self.slider.setMaximum(300)
         self.slider.setValue(150)
@@ -69,7 +69,7 @@ class ImageBrightener(QMainWindow):
         
         # Create image preview
         self.image_label = QLabel()
-        self.image_label.setAlignment(Qt.AlignCenter)
+        self.image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.image_label)
         
         # Create process button
@@ -149,7 +149,7 @@ class ImageBrightener(QMainWindow):
             new_width,
             new_height,
             bytes_per_line,
-            QImage.Format_RGB888
+            QImage.Format.Format_RGB888
         ).rgbSwapped()
         
         self.image_label.setPixmap(QPixmap.fromImage(qt_image))
@@ -193,7 +193,7 @@ def main():
     app = QApplication(sys.argv)
     window = ImageBrightener()
     window.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
 
 if __name__ == "__main__":
     main()

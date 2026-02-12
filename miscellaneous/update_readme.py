@@ -181,7 +181,7 @@ def get_script_description(docstring):
         }
     ]
     response = client.messages.create(
-        model="claude-3-sonnet-20240229",
+        model="claude-sonnet-4-5-20250929",
         max_tokens=100,
         temperature=0,
         messages=messages
@@ -230,7 +230,7 @@ Return the entire updated README content.
         }
     ]
     response = client.messages.create(
-        model="claude-3-sonnet-20240229",
+        model="claude-sonnet-4-5-20250929",
         max_tokens=2000,
         temperature=0,
         messages=messages

@@ -4,9 +4,9 @@ This script implements convertor functionality that processes images.
 
 # Import required libraries
 import sys
-from PyQt5.QtWidgets import (QApplication, QMainWindow, QPushButton, QFileDialog,
+from PyQt6.QtWidgets import (QApplication, QMainWindow, QPushButton, QFileDialog,
                             QLabel, QVBoxLayout, QHBoxLayout, QWidget)
-from PyQt5.QtCore import Qt
+from PyQt6.QtCore import Qt
 from PIL import Image
 
 # Main window class
@@ -148,4 +148,4 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)  # Create application instance
     window = ImageConverter()  # Create main window
     window.show()  # Show the window
-    sys.exit(app.exec_())  # Start the application event loop
+    sys.exit(app.exec())  # Start the application event loop

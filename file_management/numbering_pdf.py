@@ -28,16 +28,16 @@ Note: This script requires PyQt5 and PyMuPDF to be installed.
 
 import sys
 import fitz
-from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox, QPushButton, QVBoxLayout, QHBoxLayout, QWidget, QLabel, QScrollArea, QComboBox, QColorDialog, QSpinBox, QFrame, QFormLayout
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QPixmap, QImage, QColor, QPainter, QFont, QPen
+from PyQt6.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox, QPushButton, QVBoxLayout, QHBoxLayout, QWidget, QLabel, QScrollArea, QComboBox, QColorDialog, QSpinBox, QFrame, QFormLayout
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QPixmap, QImage, QColor, QPainter, QFont, QPen
 
 # Custom widget to display the selected color
 class ColorIndicator(QFrame):
     """
     Represents a color indicator.
     """
-    def __init__(self, color=Qt.black):
+    def __init__(self, color=Qt.GlobalColor.black):
         """
         Special method __init__.
         """
@@ -177,7 +177,7 @@ class PDFNumberer(QMainWindow):
 
         # Add a placeholder message
         self.placeholder_label = QLabel("No PDF opened. Please open a PDF file.")
-        self.placeholder_label.setAlignment(Qt.AlignCenter)
+        self.placeholder_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.content_layout.addWidget(self.placeholder_label)
 
     # Method to handle color selection
@@ -220,7 +220,7 @@ class PDFNumberer(QMainWindow):
         for page_num in range(len(self.pdf_document)):
             page = self.pdf_document[page_num]
             pix = page.get_pixmap(matrix=fitz.Matrix(2, 2))  # Increase resolution
-            img = QImage(pix.samples, pix.width, pix.height, pix.stride, QImage.Format_RGB888)
+            img = QImage(pix.samples, pix.width, pix.height, pix.stride, QImage.Format.Format_RGB888)
             pixmap = QPixmap.fromImage(img)
 
             if self.is_preview_mode:
@@ -229,7 +229,7 @@ class PDFNumberer(QMainWindow):
                 painter = QPainter(preview_pixmap)
                 
                 # Set the pen color explicitly to black for preview
-                painter.setPen(QPen(Qt.black))
+                painter.setPen(QPen(Qt.GlobalColor.black))
                 
                 font = QFont()
                 font.setPointSize(self.font_size_spin.value())
@@ -256,11 +256,11 @@ class PDFNumberer(QMainWindow):
             # Create and add image label to the layout
             image_label = QLabel()
             image_label.setPixmap(preview_pixmap)
-            image_label.setAlignment(Qt.AlignCenter)
+            image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
             # Add page number label
             page_label = QLabel(f'Page: {page_num + 1} / {len(self.pdf_document)}')
-            page_label.setAlignment(Qt.AlignCenter)
+            page_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
             self.content_layout.addWidget(page_label)
             self.content_layout.addWidget(image_label)
@@ -320,4 +320,4 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     window = PDFNumberer()
     window.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())

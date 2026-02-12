@@ -32,7 +32,7 @@ class EnvironmentManager:
             'MAX_RETRIES': '3',
             'RETRY_DELAY': '5',
             'BATCH_SIZE': '10',
-            'ANTHROPIC_MODEL': 'claude-3-sonnet-20240229'
+            'ANTHROPIC_MODEL': 'claude-sonnet-4-5-20250929'
         }
 
     def set_windows_env_variable(self, name: str, value: str) -> str:

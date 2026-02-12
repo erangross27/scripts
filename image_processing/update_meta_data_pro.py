@@ -13,13 +13,13 @@ try:
 except ImportError:
     ANTHROPIC_AVAILABLE = False
 
-# Import PyQt5 for GUI functionality
+# Import PyQt6 for GUI functionality
 try:
-    from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
-                                QHBoxLayout, QLabel, QLineEdit, QTextEdit, QPushButton, 
+    from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
+                                QHBoxLayout, QLabel, QLineEdit, QTextEdit, QPushButton,
                                 QFileDialog, QCheckBox, QMessageBox, QGroupBox, QListWidget)
-    from PyQt5.QtCore import Qt
-    from PyQt5.QtGui import QIcon, QPixmap
+    from PyQt6.QtCore import Qt
+    from PyQt6.QtGui import QIcon, QPixmap
     QT_AVAILABLE = True
 except ImportError:
     QT_AVAILABLE = False
@@ -78,7 +78,7 @@ def write_metadata_with_exiftool(image_path: str, title: str = "", description: 
         for i, cat in enumerate(categories):
             if not cat:
                 continue
-                cmd.append(f"-IPTC:SupplementalCategories+={cat}")
+            cmd.append(f"-IPTC:SupplementalCategories+={cat}")
 
             # Set the first category as the main Category (limited to 3 chars)
             if i == 0:
@@ -124,7 +124,7 @@ def refine_description_with_ai(description: str, keywords: list = None, categori
         if description.strip():
             # If a description exists, ask Claude to polish it
             message = client.messages.create(
-                model="claude-3-7-sonnet-20250219",
+                model="claude-sonnet-4-5-20250929",
                 max_tokens=300,
                 temperature=0.7,
                 system="You are a helpful assistant that improves stock photo descriptions.",
@@ -140,7 +140,7 @@ def refine_description_with_ai(description: str, keywords: list = None, categori
             kw_list = ", ".join(keywords) if keywords else ""
             cat_list = ", ".join(categories) if categories else ""
             message = client.messages.create(
-                model="claude-3-7-sonnet-20250219",
+                model="claude-sonnet-4-5-20250929",
                 max_tokens=300,
                 temperature=0.7,
                 system="You are a helpful assistant that writes stock photo descriptions.",
@@ -175,7 +175,7 @@ def suggest_keywords_with_ai(description: str) -> list:
     try:
         client = Anthropic(api_key=api_key)
         message = client.messages.create(
-            model="claude-3-7-sonnet-20250219",
+            model="claude-sonnet-4-5-20250929",
             max_tokens=100,
             temperature=0.5,
             system="You are a helpful assistant that suggests relevant keywords for stock photos.",
@@ -228,7 +228,7 @@ class MetadataEditorGUI(QMainWindow):
         
         # Image preview area
         self.preview_label = QLabel("No image selected")
-        self.preview_label.setAlignment(Qt.AlignCenter)
+        self.preview_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.preview_label.setMinimumHeight(200)
         self.preview_label.setStyleSheet("background-color: #f0f0f0; border: 1px solid #ddd;")
         
@@ -342,7 +342,7 @@ class MetadataEditorGUI(QMainWindow):
         """
         pixmap = QPixmap(image_path)
         if not pixmap.isNull():
-            pixmap = pixmap.scaled(400, 200, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+            pixmap = pixmap.scaled(400, 200, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
             self.preview_label.setPixmap(pixmap)
         else:
             self.preview_label.setText("Unable to load image preview")
@@ -425,16 +425,16 @@ class MetadataEditorGUI(QMainWindow):
                               "Please provide a description or keywords to generate content.")
             return
         
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         try:
             refined_desc = refine_description_with_ai(current_desc, keywords, categories)
             QApplication.restoreOverrideCursor()
             
             if refined_desc and refined_desc != current_desc:
-                reply = QMessageBox.question(self, "AI Suggestion", 
+                reply = QMessageBox.question(self, "AI Suggestion",
                                            f"Use this refined description?\n\n{refined_desc}",
-                                           QMessageBox.Yes | QMessageBox.No)
-                if reply == QMessageBox.Yes:
+                                           QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+                if reply == QMessageBox.StandardButton.Yes:
                     self.desc_edit.setText(refined_desc)
         except Exception as e:
             QApplication.restoreOverrideCursor()
@@ -450,7 +450,7 @@ class MetadataEditorGUI(QMainWindow):
                               "Please provide a description to generate keywords.")
             return
         
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         try:
             suggested_keywords = suggest_keywords_with_ai(description)
             QApplication.restoreOverrideCursor()
@@ -465,10 +465,10 @@ class MetadataEditorGUI(QMainWindow):
                 
                 if new_keywords:
                     keywords_text = ", ".join(new_keywords)
-                    reply = QMessageBox.question(self, "AI Keyword Suggestions", 
+                    reply = QMessageBox.question(self, "AI Keyword Suggestions",
                                                f"Add these keywords?\n\n{keywords_text}",
-                                               QMessageBox.Yes | QMessageBox.No)
-                    if reply == QMessageBox.Yes:
+                                               QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+                    if reply == QMessageBox.StandardButton.Yes:
                         all_keywords = current_keywords + new_keywords
                         if len(all_keywords) > 50:
                             QMessageBox.information(self, "Keyword Limit", 
@@ -507,7 +507,7 @@ class MetadataEditorGUI(QMainWindow):
             QMessageBox.warning(self, "Missing Image", "Please select an image file.")
             return
         
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         success = write_metadata_with_exiftool(image_path, title, description, keywords, categories)
         QApplication.restoreOverrideCursor()
         
@@ -524,9 +524,9 @@ def main():
         app = QApplication(sys.argv)
         window = MetadataEditorGUI()
         window.show()
-        sys.exit(app.exec_())
+        sys.exit(app.exec())
     else:
-        print("PyQt5 is not installed. Running command-line version instead.")
+        print("PyQt6 is not installed. Running command-line version instead.")
         run_cli_version()
 
 def run_cli_version():

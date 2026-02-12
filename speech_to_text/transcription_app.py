@@ -12,34 +12,34 @@ import base64
 from datetime import datetime
 
 # PyQt imports
-from PyQt5.QtWidgets import (
-    QApplication, 
-    QMainWindow, 
+from PyQt6.QtWidgets import (
+    QApplication,
+    QMainWindow,
     QPushButton,
-    QTextEdit, 
-    QVBoxLayout, 
+    QTextEdit,
+    QVBoxLayout,
     QHBoxLayout,
-    QWidget, 
-    QFileDialog, 
-    QLabel, 
+    QWidget,
+    QFileDialog,
+    QLabel,
     QProgressBar,
-    QMessageBox, 
-    QFrame, 
+    QMessageBox,
+    QFrame,
     QPlainTextEdit,
     QDialog,  # Add this import
 )
-from PyQt5.QtCore import (
-    Qt, 
-    QThread, 
-    pyqtSignal, 
+from PyQt6.QtCore import (
+    Qt,
+    QThread,
+    pyqtSignal,
     QPoint
 )
-from PyQt5.QtGui import (
-    QTextCursor, 
-    QTextBlockFormat, 
-    QTextOption, 
-    QFont, 
-    QPalette, 
+from PyQt6.QtGui import (
+    QTextCursor,
+    QTextBlockFormat,
+    QTextOption,
+    QFont,
+    QPalette,
     QColor
 )
 
@@ -63,12 +63,6 @@ def get_embedded_api_key():
         return os.environ.get('OPENAI_API_KEY')
 
 from pydub import AudioSegment
-import io
-import math
-import re
-import time
-import os
-from PyQt5.QtCore import QThread, pyqtSignal
 
 
 class ProofreadingDialog(QDialog):
@@ -87,8 +81,8 @@ class ProofreadingDialog(QDialog):
         
         self.suggestions_text = QPlainTextEdit()
         self.suggestions_text.setReadOnly(True)
-        self.suggestions_text.setLayoutDirection(Qt.RightToLeft)
-        self.suggestions_text.document().setDefaultTextOption(QTextOption(Qt.AlignRight))
+        self.suggestions_text.setLayoutDirection(Qt.LayoutDirection.RightToLeft)
+        self.suggestions_text.document().setDefaultTextOption(QTextOption(Qt.AlignmentFlag.AlignRight))
         
         layout.addWidget(QLabel("הערות והצעות לתיקון:"))
         layout.addWidget(self.suggestions_text)
@@ -269,7 +263,7 @@ class TranscriptionApp(QMainWindow):
         Special method __init__.
         """
         super().__init__()
-        self.setWindowFlags(Qt.Window | Qt.FramelessWindowHint)
+        self.setWindowFlags(Qt.WindowType.Window | Qt.WindowType.FramelessWindowHint)
         self.init_ui()
         self.current_transcript = None
         self.oldPos = None
@@ -370,9 +364,9 @@ class TranscriptionApp(QMainWindow):
         title_label.setStyleSheet("font-size: 14px; font-weight: bold;")
 
         # Add components to title layout
-        title_layout.addWidget(window_controls, 0, Qt.AlignLeft)
+        title_layout.addWidget(window_controls, 0, Qt.AlignmentFlag.AlignLeft)
         title_layout.addStretch(1)
-        title_layout.addWidget(title_label, 0, Qt.AlignRight)
+        title_layout.addWidget(title_label, 0, Qt.AlignmentFlag.AlignRight)
         layout.addWidget(title_container)
 
         # File selection area - right aligned container
@@ -386,7 +380,7 @@ class TranscriptionApp(QMainWindow):
         self.browse_button.setFixedWidth(150)
 
         self.file_label = QLabel("לא נבחר קובץ")
-        self.file_label.setAlignment(Qt.AlignRight)
+        self.file_label.setAlignment(Qt.AlignmentFlag.AlignRight)
 
         file_layout.addStretch(1)
         file_layout.addWidget(self.file_label)
@@ -399,7 +393,7 @@ class TranscriptionApp(QMainWindow):
         status_layout.setContentsMargins(0, 0, 0, 0)
         
         self.status_label = QLabel("סטטוס: מוכן")
-        self.status_label.setAlignment(Qt.AlignRight)
+        self.status_label.setAlignment(Qt.AlignmentFlag.AlignRight)
         status_layout.addStretch(1)
         status_layout.addWidget(self.status_label)
         layout.addWidget(status_container)
@@ -433,8 +427,6 @@ class TranscriptionApp(QMainWindow):
         self.transcribe_button.clicked.connect(self.start_transcription)
         self.transcribe_button.setEnabled(False)
         self.transcribe_button.setFixedWidth(100)
-        buttons_layout.addWidget(self.proofread_button)  
-
 
         buttons_layout.addStretch(1)
         buttons_layout.addWidget(self.save_button)
@@ -449,9 +441,9 @@ class TranscriptionApp(QMainWindow):
         text_layout.setContentsMargins(0, 0, 0, 0)
 
         self.text_area = QPlainTextEdit()
-        self.text_area.setLayoutDirection(Qt.RightToLeft)
+        self.text_area.setLayoutDirection(Qt.LayoutDirection.RightToLeft)
         self.text_area.setReadOnly(True)
-        self.text_area.document().setDefaultTextOption(QTextOption(Qt.AlignRight))
+        self.text_area.document().setDefaultTextOption(QTextOption(Qt.AlignmentFlag.AlignRight))
         
         font = QFont('David', 16)
         self.text_area.setFont(font)
@@ -470,7 +462,7 @@ class TranscriptionApp(QMainWindow):
         
         # Save status
         self.save_status = QLabel("")
-        self.save_status.setAlignment(Qt.AlignRight)
+        self.save_status.setAlignment(Qt.AlignmentFlag.AlignRight)
         layout.addWidget(self.save_status)
 
         # Make window draggable
@@ -497,7 +489,7 @@ class TranscriptionApp(QMainWindow):
         Updates status based on text.
         """
         self.status_label.setText(f"סטטוס: {text}")
-        self.status_label.setAlignment(Qt.AlignRight)
+        self.status_label.setAlignment(Qt.AlignmentFlag.AlignRight)
 
     def browse_file(self):
         """
@@ -566,12 +558,12 @@ class TranscriptionApp(QMainWindow):
         # Update the text area with the corrected text
         self.current_transcript = corrected_text
         self.text_area.clear()
-        self.text_area.document().setDefaultTextOption(QTextOption(Qt.AlignRight))
+        self.text_area.document().setDefaultTextOption(QTextOption(Qt.AlignmentFlag.AlignRight))
         self.text_area.setPlainText(corrected_text)
         
         # Move cursor to start
         cursor = self.text_area.textCursor()
-        cursor.movePosition(QTextCursor.Start)
+        cursor.movePosition(QTextCursor.MoveOperation.Start)
         self.text_area.setTextCursor(cursor)
         
         QMessageBox.information(self, "הצלחה", "ההגהה הושלמה!\nהטקסט המתוקן מוצג בחלון")
@@ -603,12 +595,12 @@ class TranscriptionApp(QMainWindow):
         self.proofread_button.setEnabled(True)
         
         self.text_area.clear()
-        self.text_area.document().setDefaultTextOption(QTextOption(Qt.AlignRight))
+        self.text_area.document().setDefaultTextOption(QTextOption(Qt.AlignmentFlag.AlignRight))
         
         self.text_area.setPlainText(transcript)
         
         cursor = self.text_area.textCursor()
-        cursor.movePosition(QTextCursor.Start)
+        cursor.movePosition(QTextCursor.MoveOperation.Start)
         self.text_area.setTextCursor(cursor)
         
         self.status_label.setText("סטטוס: התמלול הושלם")
@@ -664,7 +656,7 @@ def main():
     app.setStyle('Fusion')
     window = TranscriptionApp()
     window.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
 
 if __name__ == '__main__':
     main()

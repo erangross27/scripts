@@ -7,10 +7,10 @@ This script handles shutterstock gui.
 
 import sys
 import os
-from PyQt5.QtWidgets import (QApplication, QMainWindow, QPushButton, QFileDialog, 
+from PyQt6.QtWidgets import (QApplication, QMainWindow, QPushButton, QFileDialog,
                             QProgressBar, QLabel, QVBoxLayout, QWidget, QTextEdit,
                             QTableWidget, QTableWidgetItem, QHeaderView, QMessageBox)
-from PyQt5.QtCore import Qt, QThread, pyqtSignal
+from PyQt6.QtCore import Qt, QThread, pyqtSignal
 from shutterstock_uploader import ShutterstockAutoUploader  # Import from second file
 
 class UploaderWorker(QThread):
@@ -157,7 +157,7 @@ class MainWindow(QMainWindow):
         self.status_table.setHorizontalHeaderLabels([
             'Image', 'Upload ID', 'Status', 'Message'
         ])
-        self.status_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.status_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
 
     def add_widgets_to_layout(self, layout):
         """Add all widgets to the main layout"""
@@ -256,7 +256,7 @@ def main():
     app.setStyle('Fusion')
     window = MainWindow()
     window.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
 
 if __name__ == "__main__":
     main()

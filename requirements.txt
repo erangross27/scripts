@@ -1,5 +1,6 @@
 # Core packages
 Pillow
+PyQt6
 PyYAML
 matplotlib
 moviepy
@@ -8,30 +9,32 @@ opencv-python
 pandas
 psutil
 pydub
-pyqt5
 requests
 scikit-learn
 tqdm
 yt-dlp
 
 # Optional packages
+PyMuPDF
+anthropic
 bcrypt
 cryptography
 diffusers
 fastapi
+gputil
+openai
+piexif
 psycopg2
+pycuda
 pydantic>=2.10,<3.0
+python-docx
+python-dotenv
 qiskit
+qiskit-ibm-runtime
 redis
+scapy
+sqlalchemy
 torch
 torchvision
 uvicorn
-moviepy
-PyMuPDF
-python-docx
-anthropic
-piexif
-gputil
-pycuda
 wmi
-sqlalchemy

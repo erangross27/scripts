@@ -6,7 +6,7 @@ import argparse
 
 # Define core, optional, and allowed packages
 CORE_PACKAGES = {
-    'pyqt5', 'yt-dlp', 'requests', 'tqdm', 'pydub', 'pandas', 'numpy', 'psutil',
+    'PyQt6', 'yt-dlp', 'requests', 'tqdm', 'pydub', 'pandas', 'numpy', 'psutil',
     'moviepy', 'matplotlib', 'scikit-learn', 'opencv-python', 'Pillow', 'PyYAML'
 }
 
@@ -14,7 +14,9 @@ OPTIONAL_PACKAGES = {
     'redis', 'psycopg2', 'pymongo', 'qiskit', 'qiskit-ibm-runtime',
     'fastapi', 'uvicorn', 'torch', 'torchvision', 'diffusers',
     'python-docx', 'pymupdf', 'cryptography', 'bcrypt', 'pyjwt', 'pywin32',
-    'bottle', 'pydantic'
+    'bottle', 'pydantic', 'anthropic', 'openai', 'python-dotenv', 'piexif',
+    'gputil', 'pycuda', 'wmi', 'sqlalchemy', 'scapy', 'netifaces',
+    'huggingface-hub', 'httpx'
 }
 
 ALLOWED_PACKAGES = CORE_PACKAGES | OPTIONAL_PACKAGES
@@ -31,7 +33,18 @@ MODULE_TO_PACKAGE = {
     'PIL': 'Pillow',
     'sklearn': 'scikit-learn',
     'yaml': 'PyYAML',
-    'PyQt5': 'pyqt5',
+    'PyQt6': 'PyQt6',
+    'fitz': 'pymupdf',
+    'scapy': 'scapy',
+    'anthropic': 'anthropic',
+    'openai': 'openai',
+    'dotenv': 'python-dotenv',
+    'netifaces': 'netifaces',
+    'GPUtil': 'gputil',
+    'huggingface_hub': 'huggingface-hub',
+    'httpx': 'httpx',
+    'jwt': 'pyjwt',
+    'docx': 'python-docx',
 }
 
 # Common Python standard library modules to exclude

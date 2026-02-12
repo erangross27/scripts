@@ -34,9 +34,9 @@ Functions:
 import os
 import sys
 from PIL import Image
-from PyQt5.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
+from PyQt6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
                              QPushButton, QSlider, QTextEdit, QFileDialog, QRadioButton, QButtonGroup)
-from PyQt5.QtCore import Qt
+from PyQt6.QtCore import Qt
 
 # Function to compress a single image
 def compress_image(image_path, output_path, quality):
@@ -132,7 +132,7 @@ class ImageCompressorGUI(QWidget):
         """
         quality_layout = QHBoxLayout()
         quality_layout.addWidget(QLabel("Quality:"))
-        self.quality_slider = QSlider(Qt.Horizontal)
+        self.quality_slider = QSlider(Qt.Orientation.Horizontal)
         self.quality_slider.setRange(1, 100)
         self.quality_slider.setValue(90)
         quality_layout.addWidget(self.quality_slider)
@@ -233,4 +233,4 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     ex = ImageCompressorGUI()
     ex.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())

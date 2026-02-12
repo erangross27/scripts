@@ -29,12 +29,12 @@ Note: This script must be run in an environment with PyQt5 installed.
 
 import sys
 import os
-from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
-                             QLabel, QLineEdit, QPushButton, QFileDialog, QComboBox, QSpinBox, 
+from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
+                             QLabel, QLineEdit, QPushButton, QFileDialog, QComboBox, QSpinBox,
                              QMessageBox)
-from PyQt5.QtSvg import QSvgRenderer
-from PyQt5.QtGui import QImage, QPainter
-from PyQt5.QtCore import QRectF, Qt
+from PyQt6.QtSvg import QSvgRenderer
+from PyQt6.QtGui import QImage, QPainter
+from PyQt6.QtCore import QRectF, Qt
 
 class SVGConverter(QMainWindow):
     """
@@ -162,8 +162,8 @@ class SVGConverter(QMainWindow):
         
         # Render SVG to image
         renderer = QSvgRenderer(input_file)
-        image = QImage(width, height, QImage.Format_ARGB32)
-        image.fill(Qt.transparent)
+        image = QImage(width, height, QImage.Format.Format_ARGB32)
+        image.fill(Qt.GlobalColor.transparent)
         with QPainter(image) as painter:
             renderer.render(painter, QRectF(0, 0, width, height))
         
@@ -178,4 +178,4 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     converter = SVGConverter()
     converter.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())

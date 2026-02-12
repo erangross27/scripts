@@ -3,7 +3,7 @@ This script handles hour calculator.
 """
 
 import sys
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QApplication, QWidget, QGridLayout, QLineEdit, QPushButton, QMessageBox
 )
 
@@ -272,10 +272,10 @@ class TimeCalculator(QWidget):
         Show error based on message.
         """
         error_dialog = QMessageBox()
-        error_dialog.setIcon(QMessageBox.Warning)
+        error_dialog.setIcon(QMessageBox.Icon.Warning)
         error_dialog.setText(message)
         error_dialog.setWindowTitle("Error")
-        error_dialog.exec_()
+        error_dialog.exec()
 
 def main():
     """
@@ -285,7 +285,7 @@ def main():
     window = TimeCalculator()
     window.resize(350, 400)
     window.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
 
 if __name__ == "__main__":
     main()
