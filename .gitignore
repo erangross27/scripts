@@ -73,3 +73,5 @@ system_utilities/antropic_logs/warning.log
 .venv/
 venv/
 ENV/
+video_processing/youtube_downloader/release/
+video_processing/youtube_downloader/build/
