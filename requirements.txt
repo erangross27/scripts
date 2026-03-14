@@ -4,6 +4,7 @@ PyQt6
 PyYAML
 matplotlib
 moviepy
+mutagen
 numpy
 opencv-python
 pandas
