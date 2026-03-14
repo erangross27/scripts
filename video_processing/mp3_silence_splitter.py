@@ -1,7 +1,9 @@
 """
-MP3 Silence Splitter — uses ffmpeg silencedetect for accurate gap detection,
-displays a waveform with editable split points, and exports individual tracks.
-Fully automatic: just load a file and click Split & Export.
+MP3 Track Splitter — two detection modes:
+  1. Silence Detection (ffmpeg silencedetect) — for albums with gaps between tracks
+  2. Music Change Detection (librosa spectral analysis) — for continuous mixes
+     where songs blend together without silence gaps.
+Displays a waveform with editable split points, and exports individual tracks.
 """
 
 import sys
@@ -17,7 +19,7 @@ from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QLineEdit, QPushButton, QFileDialog, QGroupBox,
     QTableWidget, QTableWidgetItem, QProgressBar, QHeaderView, QMessageBox,
-    QAbstractItemView,
+    QAbstractItemView, QSpinBox,
 )
 from PyQt6.QtCore import Qt, QThread, pyqtSignal, QUrl
 from PyQt6.QtGui import QFont
@@ -123,6 +125,104 @@ class DetectionThread(QThread):
             self.error.emit(str(e))
 
 
+class MusicChangeDetectionThread(QThread):
+    """Detect song boundaries via spectral novelty — works without silence gaps.
+
+    Uses MFCCs (timbre), chroma (tonality), and spectral contrast to build a
+    novelty curve.  Peaks in the novelty curve correspond to points where the
+    musical character changes, i.e. song boundaries.
+    """
+    finished = pyqtSignal(list)   # list of boundary times in seconds
+    status = pyqtSignal(str)
+    error = pyqtSignal(str)
+
+    def __init__(self, filepath, expected_tracks=0):
+        super().__init__()
+        self.filepath = filepath
+        self.expected_tracks = expected_tracks  # 0 = auto-detect
+
+    def run(self):
+        try:
+            import librosa
+            from scipy.signal import find_peaks
+            from scipy.ndimage import uniform_filter1d
+
+            self.status.emit("Loading audio with librosa (may take a moment)…")
+            y, sr = librosa.load(self.filepath, sr=22050, mono=True)
+            duration = librosa.get_duration(y=y, sr=sr)
+
+            self.status.emit("Extracting spectral features…")
+            hop_length = 512
+
+            mfcc = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=13, hop_length=hop_length)
+            chroma = librosa.feature.chroma_cqt(y=y, sr=sr, hop_length=hop_length)
+            contrast = librosa.feature.spectral_contrast(y=y, sr=sr, hop_length=hop_length)
+
+            # Downsample to ~1 frame/second for efficiency
+            fps = sr / hop_length
+            block = max(1, int(fps))
+            n_frames = mfcc.shape[1]
+            n_blocks = n_frames // block
+
+            def downsample(feat):
+                trim = n_blocks * block
+                return feat[:, :trim].reshape(feat.shape[0], n_blocks, block).mean(axis=2)
+
+            features = np.vstack([
+                librosa.util.normalize(downsample(mfcc), axis=1),
+                librosa.util.normalize(downsample(chroma), axis=1),
+                librosa.util.normalize(downsample(contrast), axis=1),
+            ])  # shape: (n_features, n_blocks)
+
+            self.status.emit("Computing novelty curve…")
+
+            # Sliding-window cosine distance between past and future blocks
+            window = 15  # seconds (at 1 fps)
+            feat_T = features.T  # (n_blocks, n_features)
+            novelty = np.zeros(n_blocks)
+
+            for i in range(window, n_blocks - window):
+                left = feat_T[i - window:i].mean(axis=0)
+                right = feat_T[i:i + window].mean(axis=0)
+                norm_l = np.linalg.norm(left)
+                norm_r = np.linalg.norm(right)
+                if norm_l > 0 and norm_r > 0:
+                    novelty[i] = 1.0 - np.dot(left, right) / (norm_l * norm_r)
+
+            # Smooth and normalize
+            novelty = uniform_filter1d(novelty, size=5)
+            peak = novelty.max()
+            if peak > 0:
+                novelty /= peak
+
+            self.status.emit("Finding song boundaries…")
+
+            min_dist = 60  # at least 60 s between songs
+
+            if self.expected_tracks > 1:
+                n_boundaries = self.expected_tracks - 1
+                peaks, props = find_peaks(novelty, distance=min_dist, prominence=0.05)
+                if len(peaks) > n_boundaries:
+                    top = np.argsort(props["prominences"])[-n_boundaries:]
+                    peaks = np.sort(peaks[top])
+                elif len(peaks) < n_boundaries:
+                    # relax constraints
+                    peaks, props = find_peaks(novelty, distance=min_dist // 2, prominence=0.02)
+                    if len(peaks) > n_boundaries:
+                        top = np.argsort(props["prominences"])[-n_boundaries:]
+                        peaks = np.sort(peaks[top])
+            else:
+                peaks, _ = find_peaks(novelty, distance=min_dist, prominence=0.15, height=0.1)
+
+            # Convert frame indices → seconds (1 fps after downsampling)
+            boundary_times = peaks.astype(float).tolist()
+            boundary_times = [t for t in boundary_times if 15 < t < duration - 15]
+
+            self.finished.emit(boundary_times)
+        except Exception as e:
+            self.error.emit(str(e))
+
+
 class SplitExportThread(QThread):
     """Export segments using ffmpeg — no re-encoding for MP3."""
     progress = pyqtSignal(int, str)
@@ -212,6 +312,12 @@ class WaveformCanvas(FigureCanvasQTAgg):
         self._draw_split_lines()
         self.split_points_changed.emit()
 
+    def set_split_points_from_times(self, times: list[float]):
+        """Set split points from exact boundary times (music change detection)."""
+        self._split_s = list(times)
+        self._draw_split_lines()
+        self.split_points_changed.emit()
+
     def get_segments(self) -> list[tuple[float, float]]:
         """Return contiguous segment ranges (seconds) from split points."""
         points = sorted(self._split_s)
@@ -277,7 +383,7 @@ class WaveformCanvas(FigureCanvasQTAgg):
 class MP3SilenceSplitter(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("MP3 Silence Splitter")
+        self.setWindowTitle("MP3 Track Splitter")
         self.resize(1000, 750)
 
         self._input_path: str | None = None
@@ -318,7 +424,7 @@ class MP3SilenceSplitter(QMainWindow):
 
         # --- Info label ---
         self.info_label = QLabel(
-            "Automatic silence detection via ffmpeg  |  "
+            "Silence mode: splits at quiet gaps  |  Music Change mode: splits where the song changes  |  "
             "Left-click waveform to add split  |  Right-click to remove"
         )
         self.info_label.setStyleSheet("color: #aaa; font-size: 11px;")
@@ -326,12 +432,29 @@ class MP3SilenceSplitter(QMainWindow):
 
         # --- Action buttons ---
         btn_row = QHBoxLayout()
-        self.btn_detect = QPushButton("  Detect Split Points  ")
+        self.btn_detect = QPushButton("  Detect by Silence  ")
         self.btn_detect.setStyleSheet(
             "QPushButton { background-color: #388e3c; color: white; padding: 8px 16px; font-weight: bold; }"
             "QPushButton:disabled { background-color: #555; }"
         )
         btn_row.addWidget(self.btn_detect)
+
+        self.btn_detect_music = QPushButton("  Detect by Music Change  ")
+        self.btn_detect_music.setStyleSheet(
+            "QPushButton { background-color: #e65100; color: white; padding: 8px 16px; font-weight: bold; }"
+            "QPushButton:disabled { background-color: #555; }"
+        )
+        btn_row.addWidget(self.btn_detect_music)
+
+        btn_row.addWidget(QLabel("Expected tracks:"))
+        self.spin_tracks = QSpinBox()
+        self.spin_tracks.setRange(0, 99)
+        self.spin_tracks.setValue(0)
+        self.spin_tracks.setSpecialValueText("Auto")
+        self.spin_tracks.setToolTip("0 = auto-detect number of tracks.\nSet a number if you know how many songs are in the file.")
+        self.spin_tracks.setFixedWidth(70)
+        btn_row.addWidget(self.spin_tracks)
+
         self.btn_export = QPushButton("  Split && Export  ")
         self.btn_export.setStyleSheet(
             "QPushButton { background-color: #1976d2; color: white; padding: 8px 16px; font-weight: bold; }"
@@ -368,11 +491,13 @@ class MP3SilenceSplitter(QMainWindow):
         self.btn_browse_input.clicked.connect(self._browse_input)
         self.btn_browse_output.clicked.connect(self._browse_output)
         self.btn_detect.clicked.connect(self._run_detection)
+        self.btn_detect_music.clicked.connect(self._run_music_change_detection)
         self.btn_export.clicked.connect(self._run_export)
         self.canvas.split_points_changed.connect(self._sync_table_from_canvas)
 
     def _set_buttons_state(self, audio_loaded=False, segments_ready=False):
         self.btn_detect.setEnabled(audio_loaded and FFMPEG is not None)
+        self.btn_detect_music.setEnabled(audio_loaded)
         self.btn_export.setEnabled(segments_ready and FFMPEG is not None)
 
     # -- file browsing --
@@ -437,6 +562,35 @@ class MP3SilenceSplitter(QMainWindow):
         self._populate_table(segments)
         self.status_label.setText(
             f"Found {len(gaps)} silence gaps → {len(segments)} tracks  |  "
+            "Edit on waveform if needed, then Split & Export"
+        )
+        self._set_buttons_state(audio_loaded=True, segments_ready=len(segments) > 0)
+
+    # -- music change detection via librosa --
+
+    def _run_music_change_detection(self):
+        if not self._input_path:
+            return
+        self.btn_detect_music.setEnabled(False)
+        self.btn_detect.setEnabled(False)
+        self.status_label.setText("Analyzing spectral features…")
+        self.progress.setValue(0)
+        expected = self.spin_tracks.value()
+        self._thread = MusicChangeDetectionThread(self._input_path, expected_tracks=expected)
+        self._thread.finished.connect(self._on_music_change_done)
+        self._thread.status.connect(self._on_music_change_status)
+        self._thread.error.connect(self._on_error)
+        self._thread.start()
+
+    def _on_music_change_status(self, msg: str):
+        self.status_label.setText(msg)
+
+    def _on_music_change_done(self, boundary_times: list):
+        self.canvas.set_split_points_from_times(boundary_times)
+        segments = self.canvas.get_segments()
+        self._populate_table(segments)
+        self.status_label.setText(
+            f"Found {len(boundary_times)} music changes → {len(segments)} tracks  |  "
             "Edit on waveform if needed, then Split & Export"
         )
         self._set_buttons_state(audio_loaded=True, segments_ready=len(segments) > 0)
